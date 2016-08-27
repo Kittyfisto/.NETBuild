@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Build", "Build\Build.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Build.Test", "Build.Test\Build.Test.csproj", "{34B3464E-CBE5-4410-9052-3AB2E720BACF}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Tests_", "_Tests_", "{72B03FBF-1702-423A-BFA5-901323CFA81B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -22,5 +24,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{34B3464E-CBE5-4410-9052-3AB2E720BACF} = {72B03FBF-1702-423A-BFA5-901323CFA81B}
 	EndGlobalSection
 EndGlobal

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using Build.BuildEngine;
 using Build.Parser;
 using FluentAssertions;

@@ -74,7 +74,7 @@
     <Compile Include="ExpressionEngine\UnaryOperation.cs" />
     <Compile Include="ExpressionEngine\Variable.cs" />
     <Compile Include="Slash.cs" />
-    <Compile Include="PathEx.cs" />
+    <Compile Include="Path.cs" />
     <Compile Include="ProcessEx.cs" />
     <Compile Include="Parser\CSharpProjectParser.cs" />
     <Compile Include="Parser\IFileParser.cs" />

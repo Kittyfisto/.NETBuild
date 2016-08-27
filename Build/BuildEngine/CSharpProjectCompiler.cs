@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using Build.DomainModel.MSBuild;
 
@@ -51,7 +52,7 @@ namespace Build.BuildEngine
 			get { return _output; }
 		}
 
-		private string OutputPath
+		private string OutputFileName
 		{
 			get
 			{
@@ -131,7 +132,7 @@ namespace Build.BuildEngine
 			if (_projectEnvironment[Properties.Utf8Output] == "True")
 				_arguments.Flag("utf8output");
 
-			_arguments.Add("out", OutputPath);
+			_arguments.Add("out", OutputFileName);
 
 			var items = _project.ItemGroups.SelectMany(x => x).ToList();
 			var referenceItems = items.Where(x => x.Type == Items.Reference);
@@ -146,6 +147,10 @@ namespace Build.BuildEngine
 			{
 				AddCompile(compile);
 			}
+
+			var fullOutputPath = Path.Combine(_rootPath, _projectEnvironment[Properties.OutputPath]);
+			if (!Directory.Exists(fullOutputPath))
+				Directory.CreateDirectory(fullOutputPath);
 
 			_exitCode = ProcessEx.Run(CompilerPath, _rootPath, _arguments, out _output);
 

@@ -113,16 +113,16 @@ namespace Build.Test.BusinessLogic.ExpressionEngine
 		[Description("Verifies that evaluating a project adds resvered/well known properties in the environment")]
 		public void TestEaluateProject1()
 		{
-			var fname = @"..\..\Build.Test.csproj";
+			const string fname = @"..\..\Build.Test.csproj";
 			var project = CSharpProjectParser.Instance.Parse(fname);
 			var envirnoment = new BuildEnvironment();
 			_engine.Evaluate(project, envirnoment);
 
-			envirnoment[Properties.MSBuildProjectDirectory].Should().Be(@"C:\Snapshots\NETBuild\Build.Test");
-			envirnoment[Properties.MSBuildProjectDirectoryNoRoot].Should().Be(@"Snapshots\NETBuild\Build.Test");
+			envirnoment[Properties.MSBuildProjectDirectory].Should().Be(@"C:\Snapshots\.NETBuild\Build.Test");
+			envirnoment[Properties.MSBuildProjectDirectoryNoRoot].Should().Be(@"Snapshots\.NETBuild\Build.Test");
 			envirnoment[Properties.MSBuildProjectExtension].Should().Be(".csproj");
 			envirnoment[Properties.MSBuildProjectFile].Should().Be("Build.Test.csproj");
-			envirnoment[Properties.MSBuildProjectFullPath].Should().Be(@"C:\Snapshots\NETBuild\Build.Test\Build.Test.csproj");
+			envirnoment[Properties.MSBuildProjectFullPath].Should().Be(@"C:\Snapshots\.NETBuild\Build.Test\Build.Test.csproj");
 			envirnoment[Properties.MSBuildProjectName].Should().Be("Build.Test");
 		}
 

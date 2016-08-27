@@ -3,7 +3,6 @@ using System.Diagnostics.Contracts;
 using System.IO;
 using Build.BuildEngine;
 using NUnit.Framework;
-using Path = Build.Path;
 
 namespace Build.Test.BusinessLogic.BuildEngine.CompilerTest
 {
@@ -56,8 +55,10 @@ namespace Build.Test.BusinessLogic.BuildEngine.CompilerTest
 				throw new Exception();
 
 			var folderPath = Path.Normalize(TestPath.Get(relativeFolderName));
-			Console.WriteLine("Cleaning '{0}'", folderPath);
+			if (!Directory.Exists(folderPath))
+				return;
 
+			Console.WriteLine("Cleaning '{0}'", folderPath);
 			var files = Directory.EnumerateFiles(folderPath, "*.*");
 			foreach (var file in files)
 			{
