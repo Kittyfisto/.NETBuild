@@ -1,47 +1,42 @@
 ﻿using System;
-using System.Diagnostics;
-using Build.BuildEngine;
-using Build.Parser;
+using System.Reflection;
+using Build.ExpressionEngine;
 
 namespace Build
 {
-	public sealed class Application : IDisposable
+	public static class Application
 	{
 		public static int Main(string[] args)
 		{
-			using (var application = new Application())
+			try
 			{
-				return application.Run();
+				Arguments arguments = Arguments.Parse(args);
+				if (!arguments.NoLogo)
+					PrintLogo();
+
+				using (var engine = new BuildEngine.BuildEngine(arguments))
+				{
+					engine.Run();
+				}
+
+				return 0;
+			}
+			catch (ParseException e)
+			{
+				Console.WriteLine(e.Message);
+				return -1;
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine("internal error: {0}", e);
+				return -2;
 			}
 		}
 
-		private int Run()
+		private static void PrintLogo()
 		{
-			var sw = new Stopwatch();
-			sw.Start();
-
-			var expressionEngine = new ExpressionEngine.ExpressionEngine();
-			var assembyResolver = new AssemblyResolver(expressionEngine);
-
-			var loader = CSharpProjectParser.Instance;
-			const string fname = @"C:\Snapshots\Dashboard\Build\Build.csproj";
-			var project = loader.Parse(fname);
-			var environment = new BuildEnvironment();
-			var evaluated = expressionEngine.Evaluate(project, environment);
-
-			var compiler = new CSharpProjectCompiler(assembyResolver, evaluated, environment);
-			var exitCode = compiler.Run();
-			Console.WriteLine(compiler.Output);
-
-			sw.Stop();
-			Console.WriteLine("Project took: {0}ms", sw.ElapsedMilliseconds);
-
-			return exitCode;
-		}
-
-		public void Dispose()
-		{
-			
+			Console.WriteLine("Kittyfisto's .NET Build Engine version {0}", Assembly.GetCallingAssembly().GetName().Version);
+			Console.WriteLine("[Microsoft .NET Framework, version {0}]", Environment.Version);
 		}
 	}
 }

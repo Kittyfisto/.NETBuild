@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="Application.cs" />
     <Compile Include="ArgumentBuilder.cs" />
+    <Compile Include="Arguments.cs" />
     <Compile Include="BuildEngine\AssemblyResolver.cs" />
     <Compile Include="BuildEngine\BuildEngine.cs" />
     <Compile Include="BuildEngine\BuildEnvironment.cs" />
@@ -57,7 +58,9 @@
     <Compile Include="BuildEngine\ILogger.cs" />
     <Compile Include="BuildEngine\ProjectDependencies.cs" />
     <Compile Include="BuildEngine\ProjectDependencyGraph.cs" />
+    <Compile Include="Verbosity.cs" />
     <Compile Include="DomainModel\MSBuild\Target.cs" />
+    <Compile Include="DomainModel\MSBuild\Targets.cs" />
     <Compile Include="ExpressionEngine\BinaryExpression.cs" />
     <Compile Include="ExpressionEngine\BinaryOperation.cs" />
     <Compile Include="ExpressionEngine\FunctionExpression.cs" />

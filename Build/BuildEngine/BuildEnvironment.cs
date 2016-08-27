@@ -60,9 +60,9 @@ namespace Build.BuildEngine
 			return GetEnumerator();
 		}
 
-		public void Add(string key, string value)
+		public void Add(string name, string value)
 		{
-			_values[key] = value;
+			_values[name] = value;
 		}
 	}
 }
