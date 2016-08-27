@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{63F3A0B5-909C-43C5-8B79-CEA032DFE4F1}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Build</RootNamespace>
+    <AssemblyName>Build</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="log4net">
+      <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Application.cs" />
+    <Compile Include="ArgumentBuilder.cs" />
+    <Compile Include="BuildEngine\AssemblyResolver.cs" />
+    <Compile Include="BuildEngine\BuildEngine.cs" />
+    <Compile Include="BuildEngine\BuildEnvironment.cs" />
+    <Compile Include="BuildEngine\BuildLog.cs" />
+    <Compile Include="BuildEngine\IBuildLog.cs" />
+    <Compile Include="BuildEngine\Logger.cs" />
+    <Compile Include="BuildEngine\ILogger.cs" />
+    <Compile Include="BuildEngine\ProjectDependencies.cs" />
+    <Compile Include="BuildEngine\ProjectDependencyGraph.cs" />
+    <Compile Include="ExpressionEngine\BinaryExpression.cs" />
+    <Compile Include="ExpressionEngine\BinaryOperation.cs" />
+    <Compile Include="ExpressionEngine\FunctionExpression.cs" />
+    <Compile Include="ExpressionEngine\FunctionOperation.cs" />
+    <Compile Include="ExpressionEngine\Literal.cs" />
+    <Compile Include="ExpressionEngine\ExpressionEngine.cs" />
+    <Compile Include="ExpressionEngine\IExpression.cs" />
+    <Compile Include="ExpressionEngine\ParseException.cs" />
+    <Compile Include="ExpressionEngine\ConcatExpression.cs" />
+    <Compile Include="ExpressionEngine\Token.cs" />
+    <Compile Include="ExpressionEngine\Tokenizer.cs" />
+    <Compile Include="ExpressionEngine\TokenOrExpression.cs" />
+    <Compile Include="ExpressionEngine\TokenType.cs" />
+    <Compile Include="ExpressionEngine\UnaryExpression.cs" />
+    <Compile Include="ExpressionEngine\UnaryOperation.cs" />
+    <Compile Include="ExpressionEngine\Variable.cs" />
+    <Compile Include="Slash.cs" />
+    <Compile Include="PathEx.cs" />
+    <Compile Include="ProcessEx.cs" />
+    <Compile Include="Parser\CSharpProjectParser.cs" />
+    <Compile Include="Parser\IFileParser.cs" />
+    <Compile Include="Watchdog\FileStore.cs" />
+    <Compile Include="Watchdog\IFileStore.cs" />
+    <Compile Include="Watchdog\PendingAction.cs" />
+    <Compile Include="Watchdog\PendingActionType.cs" />
+    <Compile Include="Watchdog\CSharpProjectStore.cs" />
+    <Compile Include="Watchdog\SandboxLoader.cs" />
+    <Compile Include="Watchdog\SandboxWatchdog.cs" />
+    <Compile Include="Parser\SolutionParser.cs" />
+    <Compile Include="Watchdog\SolutionStore.cs" />
+    <Compile Include="Watchdog\XmlReaderExtensions.cs" />
+    <Compile Include="DomainModel\MSBuild\Condition.cs" />
+    <Compile Include="DomainModel\MSBuild\CSharpProject.cs" />
+    <Compile Include="DomainModel\MSBuild\IItemGroup.cs" />
+    <Compile Include="DomainModel\MSBuild\IItemGroups.cs" />
+    <Compile Include="DomainModel\MSBuild\IMetadataGroup.cs" />
+    <Compile Include="DomainModel\MSBuild\INode.cs" />
+    <Compile Include="DomainModel\MSBuild\IPropertyGroup.cs" />
+    <Compile Include="DomainModel\MSBuild\IPropertyGroups.cs" />
+    <Compile Include="DomainModel\MSBuild\Metadata.cs" />
+    <Compile Include="DomainModel\MSBuild\Metadatas.cs" />
+    <Compile Include="DomainModel\MSBuild\ProjectItem.cs" />
+    <Compile Include="DomainModel\MSBuild\ItemGroups.cs" />
+    <Compile Include="DomainModel\MSBuild\Items.cs" />
+    <Compile Include="DomainModel\MSBuild\Node.cs" />
+    <Compile Include="DomainModel\MSBuild\ItemGroup.cs" />
+    <Compile Include="DomainModel\MSBuild\Properties.cs" />
+    <Compile Include="DomainModel\MSBuild\Property.cs" />
+    <Compile Include="DomainModel\MSBuild\PropertyGroup.cs" />
+    <Compile Include="DomainModel\MSBuild\Compile.cs" />
+    <Compile Include="DomainModel\Filetype.cs" />
+    <Compile Include="DomainModel\IFile.cs" />
+    <Compile Include="DomainModel\MSBuild\PropertyGroups.cs" />
+    <Compile Include="DomainModel\MSBuild\ReadOnlyItemGroup.cs" />
+    <Compile Include="DomainModel\MSBuild\ReadOnlyItemGroups.cs" />
+    <Compile Include="DomainModel\MSBuild\ReadOnlyPropertyGroup.cs" />
+    <Compile Include="DomainModel\MSBuild\ReadOnlyPropertyGroups.cs" />
+    <Compile Include="DomainModel\Sandbox.cs" />
+    <Compile Include="DomainModel\Solution.cs" />
+    <Compile Include="BuildEngine\CSharpProjectCompiler.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
