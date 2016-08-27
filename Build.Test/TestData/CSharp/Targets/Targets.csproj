@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{34B3464E-CBE5-4410-9052-3AB2E720BACF}</ProjectGuid>
+    <ProjectGuid>{4BCE49EC-CDE8-43B6-B36F-D30F514EEA18}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Build.Test</RootNamespace>
-    <AssemblyName>Build.Test</AssemblyName>
+    <RootNamespace>Targets</RootNamespace>
+    <AssemblyName>Targets</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -30,15 +30,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FluentAssertions">
-      <HintPath>..\packages\FluentAssertions.4.0.0\lib\net45\FluentAssertions.dll</HintPath>
-    </Reference>
-    <Reference Include="FluentAssertions.Core">
-      <HintPath>..\packages\FluentAssertions.4.0.0\lib\net45\FluentAssertions.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="nunit.framework">
-      <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -48,39 +39,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BuildEngine\CompilerTest\AbstractCompilerTest.cs" />
-    <Compile Include="BuildEngine\CompilerTest\HelloWorldTest.cs" />
-    <Compile Include="ExpressionEngine\BinaryExpressionTest.cs" />
-    <Compile Include="ExpressionEngine\ExpressionEngineParsingTest.cs" />
-    <Compile Include="ExpressionEngine\ExpressionEngineEvaluationTest.cs" />
-    <Compile Include="ExpressionEngine\TokenizerTest.cs" />
-    <Compile Include="ExpressionEngine\UnaryExpressionTest.cs" />
-    <Compile Include="Parser\CSharpProjectParserTest.cs" />
-    <Compile Include="PathTest.cs" />
-    <Compile Include="DomainModel\ProjectItemTest.cs" />
-    <Compile Include="DomainModel\ConditionTest.cs" />
-    <Compile Include="DomainModel\PropertyTest.cs" />
-    <None Include="TestData\CSharp\HelloWorld\Program.cs" />
-    <None Include="TestData\CSharp\HelloWorld\Properties\AssemblyInfo.cs" />
-    <Compile Include="TestPath.cs" />
+    <Compile Include="Class1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup />
-  <ItemGroup>
-    <ProjectReference Include="..\Build\Build.csproj">
-      <Project>{63F3A0B5-909C-43C5-8B79-CEA032DFE4F1}</Project>
-      <Name>Build</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Parser\Build.Test.csproj" />
-    <Content Include="Parser\MissingTargetsAttribute.csproj" />
-    <None Include="TestData\CSharp\HelloWorld\HelloWorld.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="TestData\CSharp\HelloWorld\App.config" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="AfterBuild">
+	<Message Text="Test" Importance="High" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

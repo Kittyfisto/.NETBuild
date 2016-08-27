@@ -57,6 +57,7 @@
     <Compile Include="BuildEngine\ILogger.cs" />
     <Compile Include="BuildEngine\ProjectDependencies.cs" />
     <Compile Include="BuildEngine\ProjectDependencyGraph.cs" />
+    <Compile Include="DomainModel\MSBuild\Target.cs" />
     <Compile Include="ExpressionEngine\BinaryExpression.cs" />
     <Compile Include="ExpressionEngine\BinaryOperation.cs" />
     <Compile Include="ExpressionEngine\FunctionExpression.cs" />
@@ -87,7 +88,7 @@
     <Compile Include="Watchdog\SandboxWatchdog.cs" />
     <Compile Include="Parser\SolutionParser.cs" />
     <Compile Include="Watchdog\SolutionStore.cs" />
-    <Compile Include="Watchdog\XmlReaderExtensions.cs" />
+    <Compile Include="Parser\XmlReaderExtensions.cs" />
     <Compile Include="DomainModel\MSBuild\Condition.cs" />
     <Compile Include="DomainModel\MSBuild\CSharpProject.cs" />
     <Compile Include="DomainModel\MSBuild\IItemGroup.cs" />

@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using NUnit.Framework;
 
-namespace Build.Test.BusinessLogic
+namespace Build.Test
 {
 	[TestFixture]
 	public sealed class PathTest

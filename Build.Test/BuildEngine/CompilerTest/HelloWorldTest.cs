@@ -4,7 +4,7 @@ using Build.Parser;
 using FluentAssertions;
 using NUnit.Framework;
 
-namespace Build.Test.BusinessLogic.BuildEngine.CompilerTest
+namespace Build.Test.BuildEngine.CompilerTest
 {
 	[TestFixture]
 	public sealed class HelloWorldTest

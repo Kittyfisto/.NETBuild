@@ -2,7 +2,7 @@
 using FluentAssertions;
 using NUnit.Framework;
 
-namespace Build.Test.BusinessLogic.ExpressionEngine
+namespace Build.Test.ExpressionEngine
 {
 	[TestFixture]
 	public sealed class TokenizerTest

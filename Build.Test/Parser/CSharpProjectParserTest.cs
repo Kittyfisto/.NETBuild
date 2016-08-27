@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Build.DomainModel.MSBuild;
+using Build.ExpressionEngine;
 using Build.Parser;
 using FluentAssertions;
 using NUnit.Framework;
 
-namespace Build.Test.BusinessLogic.Parser
+namespace Build.Test.Parser
 {
 	[TestFixture]
 	public sealed class CSharpProjectParserTest
@@ -20,7 +22,7 @@ namespace Build.Test.BusinessLogic.Parser
 		[Test]
 		public void TestParse1()
 		{
-			var path = TestPath.Get(@"BusinessLogic/Parser/Build.Test.csproj");
+			var path = TestPath.Get(@"Parser/Build.Test.csproj");
 			var project = _parser.Parse(path);
 			project.Should().NotBeNull();
 			project.Filename.Should().Be(path);
@@ -128,6 +130,15 @@ namespace Build.Test.BusinessLogic.Parser
 					                                     new Metadata("Project", "{63F3A0B5-909C-43C5-8B79-CEA032DFE4F1}"),
 					                                     new Metadata("Name", "Build")
 				                                     }));
+		}
+
+		[Test]
+		public void TestParse2()
+		{
+			var path = TestPath.Get(@"Parser/MissingTargetsAttribute.csproj");
+			new Action(() => _parser.Parse(path))
+				.ShouldThrow<ParseException>()
+				.WithMessage("error  : The required attribute \"Name\" is empty or missing from the element <Target>.");
 		}
 	}
 }
