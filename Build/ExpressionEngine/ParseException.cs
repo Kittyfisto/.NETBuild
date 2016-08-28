@@ -1,9 +1,7 @@
-﻿using System;
-
-namespace Build.ExpressionEngine
+﻿namespace Build.ExpressionEngine
 {
 	public sealed class ParseException
-		: Exception
+		: BuildException
 	{
 		public ParseException()
 		{}

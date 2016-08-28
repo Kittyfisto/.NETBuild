@@ -15,80 +15,53 @@ namespace Build
 		private readonly List<Property> _properties;
 		private readonly List<string> _targets;
 
-		private bool _detailedSummary;
-		private bool _help;
-		private string _inputFile;
-		private int _maxCpuCount;
-		private bool _noAutoResponse;
-		private bool _noLogo;
-		private Verbosity _verbosity;
-
 		public Arguments()
 		{
 			_targets = new List<string>();
 			_ignoreProjectExtensions = new List<string>();
 			_properties = new List<Property>();
-			_verbosity = Verbosity.Normal;
-			_maxCpuCount = Environment.ProcessorCount;
+			Verbosity = Verbosity.Normal;
+			MaxCpuCount = Environment.ProcessorCount;
 		}
 
 		public Verbosity Verbosity
 		{
-			get { return _verbosity; }
-		}
+			get; set; }
 
-		public IReadOnlyList<Property> Properties
+		public List<Property> Properties
 		{
 			get { return _properties; }
 		}
 
-		public IReadOnlyList<string> IgnoreProjectExtensions
+		public List<string> IgnoreProjectExtensions
 		{
 			get { return _ignoreProjectExtensions; }
 		}
 
-		public bool NoAutoResponse
-		{
-			get { return _noAutoResponse; }
-		}
+		public bool NoAutoResponse { get; set; }
 
-		public bool DetailedSummary
-		{
-			get { return _detailedSummary; }
-		}
+		public bool DetailedSummary { get; set; }
 
-		public int MaxCpuCount
-		{
-			get { return _maxCpuCount; }
-		}
+		public int MaxCpuCount { get; set; }
 
-		public string InputFile
-		{
-			get { return _inputFile; }
-		}
+		public string InputFile { get; set; }
 
-		public IReadOnlyList<string> Targets
+		public List<string> Targets
 		{
 			get { return _targets; }
 		}
 
-		public bool Help
-		{
-			get { return _help; }
-		}
+		public bool Help { get; set; }
 
-		public bool NoLogo
-		{
-			get { return _noLogo; }
-		}
+		public bool NoLogo { get; set; }
 
 		public override string ToString()
 		{
 			var builder = new StringBuilder();
 			builder.Append("build ");
-			if (_inputFile != null)
+			if (InputFile != null)
 			{
-				builder.Append(_inputFile);
+				builder.Append(InputFile);
 				builder.Append(' ');
 			}
 
@@ -112,9 +85,9 @@ namespace Build
 				}
 				else
 				{
-					if (string.IsNullOrEmpty(arguments._inputFile))
+					if (string.IsNullOrEmpty(arguments.InputFile))
 					{
-						arguments._inputFile = argument;
+						arguments.InputFile = argument;
 					}
 					else
 					{
@@ -139,12 +112,12 @@ namespace Build
 
 				case "/m":
 				case "/maxcpucount":
-					arguments._maxCpuCount = int.Parse(pair.Value);
+					arguments.MaxCpuCount = int.Parse(pair.Value);
 					break;
 
 				case "/ds":
 				case "/detailedsummary":
-					arguments._detailedSummary = true;
+					arguments.DetailedSummary = true;
 					break;
 
 				case "/ignore":
@@ -154,7 +127,7 @@ namespace Build
 
 				case "/noautorsp":
 				case "/noautoresponse":
-					arguments._noAutoResponse = true;
+					arguments.NoAutoResponse = true;
 					break;
 
 				case "/nr":
@@ -162,7 +135,7 @@ namespace Build
 					break;
 
 				case "/nologo":
-					arguments._noLogo = true;
+					arguments.NoLogo = true;
 					break;
 
 				case "/pp":
@@ -184,12 +157,12 @@ namespace Build
 
 				case "/v":
 				case "/verbosity":
-					arguments._verbosity = ParseVerbosity(pair.Value);
+					arguments.Verbosity = ParseVerbosity(pair.Value);
 					break;
 
 				case "/h":
 				case "/help":
-					arguments._help = true;
+					arguments.Help = true;
 					break;
 
 				default:

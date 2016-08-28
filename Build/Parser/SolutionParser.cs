@@ -1,5 +1,6 @@
 ﻿using System;
 using Build.DomainModel;
+using Build.DomainModel.MSBuild;
 
 namespace Build.Parser
 {
@@ -10,6 +11,16 @@ namespace Build.Parser
 	public sealed class SolutionParser
 		: IFileParser<Solution>
 	{
+		private readonly IFileParser<CSharpProject> _csharpProjectParser;
+
+		public SolutionParser(IFileParser<CSharpProject> csharpProjectParser)
+		{
+			if (csharpProjectParser == null)
+				throw new ArgumentNullException("csharpProjectParser");
+
+			_csharpProjectParser = csharpProjectParser;
+		}
+
 		public Solution Parse(string filePath)
 		{
 			throw new NotImplementedException();

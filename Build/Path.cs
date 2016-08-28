@@ -92,7 +92,7 @@ namespace Build
 			return filePath.Substring(index);
 		}
 
-		public static string GetAbsolutePath(string rootDirectory, string relativeOrAbsolutePath)
+		public static string MakeAbsolute(string rootDirectory, string relativeOrAbsolutePath)
 		{
 			if (System.IO.Path.IsPathRooted(relativeOrAbsolutePath))
 				return relativeOrAbsolutePath;

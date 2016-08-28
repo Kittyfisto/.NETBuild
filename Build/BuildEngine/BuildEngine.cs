@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using Build.DomainModel;
 using Build.DomainModel.MSBuild;
@@ -14,87 +15,144 @@ namespace Build.BuildEngine
 	public sealed class BuildEngine
 		: IDisposable
 	{
-		private readonly IFileParser<Solution> _solutionParser;
-		private readonly IFileParser<CSharpProject> _projectParser;
-		private readonly ExpressionEngine.ExpressionEngine _expressionEngine;
-		private readonly string _inputFile;
+		private readonly Arguments _arguments;
+		private readonly FileStream _buildLogStream;
+		private readonly IFileParser<CSharpProject> _csharpProjectParser;
 		private readonly BuildEnvironment _environment;
+		private readonly ExpressionEngine.ExpressionEngine _expressionEngine;
+		private readonly BuildLog _log;
+		private readonly AssemblyResolver _resolver;
+		private readonly IFileParser<Solution> _solutionParser;
 
 		public BuildEngine(Arguments arguments)
 		{
 			if (arguments == null)
 				throw new ArgumentNullException("arguments");
 
+			if (arguments.MaxCpuCount <= 0 || arguments.MaxCpuCount > 1024)
+				throw new BuildException(
+					string.Format(
+						"error MSB1032: Maximum CPU count is not valid. Value must be an integer greater than zero and nore more than 1024.\r\nSwitch: {0}",
+						arguments.MaxCpuCount));
+
+			_buildLogStream = File.Open("buildlog.txt", FileMode.OpenOrCreate, FileAccess.Write);
+			_buildLogStream.SetLength(0);
+			_log = new BuildLog(_buildLogStream);
 			_expressionEngine = new ExpressionEngine.ExpressionEngine();
-			_solutionParser = new SolutionParser();
-			_projectParser = CSharpProjectParser.Instance;
-			_inputFile = arguments.InputFile;
+			_csharpProjectParser = CSharpProjectParser.Instance;
+			_solutionParser = new SolutionParser(_csharpProjectParser);
+			_resolver = new AssemblyResolver(_expressionEngine);
+			_arguments = arguments;
+			if (_arguments.Targets.Count == 0)
+			{
+				_arguments.Targets.Add(Targets.Build);
+			}
+			else
+			{
+				_arguments.Targets.Sort(new TargetComparer());
+			}
+
 			_environment = new BuildEnvironment();
-			foreach (var property in arguments.Properties)
+			foreach (Property property in arguments.Properties)
 			{
 				_environment.Add(property.Name, property.Value);
 			}
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public void Run()
+		public void Dispose()
 		{
+			_buildLogStream.Dispose();
+		}
+
+
+		private void PrintLogo()
+		{
+			if (_arguments.NoLogo)
+				return;
+
+			Console.WriteLine("Kittyfisto's .NET Build Engine version {0}", Assembly.GetCallingAssembly().GetName().Version);
+			Console.WriteLine("[Microsoft .NET Framework, version {0}]", Environment.Version);
+			Console.WriteLine();
 		}
 
 		/// <summary>
-		///     Builds all projects using the given environment.
 		/// </summary>
-		public void Build()
+		public void Run()
 		{
-			// Building is done in a few simple steps:
+			PrintLogo();
 
-			// #1: Parse all relevant .csproj files into memory
-			var projects = Parse();
+			if (_arguments.Help)
+			{
+				
+			}
+			else
+			{
+				// Building is done in a few simple steps:
 
-			// #2: Evaluate these projects using the given environment (dependencies can be attached to conditions)
-			// TODO: What do we do when we have conditions that require the presence of files that are from a previous step's output?
-			var evaluatedProjects = Evaluate(projects);
+				// #1: Parse all relevant .csproj files into memory
+				List<CSharpProject> projects = Parse();
 
-			// #3: Build a dependency graph that tells us the relationship between projects
-			// TODO: We REALLY want a much more fine grained relation ship graph that includes particular files
-			var dependencyGraph = CreateDependencyGraph(evaluatedProjects);
+				// #2: Evaluate these projects using the given environment (dependencies can be attached to conditions)
+				// TODO: What do we do when we have conditions that require the presence of files that are from a previous step's output?
+				Dictionary<CSharpProject, BuildEnvironment> evaluatedProjects = Evaluate(projects);
 
-			// #4: Build all projects
+				var dependencyGraph = new ProjectDependencyGraph(evaluatedProjects);
+				var builders = new Builder[_arguments.MaxCpuCount];
+				for (int i = 0; i < builders.Length; ++i)
+				{
+					string name = string.Format("Builder #{0}", i);
+					builders[i] = new Builder(dependencyGraph, _log, name);
+				}
+
+				dependencyGraph.FinishedEvent.Wait();
+			}
+
+			_log.Flush();
 		}
 
 		private List<CSharpProject> Parse()
 		{
-			throw new NoNullAllowedException();
-			/*
-			var projects = new List<CSharpProject>(_inputFile.Length);
-			foreach (var filePath in _inputFile)
+			var projects = new List<CSharpProject>();
+			string inputFile = _arguments.InputFile;
+			if (inputFile == null)
+				inputFile = FindInputFile();
+
+			string extension = Path.GetExtension(inputFile);
+			switch (extension)
 			{
-				var extension = Path.GetExtension(filePath);
-				switch (extension)
-				{
-					case "sln":
-						var solution = _solutionParser.Parse(filePath);
-						projects.AddRange(solution.Projects);
-						break;
+				case ".sln":
+					Solution solution = _solutionParser.Parse(inputFile);
+					projects.AddRange(solution.Projects);
+					break;
 
-					case "csproj":
-						var project = _projectParser.Parse(filePath);
-						projects.Add(project);
-						break;
+				case ".csproj":
+					CSharpProject project = _csharpProjectParser.Parse(inputFile);
+					projects.Add(project);
+					break;
 
-					default:
-						throw new Exception(string.Format("Unsupported file-type: {0}", extension));
-				}
+				default:
+					throw new BuildException(string.Format("error MSB1009: Project file does not exist.\r\nSwitch: {0}", inputFile));
 			}
-			return projects;*/
+
+			return projects;
+		}
+
+		private string FindInputFile()
+		{
+			var directory = Directory.GetCurrentDirectory();
+			var files = Directory.EnumerateFiles(directory, "*.sln;*.csproj", SearchOption.TopDirectoryOnly).ToList();
+			if (files.Count == 0)
+			{
+				throw new BuildException("error MSB1003: Specify a project or solution file. The current working directory does not contain a project or solution file.");
+			}
+
+			return files[0];
 		}
 
 		private Dictionary<CSharpProject, BuildEnvironment> Evaluate(List<CSharpProject> projects)
 		{
 			var evaluatedProjects = new Dictionary<CSharpProject, BuildEnvironment>(projects.Count);
-			foreach (var project in projects)
+			foreach (CSharpProject project in projects)
 			{
 				// Evaluating a project means determining the values of properties, the
 				// presence of nodes, etc...
@@ -103,20 +161,10 @@ namespace Build.BuildEngine
 				// to interfere with the next one, thus we create one environment for each
 				// project.
 				var projectEnvironment = new BuildEnvironment(_environment);
-				var evaluated = _expressionEngine.Evaluate(project, projectEnvironment);
+				CSharpProject evaluated = _expressionEngine.Evaluate(project, projectEnvironment);
 				evaluatedProjects.Add(evaluated, projectEnvironment);
 			}
 			return evaluatedProjects;
-		}
-
-		private ProjectDependencyGraph CreateDependencyGraph(IReadOnlyDictionary<CSharpProject, BuildEnvironment> projects)
-		{
-			throw new NotImplementedException();
-		}
-
-		public void Dispose()
-		{
-			
 		}
 	}
 }

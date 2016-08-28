@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArgumentsTest.cs" />
+    <Compile Include="BuildEngine\HelloWorldTest.cs" />
     <Compile Include="BuildEngine\CompilerTest\AbstractCompilerTest.cs" />
     <Compile Include="BuildEngine\CompilerTest\HelloWorldTest.cs" />
     <Compile Include="ExpressionEngine\BinaryExpressionTest.cs" />

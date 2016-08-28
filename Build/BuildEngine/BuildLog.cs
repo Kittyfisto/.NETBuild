@@ -27,8 +27,9 @@ namespace Build.BuildEngine
 			return new Logger(this, Interlocked.Increment(ref _loggerId));
 		}
 
-		public void Log(int id, string message)
+		public void Log(int id, string format, object[] arguments)
 		{
+			var message = string.Format(format, arguments);
 			_writer.WriteLine("{0}>{1}", id, message);
 		}
 

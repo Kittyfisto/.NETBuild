@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection;
-using Build.ExpressionEngine;
 
 namespace Build
 {
@@ -11,8 +10,6 @@ namespace Build
 			try
 			{
 				Arguments arguments = Arguments.Parse(args);
-				if (!arguments.NoLogo)
-					PrintLogo();
 
 				using (var engine = new BuildEngine.BuildEngine(arguments))
 				{
@@ -21,7 +18,7 @@ namespace Build
 
 				return 0;
 			}
-			catch (ParseException e)
+			catch (BuildException e)
 			{
 				Console.WriteLine(e.Message);
 				return -1;
@@ -31,12 +28,6 @@ namespace Build
 				Console.WriteLine("internal error: {0}", e);
 				return -2;
 			}
-		}
-
-		private static void PrintLogo()
-		{
-			Console.WriteLine("Kittyfisto's .NET Build Engine version {0}", Assembly.GetCallingAssembly().GetName().Version);
-			Console.WriteLine("[Microsoft .NET Framework, version {0}]", Environment.Version);
 		}
 	}
 }

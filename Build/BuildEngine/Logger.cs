@@ -15,9 +15,9 @@
 			_id = id;
 		}
 
-		public void Log(string message)
+		public void LogFormat(string format, params object[] arguments)
 		{
-			_buildLog.Log(_id, message);
+			_buildLog.Log(_id, format, arguments);
 		}
 	}
 }

@@ -37,7 +37,7 @@ namespace Build.ExpressionEngine
 			environment[Properties.MSBuildProjectExtension] = Path.GetExtension(relativeOrAbsoluteProjectFilePath);
 			environment[Properties.MSBuildProjectFile] = Path.GetFilename(relativeOrAbsoluteProjectFilePath);
 			environment[Properties.MSBuildProjectName] = Path.GetFilenameWithoutExtension(relativeOrAbsoluteProjectFilePath);
-			environment[Properties.MSBuildProjectFullPath] = Path.GetAbsolutePath(Directory.GetCurrentDirectory(), relativeOrAbsoluteProjectFilePath);
+			environment[Properties.MSBuildProjectFullPath] = Path.MakeAbsolute(Directory.GetCurrentDirectory(), relativeOrAbsoluteProjectFilePath);
 			environment[Properties.MSBuildProjectDirectory] = Path.GetDirectory(environment[Properties.MSBuildProjectFullPath]);
 			environment[Properties.MSBuildProjectDirectoryNoRoot] = Path.GetDirectoryWithoutRoot(environment[Properties.MSBuildProjectFullPath], Slash.Exclude);
 
@@ -155,7 +155,7 @@ namespace Build.ExpressionEngine
 			var expandedRemove = Expand(item.Remove, environment);
 
 			// TODO: Split each string into lists of filenames (; as separator) and build a complete list of files represented by this item
-			var fullPath = Path.GetAbsolutePath(environment[Properties.MSBuildProjectDirectory], expandedInclude);
+			var fullPath = Path.MakeAbsolute(environment[Properties.MSBuildProjectDirectory], expandedInclude);
 			var info = new FileInfo(fullPath);
 			var metadata = new List<Metadata>
 				{
