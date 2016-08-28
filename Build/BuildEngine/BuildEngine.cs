@@ -66,9 +66,8 @@ namespace Build.BuildEngine
 			if (_arguments.NoLogo)
 				return;
 
-			_log.WriteLine("Kittyfisto's .NET Build Engine version {0}", Assembly.GetCallingAssembly().GetName().Version);
-			_log.WriteLine("[Microsoft .NET Framework, version {0}]", Environment.Version);
-			_log.WriteLine();
+			_log.WriteLine(Verbosity.Quiet, "Kittyfisto's .NET Build Engine version {0}", Assembly.GetCallingAssembly().GetName().Version);
+			_log.WriteLine(Verbosity.Quiet, "[Microsoft .NET Framework, version {0}]", Environment.Version);
 		}
 
 		/// <summary>
@@ -105,29 +104,33 @@ namespace Build.BuildEngine
 
 		private void Build(List<CSharpProject> projects, string target)
 		{
-			var enviroment = new BuildEnvironment(_environment, name: string.Format("Environment for target: {0}", target))
-				{
-					{Properties.DotNetBuildTarget, target}
-				};
-
 			// #2: Evaluate these projects using the given environment
 			// TODO: What do we do when we have conditions that require the presence of files that are from a previous step's output?
-			Dictionary<CSharpProject, BuildEnvironment> evaluatedProjects = Evaluate(projects, enviroment);
+			Dictionary<CSharpProject, BuildEnvironment> evaluatedProjects = Evaluate(projects, _environment);
 
 			var dependencyGraph = new ProjectDependencyGraph(evaluatedProjects);
-			var builders = new Builder[_arguments.MaxCpuCount];
-			for (int i = 0; i < builders.Length; ++i)
+			var nodes = new Node[_arguments.MaxCpuCount];
+			for (int i = 0; i < nodes.Length; ++i)
 			{
 				string name = string.Format("Builder #{0}", i);
-				builders[i] = new Builder(dependencyGraph, _log, name);
+				nodes[i] = new Node(dependencyGraph,
+				                    _log,
+				                    name,
+				                    target);
 			}
 
 			dependencyGraph.FinishedEvent.Wait();
 
-			foreach (var builder in builders)
+			foreach (var builder in nodes)
 			{
-				builder.Dispose();
+				builder.Stop();
 			}
+
+			_log.WriteLine(Verbosity.Quiet, "========== Build: {0} succeeded, {1} failed, {2} up-to-date, {3} skipped ==========",
+			               dependencyGraph.SucceededCount,
+			               dependencyGraph.FailedCount,
+			               "TODO",
+			               "TODO");
 		}
 
 		private void PrintHelp()

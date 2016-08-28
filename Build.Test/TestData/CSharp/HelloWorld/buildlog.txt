@@ -1,4 +1,7 @@
 ﻿Kittyfisto's .NET Build Engine version 0.1.0.0
 [Microsoft .NET Framework, version 4.0.30319.42000]
-
 1>------ Build started: Project: HelloWorld, Configuration: Debug AnyCPU ------
+1>Build started 28.08.2016 19:13:58.
+1>Build succeeded.
+1>Time Elapsed 00:00:00.0010001
+========== Build: 1 succeeded, 0 failed, TODO up-to-date, TODO skipped ==========

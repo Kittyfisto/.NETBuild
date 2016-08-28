@@ -24,9 +24,7 @@ namespace Build
 			MaxCpuCount = Environment.ProcessorCount;
 		}
 
-		public Verbosity Verbosity
-		{
-			get; set; }
+		public Verbosity Verbosity { get; set; }
 
 		public List<Property> Properties
 		{

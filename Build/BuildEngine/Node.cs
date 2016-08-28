@@ -7,37 +7,39 @@ using log4net;
 namespace Build.BuildEngine
 {
 	/// <summary>
-	///     A builder is responsible for executing one build task at a time.
-	///     A builder can execute multiple tasks is succession.
+	///     Responsible for building one project at a time.
 	/// </summary>
-	public sealed class Builder
-		: IDisposable
+	public sealed class Node
 	{
 		private static readonly ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+		private readonly IBuildLog _buildLog;
 		private readonly ProjectDependencyGraph _graph;
-		private readonly IBuildLog _log;
 		private readonly string _name;
+		private readonly string _target;
 		private readonly Thread _thread;
 		private bool _isFinished;
-		private bool _isDisposed;
 
-		public Builder(ProjectDependencyGraph graph,
-		               IBuildLog log,
-		               string name)
+		public Node(ProjectDependencyGraph graph,
+		            IBuildLog buildLog,
+		            string name,
+		            string target)
 		{
 			if (graph == null)
 				throw new ArgumentNullException("graph");
-			if (log == null)
-				throw new ArgumentNullException("log");
+			if (buildLog == null)
+				throw new ArgumentNullException("buildLog");
 			if (name == null)
 				throw new ArgumentNullException("name");
 			if (string.IsNullOrWhiteSpace(name))
 				throw new ArgumentException("A non-empty/whitespace name must be given", "name");
+			if (target == null)
+				throw new ArgumentNullException("target");
 
 			_graph = graph;
-			_log = log;
+			_buildLog = buildLog;
 			_name = name;
+			_target = target;
 			_thread = new Thread(Run)
 				{
 					IsBackground = true,
@@ -56,9 +58,8 @@ namespace Build.BuildEngine
 			get { return _name; }
 		}
 
-		public void Dispose()
+		public void Stop()
 		{
-			_isDisposed = true;
 			_thread.Join();
 		}
 
@@ -66,20 +67,22 @@ namespace Build.BuildEngine
 		{
 			try
 			{
-				while (!_isDisposed)
+				while (true)
 				{
 					CSharpProject project;
 					BuildEnvironment environment;
 					if (_graph.TryGetNextProject(out project, out environment))
 					{
-						var logger = _log.CreateLogger();
+						ILogger logger = _buildLog.CreateLogger();
 						try
 						{
-							Run(logger, project, environment);
+							var builder = new ProjectBuilder(logger, project, environment, _target);
+							builder.Run();
 						}
 						catch (Exception e)
 						{
-							logger.LogFormat("error: Internal build error: {0}", e);
+							logger.LogFormat(Verbosity.Quiet, "error: Internal build error: {0}", e);
+
 							Log.ErrorFormat("Cauhgt unexpected exception while building project '{0}': {1}",
 							                project.Filename,
 							                e);
@@ -91,7 +94,8 @@ namespace Build.BuildEngine
 					}
 					else
 					{
-						Thread.Sleep(TimeSpan.FromMilliseconds(100));
+						if (_graph.FinishedEvent.Wait(TimeSpan.FromSeconds(100)))
+							break;
 					}
 				}
 			}
@@ -102,28 +106,6 @@ namespace Build.BuildEngine
 			finally
 			{
 				_isFinished = true;
-			}
-		}
-
-		private void Run(ILogger logger, CSharpProject project, BuildEnvironment environment)
-		{
-			logger.LogFormat("------ Build started: Project: {0}, Configuration: {1} {2} ------",
-					   environment[Properties.MSBuildProjectName],
-					   environment[Properties.Configuration],
-					   environment[Properties.PlatformTarget]
-				);
-
-			var target = environment[Properties.DotNetBuildTarget];
-			switch (target)
-			{
-				case Targets.Clean:
-					break;
-
-				case Targets.Build:
-					break;
-
-				default:
-					throw new ArgumentException(string.Format("Unknown build target: {0}", target));
 			}
 		}
 	}

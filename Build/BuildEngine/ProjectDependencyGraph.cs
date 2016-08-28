@@ -66,6 +66,28 @@ namespace Build.BuildEngine
 			}
 		}
 
+		public int SucceededCount
+		{
+			get
+			{
+				lock (_syncRoot)
+				{
+					return _succeeded.Count;
+				}
+			}
+		}
+
+		public int FailedCount
+		{
+			get
+			{
+				lock (_syncRoot)
+				{
+					return _failed.Count;
+				}
+			}
+		}
+
 		public void Succeeded(CSharpProject project)
 		{
 			lock (_syncRoot)

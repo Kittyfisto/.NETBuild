@@ -52,7 +52,8 @@
     <Compile Include="BuildEngine\AssemblyResolver.cs" />
     <Compile Include="BuildEngine\BuildEngine.cs" />
     <Compile Include="BuildEngine\BuildEnvironment.cs" />
-    <Compile Include="BuildEngine\Builder.cs" />
+    <Compile Include="BuildEngine\Node.cs" />
+    <Compile Include="BuildEngine\ProjectBuilder.cs" />
     <Compile Include="BuildEngine\BuildGraph.cs" />
     <Compile Include="BuildEngine\BuildLog.cs" />
     <Compile Include="BuildEngine\IBuildLog.cs" />

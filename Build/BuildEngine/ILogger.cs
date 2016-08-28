@@ -2,6 +2,6 @@
 {
 	public interface ILogger
 	{
-		void LogFormat(string format, params object[] arguments);
+		void LogFormat(Verbosity verbosity, string format, params object[] arguments);
 	}
 }

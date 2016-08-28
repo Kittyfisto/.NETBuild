@@ -15,9 +15,9 @@
 			_id = id;
 		}
 
-		public void LogFormat(string format, params object[] arguments)
+		public void LogFormat(Verbosity verbosity, string format, params object[] arguments)
 		{
-			_buildLog.WriteLine(_id, format, arguments);
+			_buildLog.WriteLine(verbosity, _id, format, arguments);
 		}
 	}
 }

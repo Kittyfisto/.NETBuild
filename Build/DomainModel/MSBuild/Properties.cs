@@ -752,15 +752,5 @@
 		public const string PlatformTarget = "PlatformTarget";
 
 		#endregion
-
-		#region Reserved Custom Build Properties
-
-		/// <summary>
-		/// The build target to build in this step.
-		/// <see cref="Targets.Build"/> or <see cref="Targets.Clean"/>.
-		/// </summary>
-		public const string DotNetBuildTarget = "DotNetBuildTarget";
-
-		#endregion
 	}
 }

@@ -9,6 +9,17 @@ namespace Build.Test
 	public sealed class ArgumentsTest
 	{
 		[Test]
+		public void TestCtor()
+		{
+			var arguments = new Arguments();
+			arguments.Verbosity.Should().Be(Verbosity.Normal);
+			arguments.Properties.Should().NotBeNull();
+			arguments.Properties.Should().BeEmpty();
+			arguments.Targets.Should().NotBeNull();
+			arguments.Targets.Should().BeEmpty();
+		}
+
+		[Test]
 		public void TestParse1()
 		{
 			new Action(() => Arguments.Parse("foo.sln", "adwda"))

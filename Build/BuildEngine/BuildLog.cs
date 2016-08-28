@@ -50,16 +50,15 @@ namespace Build.BuildEngine
 			}
 		}
 
-		public void WriteLine(string format, params object[] arguments)
+		public void WriteLine(Verbosity verbosity, string format, params object[] arguments)
 		{
+			if (_arguments.Verbosity < verbosity)
+				return;
+
 			try
 			{
 				var message = string.Format(format, arguments);
-				lock (_writer)
-				{
-					_writer.WriteLine(message);
-					Console.WriteLine(message);
-				}
+				WriteLine(message);
 			}
 			catch (Exception e)
 			{
@@ -67,24 +66,30 @@ namespace Build.BuildEngine
 			}
 		}
 
-		public void WriteLine(int id, string format, object[] arguments)
+		public void WriteLine(Verbosity verbosity, int id, string format, object[] arguments)
 		{
-			if (_arguments.NoConsoleLogger)
+			if (_arguments.Verbosity < verbosity)
 				return;
 
 			try
 			{
 				var message = string.Format(format, arguments);
 				var formatted = string.Format("{0}>{1}", id, message);
-				lock (_writer)
-				{
-					_writer.WriteLine(formatted);
-					Console.WriteLine(formatted);
-				}
+				WriteLine(formatted);
 			}
 			catch (Exception e)
 			{
 				Log.ErrorFormat("Cauhgt unexpected exception while writing message: {0}", e);
+			}
+		}
+
+		public void WriteLine(string message)
+		{
+			lock (_writer)
+			{
+				_writer.WriteLine(message);
+				if (!_arguments.NoConsoleLogger)
+					Console.WriteLine(message);
 			}
 		}
 
