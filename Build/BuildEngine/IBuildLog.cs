@@ -8,7 +8,7 @@
 		/// <param name="id"></param>
 		/// <param name="format"></param>
 		/// <param name="arguments"></param>
-		void LogFormat(int id, string format, object[] arguments);
+		void WriteLine(int id, string format, object[] arguments);
 
 		/// <summary>
 		///     Creates a new logger that is associated with a unique id.

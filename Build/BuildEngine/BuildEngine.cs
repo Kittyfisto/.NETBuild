@@ -16,7 +16,6 @@ namespace Build.BuildEngine
 		: IDisposable
 	{
 		private readonly Arguments _arguments;
-		private readonly FileStream _buildLogStream;
 		private readonly IFileParser<CSharpProject> _csharpProjectParser;
 		private readonly BuildEnvironment _environment;
 		private readonly ExpressionEngine.ExpressionEngine _expressionEngine;
@@ -35,9 +34,7 @@ namespace Build.BuildEngine
 						"error MSB1032: Maximum CPU count is not valid. Value must be an integer greater than zero and nore more than 1024.\r\nSwitch: {0}",
 						arguments.MaxCpuCount));
 
-			_buildLogStream = File.Open("buildlog.txt", FileMode.OpenOrCreate, FileAccess.Write);
-			_buildLogStream.SetLength(0);
-			_log = new BuildLog(_buildLogStream);
+			_log = new BuildLog(arguments);
 			_expressionEngine = new ExpressionEngine.ExpressionEngine();
 			_csharpProjectParser = CSharpProjectParser.Instance;
 			_solutionParser = new SolutionParser(_csharpProjectParser);
@@ -61,18 +58,17 @@ namespace Build.BuildEngine
 
 		public void Dispose()
 		{
-			_buildLogStream.Dispose();
+			_log.Dispose();
 		}
-
 
 		private void PrintLogo()
 		{
 			if (_arguments.NoLogo)
 				return;
 
-			Console.WriteLine("Kittyfisto's .NET Build Engine version {0}", Assembly.GetCallingAssembly().GetName().Version);
-			Console.WriteLine("[Microsoft .NET Framework, version {0}]", Environment.Version);
-			Console.WriteLine();
+			_log.WriteLine("Kittyfisto's .NET Build Engine version {0}", Assembly.GetCallingAssembly().GetName().Version);
+			_log.WriteLine("[Microsoft .NET Framework, version {0}]", Environment.Version);
+			_log.WriteLine();
 		}
 
 		/// <summary>
@@ -89,8 +85,6 @@ namespace Build.BuildEngine
 			{
 				Build();
 			}
-
-			_log.Flush();
 		}
 
 		private void Build()
@@ -138,7 +132,7 @@ namespace Build.BuildEngine
 
 		private void PrintHelp()
 		{
-			Console.WriteLine("TODO");
+			_log.WriteLine("TODO");
 		}
 
 		private List<CSharpProject> Parse()

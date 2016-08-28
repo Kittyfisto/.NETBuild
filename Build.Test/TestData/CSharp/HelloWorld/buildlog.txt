@@ -1,1 +1,4 @@
-﻿1>------ Build started: Project: HelloWorld, Configuration: Debug AnyCPU ------
+﻿Kittyfisto's .NET Build Engine version 0.1.0.0
+[Microsoft .NET Framework, version 4.0.30319.42000]
+
+1>------ Build started: Project: HelloWorld, Configuration: Debug AnyCPU ------

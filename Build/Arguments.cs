@@ -40,6 +40,8 @@ namespace Build
 
 		public bool NoAutoResponse { get; set; }
 
+		public bool NoConsoleLogger { get; set; }
+
 		public bool DetailedSummary { get; set; }
 
 		public int MaxCpuCount { get; set; }
@@ -163,6 +165,11 @@ namespace Build
 				case "/h":
 				case "/help":
 					arguments.Help = true;
+					break;
+
+				case "/noconlog":
+				case "/noconsolelogger":
+					arguments.NoConsoleLogger = true;
 					break;
 
 				default:

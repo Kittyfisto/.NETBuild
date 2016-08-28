@@ -17,7 +17,7 @@
 
 		public void LogFormat(string format, params object[] arguments)
 		{
-			_buildLog.LogFormat(_id, format, arguments);
+			_buildLog.WriteLine(_id, format, arguments);
 		}
 	}
 }
