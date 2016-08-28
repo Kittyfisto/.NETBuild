@@ -36,22 +36,22 @@
     <Reference Include="FluentAssertions.Core">
       <HintPath>..\packages\FluentAssertions.4.0.0\lib\net45\FluentAssertions.Core.dll</HintPath>
     </Reference>
+    <Reference Include="Moq">
+      <HintPath>..\..\Dashboard\packages\Moq.4.2.1507.0118\lib\net40\Moq.dll</HintPath>
+    </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArgumentsTest.cs" />
     <Compile Include="BuildEngine\HelloWorldTest.cs" />
-    <Compile Include="BuildEngine\CompilerTest\AbstractCompilerTest.cs" />
-    <Compile Include="BuildEngine\CompilerTest\HelloWorldTest.cs" />
+    <Compile Include="BuildEngine\Tasks\Compilers\AbstractCompilerTest.cs" />
+    <Compile Include="BuildEngine\Tasks\Compilers\HelloWorldTest.cs" />
     <Compile Include="ExpressionEngine\BinaryExpressionTest.cs" />
     <Compile Include="ExpressionEngine\ExpressionEngineParsingTest.cs" />
     <Compile Include="ExpressionEngine\ExpressionEngineEvaluationTest.cs" />

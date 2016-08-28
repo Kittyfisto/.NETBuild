@@ -2,6 +2,7 @@
 {
 	public interface ILogger
 	{
-		void LogFormat(Verbosity verbosity, string format, params object[] arguments);
+		void WriteLine(Verbosity verbosity, string format, params object[] arguments);
+		void WriteMultiLine(Verbosity verbosity, string message);
 	}
 }

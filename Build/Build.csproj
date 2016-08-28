@@ -39,10 +39,6 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
@@ -62,6 +58,9 @@
     <Compile Include="BuildEngine\ProjectDependencies.cs" />
     <Compile Include="BuildEngine\ProjectDependencyGraph.cs" />
     <Compile Include="BuildEngine\TargetComparer.cs" />
+    <Compile Include="BuildEngine\Tasks\Compilers\IProjectCompiler.cs" />
+    <Compile Include="BuildEngine\Tasks\Copy.cs" />
+    <Compile Include="BuildEngine\Tasks\CopyFile.cs" />
     <Compile Include="BuildException.cs" />
     <Compile Include="Verbosity.cs" />
     <Compile Include="DomainModel\MSBuild\Target.cs" />
@@ -125,7 +124,7 @@
     <Compile Include="DomainModel\MSBuild\ReadOnlyPropertyGroups.cs" />
     <Compile Include="DomainModel\Sandbox.cs" />
     <Compile Include="DomainModel\Solution.cs" />
-    <Compile Include="BuildEngine\CSharpProjectCompiler.cs" />
+    <Compile Include="BuildEngine\Tasks\Compilers\CSharpProjectCompiler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

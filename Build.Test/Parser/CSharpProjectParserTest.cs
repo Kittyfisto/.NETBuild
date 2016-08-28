@@ -133,6 +133,7 @@ namespace Build.Test.Parser
 		}
 
 		[Test]
+		[Ignore("Not yet implemented")]
 		public void TestParse2()
 		{
 			var path = TestPath.Get(@"Parser/MissingTargetsAttribute.csproj");

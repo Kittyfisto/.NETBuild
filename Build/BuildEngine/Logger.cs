@@ -1,4 +1,6 @@
-﻿namespace Build.BuildEngine
+﻿using System;
+
+namespace Build.BuildEngine
 {
 	/// <summary>
 	/// Responsible for adding messages into the build log.
@@ -15,9 +17,18 @@
 			_id = id;
 		}
 
-		public void LogFormat(Verbosity verbosity, string format, params object[] arguments)
+		public void WriteLine(Verbosity verbosity, string format, params object[] arguments)
 		{
 			_buildLog.WriteLine(verbosity, _id, format, arguments);
+		}
+
+		public void WriteMultiLine(Verbosity verbosity, string message)
+		{
+			var lines = message.Split(new[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+			foreach (var line in lines)
+			{
+				WriteLine(verbosity, line);
+			}
 		}
 	}
 }

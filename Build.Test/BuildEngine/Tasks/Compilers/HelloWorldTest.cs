@@ -1,10 +1,12 @@
 ﻿using System;
 using Build.BuildEngine;
+using Build.BuildEngine.Tasks.Compilers;
 using Build.Parser;
 using FluentAssertions;
+using Moq;
 using NUnit.Framework;
 
-namespace Build.Test.BuildEngine.CompilerTest
+namespace Build.Test.BuildEngine.Tasks.Compilers
 {
 	[TestFixture]
 	public sealed class HelloWorldTest
@@ -20,17 +22,21 @@ namespace Build.Test.BuildEngine.CompilerTest
 
 			Clean(@"TestData\CSharp\HelloWorld\bin\Debug\");
 
-			var compiler = new CSharpProjectCompiler(AssemblyResolver, project, environment);
-			int exitCode = compiler.Run();
 			Console.WriteLine();
-			Console.WriteLine(compiler.Output);
-			exitCode.Should().Be(0);
+			var logger = new Mock<ILogger>();
+			logger.Setup(x => x.WriteMultiLine(It.IsAny<Verbosity>(), It.IsAny<string>()))
+			      .Callback((Verbosity unused, string message) =>
+				      {
+					      Console.WriteLine(message);
+				      });
+			var compiler = new CSharpProjectCompiler(AssemblyResolver, logger.Object, project, environment);
+			new Action(compiler.Run).ShouldNotThrow();
 
 			FileExists(@"TestData\CSharp\HelloWorld\bin\Debug\HelloWorld.exe").Should().BeTrue();
 			FileExists(@"TestData\CSharp\HelloWorld\bin\Debug\HelloWorld.pdb").Should().BeTrue();
 
 			string output;
-			exitCode = Run(@"TestData\CSharp\HelloWorld\bin\Debug\HelloWorld.exe", out output);
+			var exitCode = Run(@"TestData\CSharp\HelloWorld\bin\Debug\HelloWorld.exe", out output);
 			exitCode.Should().Be(0);
 			output.Should().Be("Hello World!");
 		}

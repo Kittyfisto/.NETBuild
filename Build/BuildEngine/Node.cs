@@ -16,17 +16,21 @@ namespace Build.BuildEngine
 		private readonly IBuildLog _buildLog;
 		private readonly ProjectDependencyGraph _graph;
 		private readonly string _name;
+		private readonly AssemblyResolver _resolver;
 		private readonly string _target;
 		private readonly Thread _thread;
 		private bool _isFinished;
 
 		public Node(ProjectDependencyGraph graph,
+		            AssemblyResolver resolver,
 		            IBuildLog buildLog,
 		            string name,
 		            string target)
 		{
 			if (graph == null)
 				throw new ArgumentNullException("graph");
+			if (resolver == null)
+				throw new ArgumentNullException("resolver");
 			if (buildLog == null)
 				throw new ArgumentNullException("buildLog");
 			if (name == null)
@@ -37,6 +41,7 @@ namespace Build.BuildEngine
 				throw new ArgumentNullException("target");
 
 			_graph = graph;
+			_resolver = resolver;
 			_buildLog = buildLog;
 			_name = name;
 			_target = target;
@@ -76,12 +81,12 @@ namespace Build.BuildEngine
 						ILogger logger = _buildLog.CreateLogger();
 						try
 						{
-							var builder = new ProjectBuilder(logger, project, environment, _target);
+							var builder = new ProjectBuilder(logger, _resolver, project, environment, _target);
 							builder.Run();
 						}
 						catch (Exception e)
 						{
-							logger.LogFormat(Verbosity.Quiet, "error: Internal build error: {0}", e);
+							logger.WriteLine(Verbosity.Quiet, "error: Internal build error: {0}", e);
 
 							Log.ErrorFormat("Cauhgt unexpected exception while building project '{0}': {1}",
 							                project.Filename,

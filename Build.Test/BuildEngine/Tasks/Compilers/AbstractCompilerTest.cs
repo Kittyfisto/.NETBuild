@@ -4,7 +4,7 @@ using System.IO;
 using Build.BuildEngine;
 using NUnit.Framework;
 
-namespace Build.Test.BuildEngine.CompilerTest
+namespace Build.Test.BuildEngine.Tasks.Compilers
 {
 	public abstract class AbstractCompilerTest
 	{

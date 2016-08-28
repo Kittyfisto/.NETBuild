@@ -114,6 +114,7 @@ namespace Build.BuildEngine
 			{
 				string name = string.Format("Builder #{0}", i);
 				nodes[i] = new Node(dependencyGraph,
+				                    _resolver,
 				                    _log,
 				                    name,
 				                    target);

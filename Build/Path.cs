@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 
 namespace Build
 {
@@ -13,7 +14,8 @@ namespace Build
 
 		public static string Combine(params string[] fragments)
 		{
-			return System.IO.Path.Combine(fragments);
+			var combined = System.IO.Path.Combine(fragments);
+			return combined;
 		}
 
 		public static string GetDirectory(string fullPath)
@@ -100,6 +102,15 @@ namespace Build
 			var path = System.IO.Path.Combine(rootDirectory, relativeOrAbsolutePath);
 			var normalized = Normalize(path);
 			return normalized;
+		}
+
+		[Pure]
+		public static string MakeRelative(string relativeTo, string fullPath)
+		{
+			var tmp = new Uri(relativeTo);
+			var relative = tmp.MakeRelativeUri(new Uri(fullPath));
+			var path = relative.OriginalString.Replace('/', '\\');
+			return path;
 		}
 	}
 }
