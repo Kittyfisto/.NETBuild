@@ -14,7 +14,7 @@ namespace Build.Test.BuildEngine
 				};
 			using (var engine = new Build.BuildEngine.BuildEngine(arguments))
 			{
-				engine.Run();
+				engine.Execute();
 			}
 		}
 	}

@@ -51,6 +51,7 @@ namespace Build.BuildEngine
 				KeyValuePair<CSharpProject, BuildEnvironment> pair = _todo.First();
 				project = pair.Key;
 				environment = pair.Value;
+				_todo.Remove(project);
 				return true;
 			}
 		}

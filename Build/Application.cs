@@ -13,7 +13,7 @@ namespace Build
 
 				using (var engine = new BuildEngine.BuildEngine(arguments))
 				{
-					engine.Run();
+					engine.Execute();
 				}
 
 				return 0;

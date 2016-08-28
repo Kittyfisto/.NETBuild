@@ -6,10 +6,10 @@
 	public sealed class Logger
 		: ILogger
 	{
-		private readonly BuildLog _buildLog;
+		private readonly IBuildLog _buildLog;
 		private readonly int _id;
 
-		public Logger(BuildLog buildLog, int id)
+		public Logger(IBuildLog buildLog, int id)
 		{
 			_buildLog = buildLog;
 			_id = id;
@@ -17,7 +17,7 @@
 
 		public void LogFormat(string format, params object[] arguments)
 		{
-			_buildLog.Log(_id, format, arguments);
+			_buildLog.LogFormat(_id, format, arguments);
 		}
 	}
 }

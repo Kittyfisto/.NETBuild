@@ -20,6 +20,7 @@ namespace Build.BuildEngine
 		private readonly string _name;
 		private readonly Thread _thread;
 		private bool _isFinished;
+		private bool _isDisposed;
 
 		public Builder(ProjectDependencyGraph graph,
 		               IBuildLog log,
@@ -57,16 +58,15 @@ namespace Build.BuildEngine
 
 		public void Dispose()
 		{
-			if (!_thread.Join(TimeSpan.FromSeconds(1)))
-			{
-			}
+			_isDisposed = true;
+			_thread.Join();
 		}
 
 		private void Run()
 		{
 			try
 			{
-				while (true)
+				while (!_isDisposed)
 				{
 					CSharpProject project;
 					BuildEnvironment environment;

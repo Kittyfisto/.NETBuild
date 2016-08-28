@@ -52,7 +52,7 @@ namespace Build.BuildEngine
 				_arguments.Targets.Sort(new TargetComparer());
 			}
 
-			_environment = new BuildEnvironment();
+			_environment = new BuildEnvironment(name: "Build Engine Environment");
 			foreach (Property property in arguments.Properties)
 			{
 				_environment.Add(property.Name, property.Value);
@@ -77,37 +77,68 @@ namespace Build.BuildEngine
 
 		/// <summary>
 		/// </summary>
-		public void Run()
+		public void Execute()
 		{
 			PrintLogo();
 
 			if (_arguments.Help)
 			{
-				
+				PrintHelp();
 			}
 			else
 			{
-				// Building is done in a few simple steps:
-
-				// #1: Parse all relevant .csproj files into memory
-				List<CSharpProject> projects = Parse();
-
-				// #2: Evaluate these projects using the given environment (dependencies can be attached to conditions)
-				// TODO: What do we do when we have conditions that require the presence of files that are from a previous step's output?
-				Dictionary<CSharpProject, BuildEnvironment> evaluatedProjects = Evaluate(projects);
-
-				var dependencyGraph = new ProjectDependencyGraph(evaluatedProjects);
-				var builders = new Builder[_arguments.MaxCpuCount];
-				for (int i = 0; i < builders.Length; ++i)
-				{
-					string name = string.Format("Builder #{0}", i);
-					builders[i] = new Builder(dependencyGraph, _log, name);
-				}
-
-				dependencyGraph.FinishedEvent.Wait();
+				Build();
 			}
 
 			_log.Flush();
+		}
+
+		private void Build()
+		{
+			// Building is done in a few simple steps:
+
+			// #1: Parse all relevant .csproj files into memory
+			List<CSharpProject> projects = Parse();
+
+			var targets = _arguments.Targets.ToList();
+			targets.Sort(new TargetComparer());
+
+			foreach (var target in targets)
+			{
+				Build(projects, target);
+			}
+		}
+
+		private void Build(List<CSharpProject> projects, string target)
+		{
+			var enviroment = new BuildEnvironment(_environment, name: string.Format("Environment for target: {0}", target))
+				{
+					{Properties.DotNetBuildTarget, target}
+				};
+
+			// #2: Evaluate these projects using the given environment
+			// TODO: What do we do when we have conditions that require the presence of files that are from a previous step's output?
+			Dictionary<CSharpProject, BuildEnvironment> evaluatedProjects = Evaluate(projects, enviroment);
+
+			var dependencyGraph = new ProjectDependencyGraph(evaluatedProjects);
+			var builders = new Builder[_arguments.MaxCpuCount];
+			for (int i = 0; i < builders.Length; ++i)
+			{
+				string name = string.Format("Builder #{0}", i);
+				builders[i] = new Builder(dependencyGraph, _log, name);
+			}
+
+			dependencyGraph.FinishedEvent.Wait();
+
+			foreach (var builder in builders)
+			{
+				builder.Dispose();
+			}
+		}
+
+		private void PrintHelp()
+		{
+			Console.WriteLine("TODO");
 		}
 
 		private List<CSharpProject> Parse()
@@ -139,17 +170,20 @@ namespace Build.BuildEngine
 
 		private string FindInputFile()
 		{
-			var directory = Directory.GetCurrentDirectory();
-			var files = Directory.EnumerateFiles(directory, "*.sln;*.csproj", SearchOption.TopDirectoryOnly).ToList();
+			string directory = Directory.GetCurrentDirectory();
+			var files = Directory.EnumerateFiles(directory, "*.sln", SearchOption.TopDirectoryOnly)
+			                     .Concat(Directory.EnumerateFiles(directory, "*.csproj", SearchOption.TopDirectoryOnly))
+			                     .ToList();
 			if (files.Count == 0)
 			{
-				throw new BuildException("error MSB1003: Specify a project or solution file. The current working directory does not contain a project or solution file.");
+				throw new BuildException(
+					"error MSB1003: Specify a project or solution file. The current working directory does not contain a project or solution file.");
 			}
 
 			return files[0];
 		}
 
-		private Dictionary<CSharpProject, BuildEnvironment> Evaluate(List<CSharpProject> projects)
+		private Dictionary<CSharpProject, BuildEnvironment> Evaluate(List<CSharpProject> projects, BuildEnvironment environment)
 		{
 			var evaluatedProjects = new Dictionary<CSharpProject, BuildEnvironment>(projects.Count);
 			foreach (CSharpProject project in projects)
@@ -160,7 +194,7 @@ namespace Build.BuildEngine
 				// back to the environment, but we don't want to one project's enviroment
 				// to interfere with the next one, thus we create one environment for each
 				// project.
-				var projectEnvironment = new BuildEnvironment(_environment);
+				var projectEnvironment = new BuildEnvironment(environment);
 				CSharpProject evaluated = _expressionEngine.Evaluate(project, projectEnvironment);
 				evaluatedProjects.Add(evaluated, projectEnvironment);
 			}

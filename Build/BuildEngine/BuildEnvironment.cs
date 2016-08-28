@@ -13,12 +13,22 @@ namespace Build.BuildEngine
 		private readonly BuildEnvironment _parent;
 		private readonly BuildEnvironment _default;
 		private readonly Dictionary<string, string> _values;
+		private readonly string _name;
 
-		public BuildEnvironment(BuildEnvironment parent = null, BuildEnvironment @default = null)
+		public BuildEnvironment(BuildEnvironment parent = null, BuildEnvironment @default = null, string name = null)
 		{
+			_name = name;
 			_parent = parent;
 			_default = @default;
 			_values = new Dictionary<string, string>();
+		}
+
+		public override string ToString()
+		{
+			if (_name == null)
+				return "<Unnamed>";
+
+			return _name;
 		}
 
 		public string this[string propertyName]

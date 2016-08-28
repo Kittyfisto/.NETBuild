@@ -1,7 +1,9 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Threading;
+using log4net;
 
 namespace Build.BuildEngine
 {
@@ -11,6 +13,8 @@ namespace Build.BuildEngine
 	public sealed class BuildLog
 		: IBuildLog
 	{
+		private static readonly ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
 		private readonly StreamWriter _writer;
 		private int _loggerId;
 
@@ -27,10 +31,22 @@ namespace Build.BuildEngine
 			return new Logger(this, Interlocked.Increment(ref _loggerId));
 		}
 
-		public void Log(int id, string format, object[] arguments)
+		public void LogFormat(int id, string format, object[] arguments)
 		{
-			var message = string.Format(format, arguments);
-			_writer.WriteLine("{0}>{1}", id, message);
+			try
+			{
+				var message = string.Format(format, arguments);
+				var formatted = string.Format("{0}>{1}", id, message);
+				lock (_writer)
+				{
+					_writer.WriteLine(formatted);
+					Console.WriteLine(formatted);
+				}
+			}
+			catch (Exception e)
+			{
+				Log.ErrorFormat("Cauhgt unexpected exception while writing message: {0}", e);
+			}
 		}
 
 		public void Flush()
