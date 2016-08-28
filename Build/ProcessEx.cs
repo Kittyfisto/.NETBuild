@@ -1,4 +1,8 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Text;
+using System.Threading;
 
 namespace Build
 {
@@ -23,8 +27,13 @@ namespace Build
 				})
 			{
 				process.Start();
+
+				var stream = process.StandardOutput;
+				var task = stream.ReadToEndAsync();
 				process.WaitForExit();
-				output = process.StandardOutput.ReadToEnd();
+				task.Wait();
+				output = task.Result;
+
 				return process.ExitCode;
 			}
 		}

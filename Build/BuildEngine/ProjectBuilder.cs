@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using Build.BuildEngine.Tasks;
 using Build.BuildEngine.Tasks.Compilers;
 using Build.DomainModel.MSBuild;
-using log4net;
 
 namespace Build.BuildEngine
 {
@@ -12,13 +10,11 @@ namespace Build.BuildEngine
 	/// </summary>
 	public sealed class ProjectBuilder
 	{
-		private static readonly ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
 		private readonly ILogger _logger;
 		private readonly string _target;
 		private readonly BuildEnvironment _environment;
-		private AssemblyResolver _resolver;
-		private CSharpProject _project;
+		private readonly AssemblyResolver _resolver;
+		private readonly CSharpProject _project;
 
 		public ProjectBuilder(ILogger logger,
 		                      AssemblyResolver resolver,
@@ -89,8 +85,7 @@ namespace Build.BuildEngine
 			var projectDirectory = _environment[Properties.MSBuildProjectDirectory];
 			compileEnvironment[Properties.OutputPath] = Path.Combine(projectDirectory,
 			                                                         "obj",
-			                                                         _environment[Properties.Configuration],
-			                                                         _environment[Properties.Platform]);
+			                                                         _environment[Properties.Configuration]);
 			var compiler = CreateCompiler(compileEnvironment);
 			compiler.Run();
 			outputFile = compiler.OutputFilePath;
@@ -112,8 +107,7 @@ namespace Build.BuildEngine
 		private string CopyToOutputPath(string inputFilePath)
 		{
 			var projectDirectory = _environment[Properties.MSBuildProjectDirectory];
-			var outputPath = Path.MakeAbsolute(projectDirectory,
-											   _environment[Properties.OutputPath]);
+			var outputPath = Path.MakeAbsolute(projectDirectory, _environment[Properties.OutputPath]);
 			var fileName = Path.GetFilename(inputFilePath);
 			var outputFilePath = Path.Combine(outputPath, fileName);
 			var task = new CopyFile(_logger, projectDirectory, inputFilePath, outputFilePath, Copy.IfNewer);

@@ -11,6 +11,11 @@ namespace Build
 			_builder = new StringBuilder();
 		}
 
+		public int Length
+		{
+			get { return _builder.Length; }
+		}
+
 		public void Flag(string flag)
 		{
 			_builder.Append('/');
@@ -52,6 +57,11 @@ namespace Build
 		public override string ToString()
 		{
 			return _builder.ToString();
+		}
+
+		public void Clear()
+		{
+			_builder.Clear();
 		}
 	}
 }

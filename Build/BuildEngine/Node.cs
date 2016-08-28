@@ -84,6 +84,16 @@ namespace Build.BuildEngine
 							var builder = new ProjectBuilder(logger, _resolver, project, environment, _target);
 							builder.Run();
 						}
+						catch (BuildException e)
+						{
+							logger.WriteLine(Verbosity.Quiet, "error: {0}", e.Message);
+
+							Log.ErrorFormat("Cauhgt exception while building project '{0}': {1}",
+											project.Filename,
+											e);
+
+							_graph.Failed(project);
+						}
 						catch (Exception e)
 						{
 							logger.WriteLine(Verbosity.Quiet, "error: Internal build error: {0}", e);
