@@ -58,9 +58,12 @@
     <Compile Include="BuildEngine\ProjectDependencies.cs" />
     <Compile Include="BuildEngine\ProjectDependencyGraph.cs" />
     <Compile Include="BuildEngine\TargetComparer.cs" />
+    <Compile Include="BuildEngine\Tasks\DeleteFile.cs" />
     <Compile Include="BuildEngine\Tasks\Compilers\IProjectCompiler.cs" />
     <Compile Include="BuildEngine\Tasks\Copy.cs" />
     <Compile Include="BuildEngine\Tasks\CopyFile.cs" />
+    <Compile Include="DomainModel\MSBuild\Importance.cs" />
+    <Compile Include="DomainModel\MSBuild\Message.cs" />
     <Compile Include="BuildException.cs" />
     <Compile Include="Verbosity.cs" />
     <Compile Include="DomainModel\MSBuild\Target.cs" />

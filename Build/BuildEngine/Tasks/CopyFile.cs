@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using System.IO;
 
 namespace Build.BuildEngine.Tasks
@@ -10,6 +11,8 @@ namespace Build.BuildEngine.Tasks
 		private readonly string _directory;
 		private readonly string _source;
 		private readonly Copy _type;
+		private readonly string _relativeSource;
+		private readonly string _relativeDestination;
 
 		public CopyFile(ILogger logger,
 		                string directory,
@@ -29,24 +32,45 @@ namespace Build.BuildEngine.Tasks
 			_source = source;
 			_destination = destination;
 			_type = type;
+
+			_relativeSource = Path.MakeRelative(_directory, _source);
+			_relativeDestination = Path.MakeRelative(_directory, _destination);
 		}
 
 		public void Run()
 		{
-			var relativeSource = Path.MakeRelative(_directory, _source);
-			var relativeDestination = Path.MakeRelative(_directory, _destination);
 			_logger.WriteLine(Verbosity.Normal, "  Copying file from \"{0}\" to \"{1}\".",
-			                  relativeSource,
-			                  relativeDestination);
+			                  _relativeSource,
+			                  _relativeDestination);
 
-			if (_type == Copy.Always)
+			try
 			{
-				CopyAlways();
+				if (_type == Copy.Always)
+				{
+					CopyAlways();
+				}
+				else
+				{
+					CopyIfNewer();
+				}
 			}
-			else
+			catch (UnauthorizedAccessException e)
 			{
-				CopyIfNewer();
+				throw CreateBuildException(e);
 			}
+			catch (IOException e)
+			{
+				throw CreateBuildException(e);
+			}
+		}
+
+		[Pure]
+		private BuildException CreateBuildException(Exception inner)
+		{
+			var message = string.Format("Unable to copy file from '\"{0}\" to \"{1}\"",
+											_relativeSource,
+											_relativeDestination);
+			return new BuildException(message, inner);
 		}
 
 		private void CopyAlways()

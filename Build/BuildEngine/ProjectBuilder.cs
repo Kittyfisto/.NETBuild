@@ -15,6 +15,8 @@ namespace Build.BuildEngine
 		private readonly BuildEnvironment _environment;
 		private readonly AssemblyResolver _resolver;
 		private readonly CSharpProject _project;
+		private readonly string _tempOutputPath;
+		private readonly BuildEnvironment _compileEnvironment;
 
 		public ProjectBuilder(ILogger logger,
 		                      AssemblyResolver resolver,
@@ -33,11 +35,21 @@ namespace Build.BuildEngine
 			_environment = environment;
 			_logger = logger;
 			_target = target;
+
+			var projectDirectory = _environment[Properties.MSBuildProjectDirectory];
+			_tempOutputPath = Path.Combine(projectDirectory,
+			                               "obj",
+			                               _environment[Properties.Configuration]);
+
+			// Compilation shall be performed into a project exclusive temporary folder
+			_compileEnvironment = new BuildEnvironment(_environment, name: "Compiler Environment");
+			_compileEnvironment[Properties.OutputPath] = _tempOutputPath;
 		}
 
 		public void Run()
 		{
-			_logger.WriteLine(Verbosity.Quiet, "------ Build started: Project: {0}, Configuration: {1} {2} ------",
+			_logger.WriteLine(Verbosity.Quiet, "------ {0} started: Project: {1}, Configuration: {2} {3} ------",
+			                  _target,
 			                  _environment[Properties.MSBuildProjectName],
 			                  _environment[Properties.Configuration],
 			                  _environment[Properties.PlatformTarget]
@@ -60,14 +72,43 @@ namespace Build.BuildEngine
 					throw new ArgumentException(string.Format("Unknown build target: {0}", _target));
 			}
 
-			_logger.WriteLine(Verbosity.Normal, "Build succeeded.");
+			_logger.WriteLine(Verbosity.Normal, "{0} succeeded.", _target);
 			TimeSpan elapsed = DateTime.Now - started;
-			_logger.WriteLine(Verbosity.Normal, "Time Elapsed {0}", elapsed);
+			_logger.WriteLine(Verbosity.Minimal, "Time Elapsed {0}", elapsed);
 		}
 
 		private void Clean()
 		{
-			
+			var compiler = CreateCompiler(_compileEnvironment);
+			var intermediateFiles = new List<string>
+				{
+					compiler.OutputFilePath
+				};
+			intermediateFiles.AddRange(compiler.AdditionalOutputFiles);
+			var outputFiles = new List<string>();
+			foreach (var file in intermediateFiles)
+			{
+				var projectDirectory = _environment[Properties.MSBuildProjectDirectory];
+				var outputPath = Path.MakeAbsolute(projectDirectory, _environment[Properties.OutputPath]);
+				var outputFile = Path.Combine(outputPath, Path.GetFilename(file));
+				outputFiles.Add(outputFile);
+			}
+
+			foreach (var file in intermediateFiles)
+			{
+				DeleteFile(file);
+			}
+			foreach (var file in outputFiles)
+			{
+				DeleteFile(file);
+			}
+		}
+
+		private void DeleteFile(string fileName)
+		{
+			var projectDirectory = _environment[Properties.MSBuildProjectDirectory];
+			var task = new DeleteFile(_logger, projectDirectory, fileName);
+			task.Run();
 		}
 
 		private void Build()
@@ -78,15 +119,11 @@ namespace Build.BuildEngine
 			CopyToOutputPath(assembly, additionalFiles);
 			CopyDependencies();
 		}
-
+			
 		private void Compile(out string outputFile, out IEnumerable<string> additionalFiles)
 		{
-			var compileEnvironment = new BuildEnvironment(_environment, name: "Compiler Environment");
-			var projectDirectory = _environment[Properties.MSBuildProjectDirectory];
-			compileEnvironment[Properties.OutputPath] = Path.Combine(projectDirectory,
-			                                                         "obj",
-			                                                         _environment[Properties.Configuration]);
-			var compiler = CreateCompiler(compileEnvironment);
+			
+			var compiler = CreateCompiler(_compileEnvironment);
 			compiler.Run();
 			outputFile = compiler.OutputFilePath;
 			additionalFiles = compiler.AdditionalOutputFiles;

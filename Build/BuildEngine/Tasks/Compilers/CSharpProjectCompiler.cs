@@ -32,7 +32,7 @@ namespace Build.BuildEngine.Tasks.Compilers
 			DefaultValues = new BuildEnvironment
 				{
 					{Properties.SubsystemVersion, "6.00"},
-					{Properties.Prefer32Bit, "True"}
+					{Properties.Prefer32Bit, "true"}
 				};
 		}
 
@@ -101,7 +101,7 @@ namespace Build.BuildEngine.Tasks.Compilers
 							return "anycpu";
 						}
 
-						return prefer32Bit == "True"
+						return prefer32Bit == "true"
 							       ? "anycpu32bitpreferred"
 							       : "anycpu";
 
@@ -129,7 +129,7 @@ namespace Build.BuildEngine.Tasks.Compilers
 
 		public void Run()
 		{
-			if (_projectEnvironment[Properties.DebugSymbols] == "True")
+			if (_projectEnvironment[Properties.DebugSymbols] == "true")
 				_arguments.Flag("debug+");
 
 			_arguments.Add("debug", _projectEnvironment[Properties.DebugType]);
@@ -137,8 +137,6 @@ namespace Build.BuildEngine.Tasks.Compilers
 				_arguments.Flag("optmize-");
 
 			_arguments.Add("target", Target);
-
-			_arguments.Flag("noconfig"); //< without this, csc automatically references a bunch of assemblies and then gives us shit that we've included a double reference...
 
 			_arguments.Flag("nologo");
 			_arguments.Flag("nowarn:1701,1702,2008");
@@ -182,7 +180,7 @@ namespace Build.BuildEngine.Tasks.Compilers
 
 			// http://stackoverflow.com/questions/19306194/process-launch-exception-filename-or-extension-is-too-long-can-it-be-caused-b
 			int commandLineLength = _arguments.Length + CompilerPath.Length + 1;
-			if (commandLineLength > 32768)
+			if (commandLineLength > 32000) //< The maximum length seems to be 32768, but this one's close enough
 			{
 				// In order to not exceed the limit we'll have to write the arguments
 				// to a file that is then passes as an argument to csc (so that's why that option exists).
@@ -190,9 +188,12 @@ namespace Build.BuildEngine.Tasks.Compilers
 				File.WriteAllText(filename, _arguments.ToString());
 				_arguments.Clear();
 
-				_arguments.Flag("noconfig"); //< without this, csc automatically references a bunch of assemblies and then gives us shit that we've included a double reference...
 				_arguments.Add(string.Format("\"@{0}\"", filename));
 			}
+
+			// without this, csc automatically references a bunch of assemblies and then gives us shit
+			// that we've included a double reference...
+			_arguments.Flag("noconfig");
 
 			string output;
 			_exitCode = ProcessEx.Run(CompilerPath, _rootPath, _arguments, out output);
