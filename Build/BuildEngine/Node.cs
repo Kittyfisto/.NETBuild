@@ -74,7 +74,7 @@ namespace Build.BuildEngine
 			{
 				while (true)
 				{
-					CSharpProject project;
+					Project project;
 					BuildEnvironment environment;
 					if (_graph.TryGetNextProject(out project, out environment))
 					{

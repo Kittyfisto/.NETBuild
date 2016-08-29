@@ -1,35 +1,31 @@
-﻿using System;
-using System.Linq;
+﻿using System.Collections.Generic;
 
 namespace Build.DomainModel.MSBuild
 {
 	public sealed class Target
 	{
-		private readonly string _name;
+		private readonly List<Task> _tasks;
 
-		public Target(string name)
+		public Target()
 		{
-			if (name == null)
-				throw new ArgumentNullException("name");
-			if (name.Any(char.IsWhiteSpace))
-				throw new ArgumentException("name must not contain whitespace", "name");
+			_tasks = new List<Task>();
+		}
 
-			_name = name;
+		public string Name { get; set; }
+
+		public List<Task> Tasks
+		{
+			get { return _tasks; }
 		}
 
 		public override string ToString()
 		{
-			return string.Format("<Target Name=\"{0}\" />", _name);
-		}
-
-		public string Name
-		{
-			get { return _name; }
+			return string.Format("<Target Name=\"{0}\" />", Name);
 		}
 
 		private bool Equals(Target other)
 		{
-			return string.Equals(_name, other._name);
+			return string.Equals(Name, other.Name);
 		}
 
 		public override bool Equals(object obj)
@@ -41,7 +37,7 @@ namespace Build.DomainModel.MSBuild
 
 		public override int GetHashCode()
 		{
-			return _name.GetHashCode();
+			return 0;
 		}
 	}
 }

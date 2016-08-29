@@ -3,7 +3,7 @@
 	public abstract class Node
 		: INode
 	{
-		private readonly Condition _condition;
+		private Condition _condition;
 
 		protected Node(Condition condition)
 		{
@@ -13,6 +13,7 @@
 		public Condition Condition
 		{
 			get { return _condition; }
+			set { _condition = value; }
 		}
 	}
 }

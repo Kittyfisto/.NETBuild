@@ -2,15 +2,31 @@
 {
 	public static class Targets
 	{
-		/// <summary>
-		/// 
-		/// </summary>
-		public const string BeforeBuild = "BeforeBuild";
+		public static readonly Target CoreBuild;
+		public static readonly Target CopyAppConfigFile;
+
+		static Targets()
+		{
+			/*CopyAppConfigFile = new Target
+				{
+					Name = "_CopyAppConfigFile",
+					Inputs = "@(AppConfigWithTargetPath)",
+					Outputs = "@(AppConfigWithTargetPath->'$(OutDir)%(TargetPath)')",
+					Tasks =
+						{
+							new Copy
+								{
+									SourceFiles = "@(AppConfigWithTargetPath)",
+									DestinationFiles = "@(AppConfigWithTargetPath->'$(OutDir)%(TargetPath)')"
+								}
+						}
+				};*/
+		}
 
 		/// <summary>
 		/// 
 		/// </summary>
-		public const string CoreBuild = "CoreBuild";
+		public const string BeforeBuild = "BeforeBuild";
 
 		/// <summary>
 		/// 

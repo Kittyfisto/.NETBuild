@@ -7,18 +7,18 @@ namespace Build.BuildEngine
 {
 	public sealed class ProjectDependencyGraph
 	{
-		private readonly HashSet<CSharpProject> _failed;
+		private readonly HashSet<Project> _failed;
 		private readonly ManualResetEventSlim _finishedEvent;
 		private readonly int _projectCount;
-		private readonly HashSet<CSharpProject> _succeeded;
+		private readonly HashSet<Project> _succeeded;
 		private readonly object _syncRoot;
 
 		// TODO: obviously the wrong data structure...
-		private readonly Dictionary<CSharpProject, BuildEnvironment> _todo;
+		private readonly Dictionary<Project, BuildEnvironment> _todo;
 
-		public ProjectDependencyGraph(IReadOnlyDictionary<CSharpProject, BuildEnvironment> projects)
+		public ProjectDependencyGraph(IReadOnlyDictionary<Project, BuildEnvironment> projects)
 		{
-			_todo = new Dictionary<CSharpProject, BuildEnvironment>(projects.Count);
+			_todo = new Dictionary<Project, BuildEnvironment>(projects.Count);
 			foreach (var pair in projects)
 			{
 				_todo.Add(pair.Key, pair.Value);
@@ -28,8 +28,8 @@ namespace Build.BuildEngine
 			_projectCount = _todo.Count;
 			_syncRoot = new object();
 			var comparer = new ProjectEqualityComparer();
-			_succeeded = new HashSet<CSharpProject>(comparer);
-			_failed = new HashSet<CSharpProject>(comparer);
+			_succeeded = new HashSet<Project>(comparer);
+			_failed = new HashSet<Project>(comparer);
 		}
 
 		public ManualResetEventSlim FinishedEvent
@@ -37,7 +37,7 @@ namespace Build.BuildEngine
 			get { return _finishedEvent; }
 		}
 
-		public bool TryGetNextProject(out CSharpProject project, out BuildEnvironment environment)
+		public bool TryGetNextProject(out Project project, out BuildEnvironment environment)
 		{
 			lock (_todo)
 			{
@@ -48,7 +48,7 @@ namespace Build.BuildEngine
 					return false;
 				}
 
-				KeyValuePair<CSharpProject, BuildEnvironment> pair = _todo.First();
+				KeyValuePair<Project, BuildEnvironment> pair = _todo.First();
 				project = pair.Key;
 				environment = pair.Value;
 				_todo.Remove(project);
@@ -56,7 +56,7 @@ namespace Build.BuildEngine
 			}
 		}
 
-		public void Failed(CSharpProject project)
+		public void Failed(Project project)
 		{
 			lock (_syncRoot)
 			{
@@ -88,7 +88,7 @@ namespace Build.BuildEngine
 			}
 		}
 
-		public void Succeeded(CSharpProject project)
+		public void Succeeded(Project project)
 		{
 			lock (_syncRoot)
 			{
@@ -108,9 +108,9 @@ namespace Build.BuildEngine
 		}
 
 		internal sealed class ProjectEqualityComparer
-			: IEqualityComparer<CSharpProject>
+			: IEqualityComparer<Project>
 		{
-			public bool Equals(CSharpProject x, CSharpProject y)
+			public bool Equals(Project x, Project y)
 			{
 				string xName = x.Filename;
 				string yName = y.Filename;
@@ -118,7 +118,7 @@ namespace Build.BuildEngine
 				return string.Equals(xName, yName);
 			}
 
-			public int GetHashCode(CSharpProject obj)
+			public int GetHashCode(Project obj)
 			{
 				string name = obj.Filename;
 				return name.GetHashCode();

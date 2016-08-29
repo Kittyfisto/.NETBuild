@@ -11,7 +11,7 @@ namespace Build.Watchdog
 		public SolutionStore() : base(new SolutionParser(CSharpProjectParser.Instance))
 		{}
 
-		public IEnumerable<Solution> CreateSolutions(IReadOnlyDictionary<string, CSharpProject> projects)
+		public IEnumerable<Solution> CreateSolutions(IReadOnlyDictionary<string, Project> projects)
 		{
 			var solutions = new List<Solution>();
 			foreach (Solution solution in Values)

@@ -16,7 +16,7 @@ namespace Build.BuildEngine
 		: IDisposable
 	{
 		private readonly Arguments _arguments;
-		private readonly IFileParser<CSharpProject> _csharpProjectParser;
+		private readonly IFileParser<Project> _csharpProjectParser;
 		private readonly BuildEnvironment _environment;
 		private readonly ExpressionEngine.ExpressionEngine _expressionEngine;
 		private readonly BuildLog _log;
@@ -91,7 +91,7 @@ namespace Build.BuildEngine
 			// Building is done in a few simple steps:
 
 			// #1: Parse all relevant .csproj files into memory
-			List<CSharpProject> projects = Parse();
+			List<Project> projects = Parse();
 
 			var targets = _arguments.Targets.ToList();
 			targets.Sort(new TargetComparer());
@@ -102,11 +102,11 @@ namespace Build.BuildEngine
 			}
 		}
 
-		private void Build(List<CSharpProject> projects, string target)
+		private void Build(List<Project> projects, string target)
 		{
 			// #2: Evaluate these projects using the given environment
 			// TODO: What do we do when we have conditions that require the presence of files that are from a previous step's output?
-			Dictionary<CSharpProject, BuildEnvironment> evaluatedProjects = Evaluate(projects, _environment);
+			Dictionary<Project, BuildEnvironment> evaluatedProjects = Evaluate(projects, _environment);
 
 			var dependencyGraph = new ProjectDependencyGraph(evaluatedProjects);
 			var nodes = new Node[_arguments.MaxCpuCount];
@@ -139,9 +139,9 @@ namespace Build.BuildEngine
 			_log.WriteLine("TODO");
 		}
 
-		private List<CSharpProject> Parse()
+		private List<Project> Parse()
 		{
-			var projects = new List<CSharpProject>();
+			var projects = new List<Project>();
 			string inputFile = _arguments.InputFile;
 			if (inputFile == null)
 				inputFile = FindInputFile();
@@ -155,7 +155,7 @@ namespace Build.BuildEngine
 					break;
 
 				case ".csproj":
-					CSharpProject project = _csharpProjectParser.Parse(inputFile);
+					Project project = _csharpProjectParser.Parse(inputFile);
 					projects.Add(project);
 					break;
 
@@ -181,10 +181,10 @@ namespace Build.BuildEngine
 			return files[0];
 		}
 
-		private Dictionary<CSharpProject, BuildEnvironment> Evaluate(List<CSharpProject> projects, BuildEnvironment environment)
+		private Dictionary<Project, BuildEnvironment> Evaluate(List<Project> projects, BuildEnvironment environment)
 		{
-			var evaluatedProjects = new Dictionary<CSharpProject, BuildEnvironment>(projects.Count);
-			foreach (CSharpProject project in projects)
+			var evaluatedProjects = new Dictionary<Project, BuildEnvironment>(projects.Count);
+			foreach (Project project in projects)
 			{
 				// Evaluating a project means determining the values of properties, the
 				// presence of nodes, etc...
@@ -193,7 +193,7 @@ namespace Build.BuildEngine
 				// to interfere with the next one, thus we create one environment for each
 				// project.
 				var projectEnvironment = new BuildEnvironment(environment);
-				CSharpProject evaluated = _expressionEngine.Evaluate(project, projectEnvironment);
+				Project evaluated = _expressionEngine.Evaluate(project, projectEnvironment);
 				evaluatedProjects.Add(evaluated, projectEnvironment);
 			}
 			return evaluatedProjects;

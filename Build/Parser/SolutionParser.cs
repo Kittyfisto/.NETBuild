@@ -11,9 +11,9 @@ namespace Build.Parser
 	public sealed class SolutionParser
 		: IFileParser<Solution>
 	{
-		private readonly IFileParser<CSharpProject> _csharpProjectParser;
+		private readonly IFileParser<Project> _csharpProjectParser;
 
-		public SolutionParser(IFileParser<CSharpProject> csharpProjectParser)
+		public SolutionParser(IFileParser<Project> csharpProjectParser)
 		{
 			if (csharpProjectParser == null)
 				throw new ArgumentNullException("csharpProjectParser");

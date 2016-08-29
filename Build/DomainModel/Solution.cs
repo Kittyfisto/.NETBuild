@@ -12,9 +12,9 @@ namespace Build.DomainModel
 	{
 		private readonly string _filename;
 		private readonly DateTime _lastModified;
-		private readonly Dictionary<string, CSharpProject> _projects;
+		private readonly Dictionary<string, Project> _projects;
 
-		private Solution(string filename, DateTime lastModified, IEnumerable<CSharpProject> projects)
+		private Solution(string filename, DateTime lastModified, IEnumerable<Project> projects)
 		{
 			if (filename == null)
 				throw new ArgumentNullException("filename");
@@ -24,14 +24,14 @@ namespace Build.DomainModel
 
 			_filename = filename;
 			_lastModified = lastModified;
-			_projects = new Dictionary<string, CSharpProject>();
-			foreach (CSharpProject project in projects)
+			_projects = new Dictionary<string, Project>();
+			foreach (Project project in projects)
 			{
 				_projects.Add(project.Filename, project);
 			}
 		}
 
-		public IEnumerable<CSharpProject> Projects
+		public IEnumerable<Project> Projects
 		{
 			get { return _projects.Values; }
 		}
@@ -41,15 +41,15 @@ namespace Build.DomainModel
 			get { return _lastModified; }
 		}
 
-		public Solution Clone(IReadOnlyDictionary<string, CSharpProject> projects)
+		public Solution Clone(IReadOnlyDictionary<string, Project> projects)
 		{
-			var newProjects = new Dictionary<string, CSharpProject>(_projects.Count);
+			var newProjects = new Dictionary<string, Project>(_projects.Count);
 			foreach (string filename in _projects.Keys)
 			{
-				CSharpProject cSharpProject;
-				if (projects.TryGetValue(filename, out cSharpProject))
+				Project project;
+				if (projects.TryGetValue(filename, out project))
 				{
-					_projects.Add(filename, cSharpProject);
+					_projects.Add(filename, project);
 				}
 			}
 			return new Solution(_filename, _lastModified, newProjects.Values);

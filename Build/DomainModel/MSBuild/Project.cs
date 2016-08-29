@@ -5,14 +5,14 @@ namespace Build.DomainModel.MSBuild
 	/// <summary>
 	///     Represents a visual studio C# project (*.csproj).
 	/// </summary>
-	public sealed class CSharpProject
+	public sealed class Project
 		: IFile
 	{
 		private readonly IPropertyGroups _propertyGroups;
 		private readonly IItemGroups _itemGroups;
 		private readonly string _filename;
 
-		public CSharpProject(string filename,
+		public Project(string filename,
 							 IPropertyGroups propertyGroups = null,
 							 IItemGroups itemGroups = null)
 		{

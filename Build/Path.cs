@@ -107,9 +107,19 @@ namespace Build
 		[Pure]
 		public static string MakeRelative(string relativeTo, string fullPath)
 		{
-			var tmp = new Uri(relativeTo);
+			var directory = EnsureBackslash(relativeTo);
+			var tmp = new Uri(directory);
 			var relative = tmp.MakeRelativeUri(new Uri(fullPath));
 			var path = relative.OriginalString.Replace('/', '\\');
+			return path;
+		}
+
+		[Pure]
+		public static string EnsureBackslash(string path)
+		{
+			if (!path.EndsWith("\\"))
+				return path + "\\";
+
 			return path;
 		}
 	}

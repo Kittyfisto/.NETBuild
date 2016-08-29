@@ -34,7 +34,7 @@ namespace Build.Watchdog
 			_rootFolder = rootFolder;
 			_pendingActions = new ConcurrentQueue<PendingAction>();
 
-			_currentSandbox = new Sandbox(Enumerable.Empty<Solution>(), Enumerable.Empty<CSharpProject>());
+			_currentSandbox = new Sandbox(Enumerable.Empty<Solution>(), Enumerable.Empty<Project>());
 
 			_thread = new Thread(ExecutePendingActions)
 				{

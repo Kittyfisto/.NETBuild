@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Build.BuildEngine.Tasks;
 using Build.BuildEngine.Tasks.Compilers;
 using Build.DomainModel.MSBuild;
+using Copy = Build.BuildEngine.Tasks.Copy;
 
 namespace Build.BuildEngine
 {
@@ -14,13 +16,13 @@ namespace Build.BuildEngine
 		private readonly string _target;
 		private readonly BuildEnvironment _environment;
 		private readonly AssemblyResolver _resolver;
-		private readonly CSharpProject _project;
+		private readonly Project _project;
 		private readonly string _tempOutputPath;
 		private readonly BuildEnvironment _compileEnvironment;
 
 		public ProjectBuilder(ILogger logger,
 		                      AssemblyResolver resolver,
-		                      CSharpProject project,
+		                      Project project,
 		                      BuildEnvironment environment,
 		                      string target)
 		{
@@ -29,7 +31,6 @@ namespace Build.BuildEngine
 			if (target == null)
 				throw new ArgumentNullException("target");
 
-			// TODO: Support different compilers
 			_resolver = resolver;
 			_project = project;
 			_environment = environment;
@@ -116,21 +117,25 @@ namespace Build.BuildEngine
 			string assembly;
 			IEnumerable<string> additionalFiles;
 			Compile(out assembly, out additionalFiles);
-			CopyToOutputPath(assembly, additionalFiles);
+			CopyFilesToOutputDirectory(assembly, additionalFiles);
+			CopyAppConfigFile(assembly);
 			CopyDependencies();
 		}
-			
+
 		private void Compile(out string outputFile, out IEnumerable<string> additionalFiles)
 		{
-			
+			_logger.WriteLine(Verbosity.Normal, "CoreCompile:");
+
 			var compiler = CreateCompiler(_compileEnvironment);
 			compiler.Run();
 			outputFile = compiler.OutputFilePath;
 			additionalFiles = compiler.AdditionalOutputFiles;
 		}
 
-		private void CopyToOutputPath(string outputFile, IEnumerable<string> additionalOutputFiles)
+		private void CopyFilesToOutputDirectory(string outputFile, IEnumerable<string> additionalOutputFiles)
 		{
+			_logger.WriteLine(Verbosity.Normal, "CopyFilesToOutputDirectory:");
+
 			var destinationFile = CopyToOutputPath(outputFile);
 			var projectName = _environment[Properties.MSBuildProjectName];
 			_logger.WriteLine(Verbosity.Minimal, "  {0} -> {1}", projectName, destinationFile);
@@ -141,12 +146,30 @@ namespace Build.BuildEngine
 			}
 		}
 
-		private string CopyToOutputPath(string inputFilePath)
+		private void CopyAppConfigFile(string outputFile)
+		{
+			_logger.WriteLine(Verbosity.Normal, "CopyAppConfigFile:");
+
+			var appConfig = _project.ItemGroups.SelectMany(x => x)
+			                        .FirstOrDefault(
+				                        x => string.Equals(x.Include, "App.config", StringComparison.CurrentCultureIgnoreCase));
+			if (appConfig != null)
+			{
+				var sourceFilePath = Path.MakeAbsolute(_environment[Properties.MSBuildProjectDirectory], appConfig.Include);
+				var fileName = Path.GetFilename(outputFile);
+				var appConfigFileName = string.Format("{0}.config", fileName);
+				CopyToOutputPath(sourceFilePath, appConfigFileName);
+			}
+		}
+
+		private string CopyToOutputPath(string inputFilePath, string outputFileName = null)
 		{
 			var projectDirectory = _environment[Properties.MSBuildProjectDirectory];
 			var outputPath = Path.MakeAbsolute(projectDirectory, _environment[Properties.OutputPath]);
-			var fileName = Path.GetFilename(inputFilePath);
+
+			var fileName = outputFileName ?? Path.GetFilename(inputFilePath);
 			var outputFilePath = Path.Combine(outputPath, fileName);
+
 			var task = new CopyFile(_logger, projectDirectory, inputFilePath, outputFilePath, Copy.IfNewer);
 			task.Run();
 			return outputFilePath;
@@ -159,6 +182,7 @@ namespace Build.BuildEngine
 
 		private IProjectCompiler CreateCompiler(BuildEnvironment environment)
 		{
+			// TODO: Support different compilers
 			var compiler = new CSharpProjectCompiler(_resolver, _logger, _project, environment);
 			return compiler;
 		}

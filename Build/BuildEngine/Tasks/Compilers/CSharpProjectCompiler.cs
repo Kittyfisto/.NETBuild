@@ -20,7 +20,7 @@ namespace Build.BuildEngine.Tasks.Compilers
 		private readonly ILogger _logger;
 		private readonly string _outputFilePath;
 		private readonly List<string> _additionalOutputFiles;
-		private readonly CSharpProject _project;
+		private readonly Project _project;
 		private readonly BuildEnvironment _projectEnvironment;
 		private readonly AssemblyResolver _resolver;
 		private readonly string _rootPath;
@@ -38,7 +38,7 @@ namespace Build.BuildEngine.Tasks.Compilers
 
 		public CSharpProjectCompiler(AssemblyResolver assemblyResolver,
 		                             ILogger logger,
-		                             CSharpProject project,
+		                             Project project,
 		                             BuildEnvironment projectEnvironment)
 		{
 			if (assemblyResolver == null)

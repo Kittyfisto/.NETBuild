@@ -5,17 +5,17 @@ using Build.Parser;
 namespace Build.Watchdog
 {
 	public sealed class CSharpProjectStore
-		: FileStore<CSharpProject>
+		: FileStore<Project>
 	{
 		public CSharpProjectStore()
 			: base(CSharpProjectParser.Instance)
 		{}
 
-		public IReadOnlyDictionary<string, CSharpProject> CreateProjects()
+		public IReadOnlyDictionary<string, Project> CreateProjects()
 		{
 			// Currently projects are immutable and thus we don't need to clone them in any way
-			var projects = new Dictionary<string, CSharpProject>(Count);
-			foreach (CSharpProject project in Values)
+			var projects = new Dictionary<string, Project>(Count);
+			foreach (Project project in Values)
 			{
 				projects.Add(project.Filename, project);
 			}

@@ -62,9 +62,12 @@
     <Compile Include="BuildEngine\Tasks\Compilers\IProjectCompiler.cs" />
     <Compile Include="BuildEngine\Tasks\Copy.cs" />
     <Compile Include="BuildEngine\Tasks\CopyFile.cs" />
+    <Compile Include="BuildEngine\Tasks\TaskEngine.cs" />
+    <Compile Include="DomainModel\MSBuild\Copy.cs" />
     <Compile Include="DomainModel\MSBuild\Importance.cs" />
     <Compile Include="DomainModel\MSBuild\Message.cs" />
     <Compile Include="BuildException.cs" />
+    <Compile Include="DomainModel\MSBuild\Task.cs" />
     <Compile Include="Verbosity.cs" />
     <Compile Include="DomainModel\MSBuild\Target.cs" />
     <Compile Include="DomainModel\MSBuild\Targets.cs" />
@@ -100,7 +103,7 @@
     <Compile Include="Watchdog\SolutionStore.cs" />
     <Compile Include="Parser\XmlReaderExtensions.cs" />
     <Compile Include="DomainModel\MSBuild\Condition.cs" />
-    <Compile Include="DomainModel\MSBuild\CSharpProject.cs" />
+    <Compile Include="DomainModel\MSBuild\Project.cs" />
     <Compile Include="DomainModel\MSBuild\IItemGroup.cs" />
     <Compile Include="DomainModel\MSBuild\IItemGroups.cs" />
     <Compile Include="DomainModel\MSBuild\IMetadataGroup.cs" />

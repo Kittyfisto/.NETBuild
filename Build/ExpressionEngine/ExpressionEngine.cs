@@ -26,7 +26,7 @@ namespace Build.ExpressionEngine
 		/// <param name="project"></param>
 		/// <param name="environment"></param>
 		/// <returns>A project that contains only those groups, properties and items that match the current environment</returns>
-		public CSharpProject Evaluate(CSharpProject project, BuildEnvironment environment)
+		public Project Evaluate(Project project, BuildEnvironment environment)
 		{
 			if (project == null)
 				throw new ArgumentNullException("project");
@@ -48,7 +48,7 @@ namespace Build.ExpressionEngine
 			Evaluate(project.Properties, environment);
 
 			var itemGroups = Evaluate(project.ItemGroups, environment);
-			return new CSharpProject(project.Filename,
+			return new Project(project.Filename,
 			                         ReadOnlyPropertyGroups.Instance,
 			                         itemGroups);
 		}
