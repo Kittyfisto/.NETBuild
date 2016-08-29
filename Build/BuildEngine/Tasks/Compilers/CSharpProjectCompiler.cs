@@ -166,6 +166,12 @@ namespace Build.BuildEngine.Tasks.Compilers
 			}
 			AddReference(MsCoreLibrary);
 
+			IEnumerable<ProjectItem> resourceItems = items.Where(x => x.Type == Items.EmbeddedResource);
+			foreach(ProjectItem resource in resourceItems)
+			{
+				AddResource(resource);
+			}
+
 			IEnumerable<ProjectItem> compileItems = items.Where(x => x.Type == Items.Compile);
 			foreach (ProjectItem compile in compileItems)
 			{
@@ -247,6 +253,14 @@ namespace Build.BuildEngine.Tasks.Compilers
 		{
 			string referencePath = _resolver.ResolveReference(reference, _rootPath);
 			_arguments.Add("reference", referencePath);
+		}
+
+		private void AddResource(ProjectItem resource)
+		{
+			var include = resource.Include;
+			var resourceName = string.Format("EmbeddedResource.{0}", include.Replace('\\', '.'));
+
+			_arguments.Add("resource", resource.Include, resourceName);
 		}
 	}
 }

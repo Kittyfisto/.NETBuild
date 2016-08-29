@@ -40,6 +40,19 @@ namespace Build
 			_builder.Append(' ');
 		}
 
+		public void Add(string parameter, string value, string additionalValue)
+		{
+			_builder.Append('/');
+			_builder.Append(parameter);
+			_builder.Append(':');
+
+			AppendWithSpaces(value);
+			_builder.Append(',');
+			AppendWithSpaces(additionalValue);
+
+			_builder.Append(' ');
+		}
+
 		private void AppendWithSpaces(string value)
 		{
 			if (value.Contains(" "))

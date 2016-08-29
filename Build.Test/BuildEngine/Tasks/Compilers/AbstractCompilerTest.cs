@@ -10,6 +10,12 @@ namespace Build.Test.BuildEngine.Tasks.Compilers
 	{
 		private AssemblyResolver _assemblyResolver;
 		private Build.ExpressionEngine.ExpressionEngine _expressionEngine;
+		private TestLogger _logger;
+
+		protected TestLogger Logger
+		{
+			get { return _logger; }
+		}
 
 		public Build.ExpressionEngine.ExpressionEngine ExpressionEngine
 		{
@@ -26,6 +32,25 @@ namespace Build.Test.BuildEngine.Tasks.Compilers
 		{
 			_expressionEngine = new Build.ExpressionEngine.ExpressionEngine();
 			_assemblyResolver = new AssemblyResolver(_expressionEngine);
+			_logger = new TestLogger();
+		}
+
+		public sealed class TestLogger
+			: ILogger
+		{
+			public void WriteLine(Verbosity verbosity, string format, params object[] arguments)
+			{
+				Console.WriteLine(format, arguments);
+			}
+
+			public void WriteMultiLine(Verbosity verbosity, string message)
+			{
+				var lines = message.Split(new[] {"\n", "\r\n"}, StringSplitOptions.RemoveEmptyEntries);
+				foreach (var line in lines)
+				{
+					Console.WriteLine(line);
+				}
+			}
 		}
 
 		[Pure]

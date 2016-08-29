@@ -51,6 +51,7 @@
     <Compile Include="ArgumentsTest.cs" />
     <Compile Include="BuildEngine\HelloWorldTest.cs" />
     <Compile Include="BuildEngine\Tasks\Compilers\AbstractCompilerTest.cs" />
+    <Compile Include="BuildEngine\Tasks\Compilers\EmbeddedResourceTest.cs" />
     <Compile Include="BuildEngine\Tasks\Compilers\HelloWorldTest.cs" />
     <Compile Include="ExpressionEngine\BinaryExpressionTest.cs" />
     <Compile Include="ExpressionEngine\ExpressionEngineParsingTest.cs" />
@@ -64,6 +65,7 @@
     <Compile Include="DomainModel\PropertyTest.cs" />
     <None Include="TestData\CSharp\HelloWorld\Program.cs" />
     <None Include="TestData\CSharp\HelloWorld\Properties\AssemblyInfo.cs" />
+    <None Include="TestData\CSharp\EmbeddedResource\Properties\AssemblyInfo.cs" />
     <Compile Include="TestPath.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -77,6 +79,10 @@
   <ItemGroup>
     <Content Include="Parser\Build.Test.csproj" />
     <Content Include="Parser\MissingTargetsAttribute.csproj" />
+    <Content Include="TestData\CSharp\EmbeddedResource\EmbeddedResource.csproj" />
+    <Content Include="TestData\CSharp\EmbeddedResource\HelloWorld.txt" />
+    <Content Include="TestData\CSharp\EmbeddedResource\SomeFolder\Some File With Spaces.xml" />
+    <Content Include="TestData\CSharp\EmbeddedResource\SomeFolder\SomeDataFile.xml" />
     <None Include="TestData\CSharp\HelloWorld\HelloWorld.csproj" />
   </ItemGroup>
   <ItemGroup>
