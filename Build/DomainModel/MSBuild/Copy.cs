@@ -1,21 +1,8 @@
-﻿using System.Collections.Generic;
-
-namespace Build.DomainModel.MSBuild
+﻿namespace Build.DomainModel.MSBuild
 {
 	public sealed class Copy
 		: Task
 	{
-		private readonly List<TaskItem> _copiedFiles;
-		private readonly List<TaskItem> _destinationFiles;
-		private readonly List<TaskItem> _sourceFiles;
-
-		public Copy(Condition condition = null) : base(condition)
-		{
-			_copiedFiles = new List<TaskItem>();
-			_destinationFiles = new List<TaskItem>();
-			_sourceFiles = new List<TaskItem>();
-		}
-
 		/// <summary>
 		///     Optional Boolean parameter.
 		///     Overwrite files even if they are marked as read only files
@@ -40,27 +27,18 @@ namespace Build.DomainModel.MSBuild
 		/// <summary>
 		///     Contains the items that were successfully copied.
 		/// </summary>
-		public List<TaskItem> CopiedFiles
-		{
-			get { return _copiedFiles; }
-		}
+		public string CopiedFiles { get; set; }
 
 		/// <summary>
 		///     Specifies the list of files to copy the source files to.
 		///     This list is expected to be a one-to-one mapping with the list specified in the SourceFiles parameter.
 		///     That is, the first file specified in SourceFiles will be copied to the first location specified in DestinationFiles, and so forth.
 		/// </summary>
-		public List<TaskItem> DestinationFiles
-		{
-			get { return _destinationFiles; }
-		}
+		public string DestinationFiles { get; set; }
 
 		/// <summary>
 		///     Specifies the files to copy.
 		/// </summary>
-		public List<TaskItem> SourceFiles
-		{
-			get { return _sourceFiles; }
-		}
+		public string SourceFiles { get; set; }
 	}
 }

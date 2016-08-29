@@ -22,6 +22,7 @@ namespace Build.BuildEngine
 		private readonly BuildLog _log;
 		private readonly AssemblyResolver _resolver;
 		private readonly IFileParser<Solution> _solutionParser;
+		private readonly FileSystem _fileSystem;
 
 		public BuildEngine(Arguments arguments)
 		{
@@ -35,7 +36,8 @@ namespace Build.BuildEngine
 						arguments.MaxCpuCount));
 
 			_log = new BuildLog(arguments);
-			_expressionEngine = new ExpressionEngine.ExpressionEngine();
+			_fileSystem = new FileSystem();
+			_expressionEngine = new ExpressionEngine.ExpressionEngine(_fileSystem);
 			_csharpProjectParser = CSharpProjectParser.Instance;
 			_solutionParser = new SolutionParser(_csharpProjectParser);
 			_resolver = new AssemblyResolver(_expressionEngine);

@@ -22,7 +22,6 @@
 
 		#region Unary Operators
 		Not,
-		Exists,
 		HasTrailingSlash,
 		#endregion
 

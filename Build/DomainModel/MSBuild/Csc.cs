@@ -1,7 +1,7 @@
 ﻿namespace Build.DomainModel.MSBuild
 {
-	public abstract class Task
-		: Node
+	public sealed class Csc
+		: Task
 	{
 	}
 }

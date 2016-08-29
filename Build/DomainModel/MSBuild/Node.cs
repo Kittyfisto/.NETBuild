@@ -5,7 +5,7 @@
 	{
 		private Condition _condition;
 
-		protected Node(Condition condition)
+		protected Node(Condition condition = null)
 		{
 			_condition = condition;
 		}

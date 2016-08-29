@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
+using Node = Build.DomainModel.MSBuild.Node;
 
 namespace Build.TaskEngine
 {
@@ -13,9 +14,11 @@ namespace Build.TaskEngine
 		private readonly ILogger _logger;
 		private readonly Project _project;
 		private readonly string _target;
-		private readonly Dictionary<Type, Action<Task>> _tasks;
+		private readonly Dictionary<Type, Action<Node>> _tasks;
+		private readonly IFileSystem _fileSystem;
 
 		public TaskEngine(ExpressionEngine.ExpressionEngine expressionEngine,
+		                  IFileSystem fileSystem,
 		                  Project project,
 		                  string target,
 		                  BuildEnvironment environment,
@@ -23,6 +26,8 @@ namespace Build.TaskEngine
 		{
 			if (expressionEngine == null)
 				throw new ArgumentNullException("expressionEngine");
+			if (fileSystem == null)
+				throw new ArgumentNullException("fileSystem");
 			if (project == null)
 				throw new ArgumentNullException("project");
 			if (environment == null)
@@ -31,17 +36,19 @@ namespace Build.TaskEngine
 				throw new ArgumentNullException("logger");
 
 			_expressionEngine = expressionEngine;
+			_fileSystem = fileSystem;
 			_project = project;
 			_target = target;
 			_environment = environment;
 			_logger = logger;
 
-			_tasks = new Dictionary<Type, Action<Task>>
+			_tasks = new Dictionary<Type, Action<Node>>
 				{
+					{typeof (PropertyGroup), x => Run((PropertyGroup) x)},
 					{typeof (Message), x => Run((Message) x)},
 					{typeof (Warning), x => Run((Warning) x)},
 					{typeof (Error), x => Run((Error) x)},
-					{typeof (DomainModel.MSBuild.Copy), x => Run((DomainModel.MSBuild.Copy) x)},
+					{typeof (Copy), x => Run((Copy) x)},
 					{typeof (Delete), x => Run((Delete) x)}
 				};
 		}
@@ -106,7 +113,7 @@ namespace Build.TaskEngine
 			{
 				if (!_expressionEngine.IsTrue(target.Condition, _environment))
 				{
-					_logger.WriteLine(Verbosity.Diagnostic, "Skipping target \"{0}\" because {1} does not evaluate to true",
+					_logger.WriteLine(Verbosity.Diagnostic, "  Skipping target \"{0}\" because {1} does not evaluate to true",
 					                  target.Name,
 					                  target.Condition);
 					return;
@@ -118,30 +125,30 @@ namespace Build.TaskEngine
 
 			_logger.WriteLine(Verbosity.Normal, "{0}:", target.Name);
 
-			foreach (Task task in target.Tasks)
+			foreach (Node node in target.Children)
 			{
-				Run(task);
+				Run(node);
 			}
 		}
 
-		public void Run(Task task)
+		public void Run(Node task)
 		{
 			if (task == null)
 				throw new ArgumentNullException("task");
 
-			var condition = task.Condition;
+			Condition condition = task.Condition;
 			if (condition != null)
 			{
 				if (!_expressionEngine.IsTrue(condition, _environment))
 				{
-					_logger.WriteLine(Verbosity.Diagnostic, "Skipping task \"{0}\" because {1} does not evaluate to true",
+					_logger.WriteLine(Verbosity.Diagnostic, "  Skipping task \"{0}\" because {1} does not evaluate to true",
 					                  task.GetType().Name,
 					                  condition);
 					return;
 				}
 			}
 
-			Action<Task> method;
+			Action<Node> method;
 			if (!_tasks.TryGetValue(task.GetType(), out method))
 			{
 				throw new BuildException(string.Format("Unknown task: {0}", task.GetType()));
@@ -164,30 +171,36 @@ namespace Build.TaskEngine
 					return Verbosity.Detailed;
 
 				default:
-					throw new InvalidEnumArgumentException("importance", (int)importance, typeof(Importance));
+					throw new InvalidEnumArgumentException("importance", (int) importance, typeof (Importance));
 			}
+		}
+
+		private void Run(PropertyGroup group)
+		{
+			_expressionEngine.Evaluate(group, _environment);
 		}
 
 		private void Run(Message message)
 		{
-			var verbosity = ImportanceToVerbosity(message.Importance);
+			Verbosity verbosity = ImportanceToVerbosity(message.Importance);
 			_logger.WriteLine(verbosity, "  {0}", message.Text);
 		}
 
 		private void Run(Warning warning)
 		{
-			var verbosity = ImportanceToVerbosity(warning.Importance);
-			_logger.WriteLine(verbosity, "  Warning: {0}", warning.Text);
+			_logger.WriteWarning(warning.Text);
 		}
 
 		private void Run(Error error)
 		{
-			var verbosity = ImportanceToVerbosity(error.Importance);
-			_logger.WriteLine(verbosity, "  Error: {0}", error.Text);
+			_logger.WriteError(error.Text);
 		}
 
-		private void Run(DomainModel.MSBuild.Copy copy)
+		private void Run(Copy copy)
 		{
+			copy.SourceFiles = _expressionEngine.EvaluateConcatenation(copy.SourceFiles, _environment);
+			copy.DestinationFiles = _expressionEngine.EvaluateConcatenation(copy.DestinationFiles, _environment);
+			CopyTask.Run(_fileSystem, _environment, copy, _logger);
 		}
 
 		private void Run(Delete delete)

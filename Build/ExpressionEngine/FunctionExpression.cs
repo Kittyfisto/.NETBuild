@@ -55,9 +55,9 @@ namespace Build.ExpressionEngine
 			}
 		}
 
-		public object Evaluate(BuildEnvironment environment)
+		public object Evaluate(IFileSystem fileSystem, BuildEnvironment environment)
 		{
-			var value = Parameter.Evaluate(environment);
+			var value = Parameter.Evaluate(fileSystem, environment);
 			switch (Operation)
 			{
 				case FunctionOperation.Exists:
@@ -65,7 +65,7 @@ namespace Build.ExpressionEngine
 					if (fileName == null)
 						return false;
 
-					return File.Exists(fileName);
+					return fileSystem.Exists(fileName);
 
 				case FunctionOperation.HasTrailingSlash:
 					var path = value as string;

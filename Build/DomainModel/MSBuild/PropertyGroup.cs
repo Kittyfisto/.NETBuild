@@ -12,24 +12,27 @@ namespace Build.DomainModel.MSBuild
 		: Node
 		, IPropertyGroup
 	{
-		private readonly Dictionary<string, Property> _properties;
+		private readonly List<Property> _properties;
+		private readonly Dictionary<string, Property> _propertiesByName;
 
 		public PropertyGroup(List<Property> properties, Condition condition = null)
 			: base(condition)
 		{
-			_properties = new Dictionary<string, Property>(properties.Count);
+			_properties = properties;
+			_propertiesByName = new Dictionary<string, Property>(properties.Count);
 			AddMany(properties);
 		}
 
 		public PropertyGroup(Condition condition = null)
 			: base(condition)
 		{
-			_properties = new Dictionary<string, Property>();
+			_properties = new List<Property>();
+			_propertiesByName = new Dictionary<string, Property>();
 		}
 
 		public override string ToString()
 		{
-			return string.Format("Count: {0}", _properties.Count);
+			return string.Format("Count: {0}", Count);
 		}
 
 		public int Count
@@ -37,12 +40,17 @@ namespace Build.DomainModel.MSBuild
 			get { return _properties.Count; }
 		}
 
+		public Property this[int index]
+		{
+			get { return _properties[index]; }
+		}
+
 		public Property this[string key]
 		{
 			get
 			{
 				Property property;
-				if (_properties.TryGetValue(key, out property))
+				if (_propertiesByName.TryGetValue(key, out property))
 					return property;
 
 				return null;
@@ -51,7 +59,7 @@ namespace Build.DomainModel.MSBuild
 
 		public IEnumerator<Property> GetEnumerator()
 		{
-			return _properties.Values.GetEnumerator();
+			return _propertiesByName.Values.GetEnumerator();
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()
@@ -61,7 +69,7 @@ namespace Build.DomainModel.MSBuild
 
 		public void Add(Property property)
 		{
-			_properties[property.Name] = property;
+			_propertiesByName[property.Name] = property;
 		}
 
 		public void AddMany(IEnumerable<Property> properties)
@@ -74,7 +82,7 @@ namespace Build.DomainModel.MSBuild
 
 		Property IReadOnlyList<Property>.this[int index]
 		{
-			get { return _properties.Values.ElementAt(index); }
+			get { return _propertiesByName.Values.ElementAt(index); }
 		}
 	}
 }

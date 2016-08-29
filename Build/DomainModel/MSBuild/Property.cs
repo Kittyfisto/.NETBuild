@@ -6,8 +6,13 @@ namespace Build.DomainModel.MSBuild
 	public sealed class Property
 		: Node
 	{
-		private readonly string _name;
-		private readonly string _value;
+		private string _name;
+		private string _value;
+
+		public Property()
+		{
+			
+		}
 
 		public Property(string name, string value, Condition condition = null)
 			: base(condition)
@@ -26,11 +31,13 @@ namespace Build.DomainModel.MSBuild
 		public string Value
 		{
 			get { return _value; }
+			set { _value = value; }
 		}
 
 		public string Name
 		{
 			get { return _name; }
+			set { _name = value; }
 		}
 
 		private bool Equals(Property other)

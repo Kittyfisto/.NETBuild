@@ -5,21 +5,24 @@ namespace Build.DomainModel.MSBuild
 	public sealed class Target
 		: Node
 	{
-		private readonly List<Task> _tasks;
+		private readonly List<Node> _children;
 
-		public Target(Condition condition = null)
-			: base(condition)
+		public Target()
 		{
-			_tasks = new List<Task>();
+			_children = new List<Node>();
 		}
 
 		public string DependsOnTargets { get; set; }
 
 		public string Name { get; set; }
 
-		public List<Task> Tasks
+		public string Inputs { get; set; }
+
+		public string Output { get; set; }
+
+		public List<Node> Children
 		{
-			get { return _tasks; }
+			get { return _children; }
 		}
 
 		public override string ToString()

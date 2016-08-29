@@ -22,9 +22,9 @@ namespace Build.ExpressionEngine
 		}
 
 		[Pure]
-		public object Evaluate(BuildEnvironment environment)
+		public object Evaluate(IFileSystem fileSystem, BuildEnvironment environment)
 		{
-			object value = Expression.Evaluate(environment);
+			object value = Expression.Evaluate(fileSystem, environment);
 			switch (Operation)
 			{
 				case UnaryOperation.Not:

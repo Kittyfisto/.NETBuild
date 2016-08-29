@@ -19,7 +19,7 @@ namespace Build.ExpressionEngine
 		}
 
 		[Pure]
-		public object Evaluate(BuildEnvironment environment)
+		public object Evaluate(IFileSystem fileSystem, BuildEnvironment environment)
 		{
 			return Value;
 		}

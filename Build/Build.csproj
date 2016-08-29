@@ -62,8 +62,12 @@
     <Compile Include="BuildEngine\Tasks\Compilers\IProjectCompiler.cs" />
     <Compile Include="BuildEngine\Tasks\Copy.cs" />
     <Compile Include="BuildEngine\Tasks\CopyFileTask.cs" />
+    <Compile Include="DomainModel\MSBuild\Csc.cs" />
+    <Compile Include="ExpressionEngine\Expression.cs" />
+    <Compile Include="Filesystem.cs" />
+    <Compile Include="IFilesystem.cs" />
+    <Compile Include="TaskEngine\CopyTask.cs" />
     <Compile Include="TaskEngine\TaskEngine.cs" />
-    <Compile Include="DomainModel\MSBuild\AbstractMessage.cs" />
     <Compile Include="DomainModel\MSBuild\Copy.cs" />
     <Compile Include="DomainModel\MSBuild\Delete.cs" />
     <Compile Include="DomainModel\MSBuild\Error.cs" />
@@ -110,15 +114,12 @@
     <Compile Include="DomainModel\MSBuild\Condition.cs" />
     <Compile Include="DomainModel\MSBuild\Project.cs" />
     <Compile Include="DomainModel\MSBuild\IItemGroup.cs" />
-    <Compile Include="DomainModel\MSBuild\IItemGroups.cs" />
     <Compile Include="DomainModel\MSBuild\IMetadataGroup.cs" />
     <Compile Include="DomainModel\MSBuild\INode.cs" />
     <Compile Include="DomainModel\MSBuild\IPropertyGroup.cs" />
-    <Compile Include="DomainModel\MSBuild\IPropertyGroups.cs" />
     <Compile Include="DomainModel\MSBuild\Metadata.cs" />
     <Compile Include="DomainModel\MSBuild\Metadatas.cs" />
     <Compile Include="DomainModel\MSBuild\ProjectItem.cs" />
-    <Compile Include="DomainModel\MSBuild\ItemGroups.cs" />
     <Compile Include="DomainModel\MSBuild\Items.cs" />
     <Compile Include="DomainModel\MSBuild\Node.cs" />
     <Compile Include="DomainModel\MSBuild\ItemGroup.cs" />
@@ -128,15 +129,17 @@
     <Compile Include="DomainModel\MSBuild\Compile.cs" />
     <Compile Include="DomainModel\Filetype.cs" />
     <Compile Include="DomainModel\IFile.cs" />
-    <Compile Include="DomainModel\MSBuild\PropertyGroups.cs" />
     <Compile Include="DomainModel\MSBuild\ReadOnlyItemGroup.cs" />
-    <Compile Include="DomainModel\MSBuild\ReadOnlyItemGroups.cs" />
     <Compile Include="DomainModel\MSBuild\ReadOnlyPropertyGroup.cs" />
-    <Compile Include="DomainModel\MSBuild\ReadOnlyPropertyGroups.cs" />
     <Compile Include="DomainModel\Sandbox.cs" />
     <Compile Include="DomainModel\Solution.cs" />
     <Compile Include="BuildEngine\Tasks\Compilers\CSharpProjectCompiler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Microsoft\Common.props">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

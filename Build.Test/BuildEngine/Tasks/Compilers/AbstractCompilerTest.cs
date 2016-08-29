@@ -11,6 +11,7 @@ namespace Build.Test.BuildEngine.Tasks.Compilers
 		private AssemblyResolver _assemblyResolver;
 		private Build.ExpressionEngine.ExpressionEngine _expressionEngine;
 		private TestLogger _logger;
+		private FileSystem _fileSystem;
 
 		protected TestLogger Logger
 		{
@@ -30,7 +31,8 @@ namespace Build.Test.BuildEngine.Tasks.Compilers
 		[TestFixtureSetUp]
 		public void TestFixtureSetUp()
 		{
-			_expressionEngine = new Build.ExpressionEngine.ExpressionEngine();
+			_fileSystem = new FileSystem();
+			_expressionEngine = new Build.ExpressionEngine.ExpressionEngine(_fileSystem);
 			_assemblyResolver = new AssemblyResolver(_expressionEngine);
 			_logger = new TestLogger();
 		}

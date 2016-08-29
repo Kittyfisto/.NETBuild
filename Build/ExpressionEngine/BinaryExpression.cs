@@ -29,11 +29,11 @@ namespace Build.ExpressionEngine
 			switch (Operation)
 			{
 				case BinaryOperation.And:
-					op = "And";
+					op = "AND";
 					break;
 
 				case BinaryOperation.Or:
-					op = "Or";
+					op = "OR";
 					break;
 
 				case BinaryOperation.Equals:
@@ -56,10 +56,10 @@ namespace Build.ExpressionEngine
 		}
 
 		[Pure]
-		public object Evaluate(BuildEnvironment environment)
+		public object Evaluate(IFileSystem fileSystem, BuildEnvironment environment)
 		{
-			object lhs = LeftHandSide.Evaluate(environment);
-			object rhs = RightHandSide.Evaluate(environment);
+			object lhs = LeftHandSide.Evaluate(fileSystem, environment);
+			object rhs = RightHandSide.Evaluate(fileSystem, environment);
 
 			switch (Operation)
 			{
@@ -68,6 +68,20 @@ namespace Build.ExpressionEngine
 
 				case BinaryOperation.EqualsNot:
 					return !Equals(lhs, rhs);
+
+				case BinaryOperation.And:
+					if (!Expression.IsTrue(lhs))
+						return false;
+					if (!Expression.IsTrue(rhs))
+						return false;
+					return true;
+
+				case BinaryOperation.Or:
+					if (Expression.IsTrue(lhs))
+						return true;
+					if (Expression.IsTrue(rhs))
+						return true;
+					return false;
 
 				default:
 					throw new NotImplementedException();

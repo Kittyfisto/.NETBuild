@@ -30,5 +30,15 @@ namespace Build.BuildEngine
 				WriteLine(verbosity, line);
 			}
 		}
+
+		public void WriteWarning(string message)
+		{
+			throw new NotImplementedException();
+		}
+
+		public void WriteError(string message)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

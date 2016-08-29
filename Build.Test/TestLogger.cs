@@ -19,5 +19,15 @@ namespace Build.Test
 				Console.WriteLine(line);
 			}
 		}
+
+		public void WriteWarning(string message)
+		{
+			throw new NotImplementedException();
+		}
+
+		public void WriteError(string message)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

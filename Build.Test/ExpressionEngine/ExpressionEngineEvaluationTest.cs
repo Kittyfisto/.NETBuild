@@ -19,7 +19,7 @@ namespace Build.Test.ExpressionEngine
 		[SetUp]
 		public void SetUp()
 		{
-			_engine = new Build.ExpressionEngine.ExpressionEngine();
+			_engine = new Build.ExpressionEngine.ExpressionEngine(new FileSystem());
 		}
 
 		[Test]
@@ -80,6 +80,56 @@ namespace Build.Test.ExpressionEngine
 			environment[Properties.Configuration].Should().Be("Debug");
 			environment[Properties.Platform].Should().Be("AnyCPU");
 		}
+
+		[Test]
+		public void TestEvaluateConcatenation1()
+		{
+			_engine.EvaluateConcatenation("$(Foo)", new BuildEnvironment {{"Foo", "Bar"}})
+			       .Should().Be("Bar");
+		}
+
+		[Test]
+		public void TestEvaluateConcatenation2()
+		{
+			_engine.EvaluateConcatenation("$(AssemblyName)$(Extension).config",
+			                              new BuildEnvironment
+				                              {
+					                              {"AssemblyName", "Foo"},
+					                              {"Extension", ".exe"}
+				                              })
+			       .Should().Be("Foo.exe.config");
+		}
+
+		#region Property Evaluation
+
+		[Test]
+		public void TestEvaluateProperty1()
+		{
+			var environment = new BuildEnvironment();
+			_engine.Evaluate(new Property
+				{
+					Name = "Foo",
+					Value = "Bar"
+				}, environment);
+			environment["Foo"].Should().Be("Bar");
+		}
+
+		[Test]
+		public void TestEvaluateProperty2()
+		{
+			var environment = new BuildEnvironment
+				{
+					{"Extension", ".exe"}
+				};
+			_engine.Evaluate(new Property
+			{
+				Name = "Foo",
+				Value = "$(Extension)"
+			}, environment);
+			environment["Foo"].Should().Be(".exe");
+		}
+
+		#endregion
 
 		#region Item Evaluation
 

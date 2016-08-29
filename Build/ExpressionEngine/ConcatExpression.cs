@@ -52,12 +52,12 @@ namespace Build.ExpressionEngine
 			return 0;
 		}
 
-		public object Evaluate(BuildEnvironment environment)
+		public object Evaluate(IFileSystem fileSystem, BuildEnvironment environment)
 		{
 			var builder = new StringBuilder();
 			for (int i = 0; i < Arguments.Length; ++i)
 			{
-				var value = Arguments[i].Evaluate(environment);
+				var value = Arguments[i].Evaluate(fileSystem, environment);
 				builder.Append(value);
 			}
 			return builder.ToString();

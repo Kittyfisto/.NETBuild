@@ -13,10 +13,15 @@ namespace Build.ExpressionEngine
 	/// </summary>
 	public sealed class ExpressionEngine
 	{
+		private readonly IFileSystem _fileSystem;
 		private readonly Tokenizer _tokenizer;
 
-		public ExpressionEngine()
+		public ExpressionEngine(IFileSystem fileSystem)
 		{
+			if (fileSystem == null)
+				throw new ArgumentNullException("fileSystem");
+
+			_fileSystem = fileSystem;
 			_tokenizer = new Tokenizer();
 		}
 
@@ -47,10 +52,12 @@ namespace Build.ExpressionEngine
 			//       appear in the csproject file
 			Evaluate(project.Properties, environment);
 
-			var itemGroups = Evaluate(project.ItemGroups, environment);
-			return new Project(project.Filename,
-			                         ReadOnlyPropertyGroups.Instance,
-			                         itemGroups);
+			var evaluated =  new Project
+				{
+					Filename = project.Filename,
+				};
+			evaluated.ItemGroups.AddRange(Evaluate(project.ItemGroups, environment));
+			return evaluated;
 		}
 
 		/// <summary>
@@ -60,7 +67,7 @@ namespace Build.ExpressionEngine
 		/// <param name="groups"></param>
 		/// <param name="environment"></param>
 		/// <returns></returns>
-		public void Evaluate(IPropertyGroups groups, BuildEnvironment environment)
+		public void Evaluate(IEnumerable<IPropertyGroup> groups, BuildEnvironment environment)
 		{
 			foreach (var group in groups)
 			{
@@ -105,9 +112,9 @@ namespace Build.ExpressionEngine
 			}
 		}
 
-		public IItemGroups Evaluate(IItemGroups groups, BuildEnvironment environment)
+		public IEnumerable<ItemGroup> Evaluate(IEnumerable<ItemGroup> groups, BuildEnvironment environment)
 		{
-			var evaluated = new List<IItemGroup>();
+			var evaluated = new List<ItemGroup>();
 
 			foreach (var group in groups)
 			{
@@ -118,13 +125,13 @@ namespace Build.ExpressionEngine
 				}
 			}
 
-			return new ItemGroups(evaluated);
+			return evaluated;
 		}
 
-		public IItemGroup Evaluate(IItemGroup group, BuildEnvironment environment)
+		public ItemGroup Evaluate(ItemGroup group, BuildEnvironment environment)
 		{
 			if (group.Condition != null && !IsTrue(group.Condition, environment))
-				return ReadOnlyItemGroup.Instance;
+				return new ItemGroup();
 
 			var evaluated = new List<ProjectItem>();
 			foreach (var item in group)
@@ -191,14 +198,48 @@ namespace Build.ExpressionEngine
 		public string EvaluateExpression(string expression, BuildEnvironment environment)
 		{
 			IExpression exp = Parse(expression);
-			object value = exp.Evaluate(environment);
+			object value = exp.Evaluate(_fileSystem, environment);
+			return value != null ? value.ToString() : string.Empty;
+		}
+
+		public string EvaluateConcatenation(string expression, BuildEnvironment environment)
+		{
+			// This is much simpler since we don't interpret general expressions
+			// in string concatenation: We only replace property values..
+			var tokens = _tokenizer.Tokenize(expression);
+			tokens = _tokenizer.GroupWhiteSpaceAndLiteral(tokens);
+			var arguments = new IExpression[tokens.Count];
+			for (int i = 0; i < tokens.Count; ++i)
+			{
+				arguments[i] = Parse(tokens[i]);
+			}
+			var exp = new ConcatExpression(arguments);
+			object value = exp.Evaluate(_fileSystem, environment);
 			return value != null ? value.ToString() : string.Empty;
 		}
 
 		public string Expand(string value, BuildEnvironment environment)
 		{
+			var evaluated = EvaluateConcatenation(value, environment);
 			// TODO: replace properties with values, evaluate wildcards, perform projections, etc...
-			return value;
+			return evaluated;
+		}
+
+		private bool IsFunctionName(Token token, out FunctionOperation operation)
+		{
+			switch (token.Value)
+			{
+				case "Exists":
+					operation = FunctionOperation.Exists;
+					return true;
+
+				case "HasTrailingSlash":
+					operation = FunctionOperation.HasTrailingSlash;
+					return true;
+			}
+
+			operation = (FunctionOperation) (-1);
+			return false;
 		}
 
 		private static bool IsBinaryOperator(TokenType type, out BinaryOperation operation)
@@ -274,14 +315,22 @@ namespace Build.ExpressionEngine
 			switch (type)
 			{
 				case TokenType.Not:
-					return 3;
+					return 5;
 
-				case TokenType.Equals:
-				case TokenType.NotEquals:
 				case TokenType.LessThan:
 				case TokenType.LessOrEquals:
 				case TokenType.GreaterThan:
 				case TokenType.GreaterOrEquals:
+					return 4;
+
+				case TokenType.Equals:
+				case TokenType.NotEquals:
+					return 3;
+
+				case TokenType.And:
+					return 2;
+
+				case TokenType.Or:
 					return 1;
 
 				default:
@@ -299,6 +348,7 @@ namespace Build.ExpressionEngine
 		{
 			var stack = new List<TokenOrExpression>();
 			int highestPrecedence = 0;
+			bool insideQuotation = false;
 			foreach (Token token in tokens)
 			{
 				if (IsOperator(token.Type))
@@ -312,9 +362,24 @@ namespace Build.ExpressionEngine
 					stack.Add(token);
 					highestPrecedence = precedence;
 				}
-				else
+				else if (token.Type == TokenType.Quotation)
 				{
 					stack.Add(token);
+					insideQuotation = !insideQuotation;
+				}
+				else if (token.Type == TokenType.CloseBracket)
+				{
+					stack.Add(token);
+					ParseExpression(stack);
+				}
+				else
+				{
+					// We completely ignore whitespace in expressions unless it's
+					// inside a quotation.
+					if (insideQuotation || token.Type != TokenType.Whitespace)
+					{
+						stack.Add(token);
+					}
 				}
 			}
 
@@ -350,10 +415,34 @@ namespace Build.ExpressionEngine
 		/// <param name="tokens"></param>
 		private void ParseExpression(List<TokenOrExpression> tokens)
 		{
+			FunctionOperation operation;
 			UnaryOperation unaryOperation;
 			BinaryOperation binaryOperation;
-			if (tokens.Count >= 3 && IsBinaryOperator(tokens[1].Token.Type, out binaryOperation))
+
+			if (tokens.Count >= 3 && IsFunctionName(tokens[0].Token, out operation) && 
+				tokens[1].Token.Type == TokenType.OpenBracket &&
+				tokens[tokens.Count - 1].Token.Type == TokenType.CloseBracket)
 			{
+				// Function call fn(...)
+				// to obtain the parameter we need to remove the function name and paranetheses, then
+				// parse the sub-expression
+				tokens.RemoveRange(0, 2);
+				tokens.RemoveAt(tokens.Count - 1);
+
+				ParseExpression(tokens);
+				if (tokens.Count != 1)
+					throw new ParseException();
+
+				// Currently all function calls have one parameter
+				var parameter = tokens[0].Expression;
+				var expression = new FunctionExpression(operation, parameter);
+				tokens.RemoveAt(0);
+				tokens.Insert(0, new TokenOrExpression(expression));
+			}
+			else if (tokens.Count >= 3 && IsBinaryOperator(tokens[1].Token.Type, out binaryOperation))
+			{
+				// Binary expression
+
 				TokenOrExpression leftHandSide = tokens[0];
 				tokens.RemoveRange(0, 2);
 				ParseExpression(tokens);
@@ -448,13 +537,8 @@ namespace Build.ExpressionEngine
 		public bool IsTrue(Condition condition, BuildEnvironment environment)
 		{
 			IExpression expression = Parse(condition.Expression);
-			object result = expression.Evaluate(environment);
-			if (result is bool)
-			{
-				return (bool) result;
-			}
-
-			throw new NotImplementedException();
+			object result = expression.Evaluate(_fileSystem, environment);
+			return Expression.IsTrue(result);
 		}
 	}
 }

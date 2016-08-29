@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Xml;
 using Build.DomainModel.MSBuild;
-using Build.Watchdog;
+using Build.ExpressionEngine;
 
 namespace Build.Parser
 {
@@ -30,37 +31,21 @@ namespace Build.Parser
 			using (var stream = File.OpenRead(filePath))
 			using (var reader = XmlReader.Create(stream))
 			{
-				var itemGroups = new List<ItemGroup>();
-				var propertyGroups = new List<IPropertyGroup>();
+				if (!reader.ReadToDescendant("Project"))
+					throw new NotImplementedException();
 
-				while (reader.Read())
-				{
-					if (reader.NodeType == XmlNodeType.Element)
+				var project = new Project
 					{
-						switch (reader.Name)
-						{
-							case "Project":
-								ReadProject(reader.ReadSubtree(),
-									propertyGroups,
-									itemGroups);
-								break;
-						}
-
-						reader.Skip();
-					}
-				}
-
-				var properties = new PropertyGroups(propertyGroups);
-				var items = new ItemGroups(itemGroups);
-				var project = new Project(filePath, properties, items);
+						Filename = filePath
+					};
+				ReadProject(reader.ReadSubtree(), project);
 				return project;
 			}
 		}
 
-		private static void ReadProject(XmlReader reader,
-			List<IPropertyGroup> propertyGroups,
-			List<ItemGroup> itemGroups)
+		private static void ReadProject(XmlReader reader, Project project)
 		{
+			reader.MoveToContent();
 			while (reader.Read())
 			{
 				if (reader.NodeType == XmlNodeType.Element)
@@ -71,16 +56,146 @@ namespace Build.Parser
 							var condition = reader.TryReadCondition();
 							var properties = ReadPropertyGroup(reader.ReadSubtree());
 							if (properties.Count > 0)
-								propertyGroups.Add(new PropertyGroup(properties, condition));
+								project.Properties.Add(new PropertyGroup(properties, condition));
 							break;
 
 						case "ItemGroup":
 							var itemGroup = ReadItemGroup(reader.ReadSubtree());
-							itemGroups.Add(itemGroup);
+							project.ItemGroups.Add(itemGroup);
+							break;
+
+						case "Target":
+							var target = ReadTarget(reader);
+							project.Targets.Add(target);
 							break;
 					}
+
+					reader.Skip();
 				}
 			}
+		}
+
+		private static Target ReadTarget(XmlReader reader)
+		{
+			var target = new Target();
+
+			for (int i = 0; i < reader.AttributeCount; ++i)
+			{
+				reader.MoveToAttribute(i);
+				switch (reader.Name)
+				{
+					case "Name":
+						target.Name = reader.Value;
+						break;
+
+					case "Condition":
+						target.Condition = new Condition(reader.Value);
+						break;
+
+					case "DependsOnTargets":
+						target.DependsOnTargets = reader.Value;
+						break;
+
+					case "Inputs":
+						target.Inputs = reader.Value;
+						break;
+
+					case "Output":
+						target.Output = reader.Value;
+						break;
+
+					default:
+						throw new ParseException(string.Format("Unknown attribute '{0}' on type 'Target'",
+							reader.Name));
+				}
+			}
+
+			reader.MoveToContent();
+			var innerReader = reader.ReadSubtree();
+			innerReader.MoveToContent();
+			while (innerReader.Read())
+			{
+				if (innerReader.NodeType == XmlNodeType.Element)
+				{
+					switch (reader.Name)
+					{
+						case "PropertyGroup":
+							var condition = innerReader.TryReadCondition();
+							var properties = ReadPropertyGroup(innerReader.ReadSubtree());
+							if (properties.Count > 0)
+							{
+								var group = new PropertyGroup(properties)
+									{
+										Condition = condition
+									};
+								target.Children.Add(group);
+							}
+							break;
+
+						case "Message":
+							target.Children.Add(ReadMessage(innerReader));
+							break;
+
+						case "Copy":
+							target.Children.Add(ReadCopy(innerReader));
+							break;
+
+						default:
+							throw new ParseException(string.Format("Unsupported node: '{0}'", innerReader.Name));
+					}
+
+					innerReader.Skip();
+				}
+			}
+
+			return target;
+		}
+
+		private static Copy ReadCopy(XmlReader reader)
+		{
+			var task = new Copy();
+			for (int i = 0; i < reader.AttributeCount; ++i)
+			{
+				reader.MoveToAttribute(i);
+				switch (reader.Name)
+				{
+					case "SourceFiles":
+						task.SourceFiles = reader.Value;
+						break;
+
+					case "DestinationFiles":
+						task.DestinationFiles = reader.Value;
+						break;
+
+					default:
+						throw new ParseException(string.Format("Unsupported attribute: {0}", reader.Name));
+				}
+			}
+			return task;
+		}
+
+		private static Message ReadMessage(XmlReader reader)
+		{
+			var value = reader.GetAttribute("Importance");
+			var importance = Importance.Normal;
+			switch (value)
+			{
+				case "High":
+					importance = Importance.High;
+					break;
+
+				case "Low":
+					importance = Importance.Low;
+					break;
+			}
+
+			var message = new Message
+				{
+					Condition = reader.TryReadCondition(),
+					Importance = importance,
+					Text = reader.GetAttribute("Text")
+				};
+			return message;
 		}
 
 		private static ItemGroup ReadItemGroup(XmlReader reader)

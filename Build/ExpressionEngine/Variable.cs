@@ -17,7 +17,7 @@ namespace Build.ExpressionEngine
 			return string.Format("$({0})", Name);
 		}
 
-		public object Evaluate(BuildEnvironment environment)
+		public object Evaluate(IFileSystem fileSystem, BuildEnvironment environment)
 		{
 			return environment[Name];
 		}

@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Project DefaultTargets="Build">
+  <Target Name="DetermineOutputFileExtension">
+    <PropertyGroup Condition="$(OutputType) == 'Library'">
+      <OutputFileExtension>.dll</OutputFileExtension>
+    </PropertyGroup>
+    <PropertyGroup Condition="$(OutputType) == 'Exe' OR $(OutputType) == 'Winexe'">
+      <OutputFileExtension>.exe</OutputFileExtension>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="DetermineOutputFileName"
+          DependsOnTargets="DetermineOutputFileExtension">
+    <PropertyGroup>
+      <OutputFileName>$(AssemblyName)$(OutputFileExtension)</OutputFileName>
+      <OutputFilePath>$(OutputPath)\$(OutputFileName)</OutputFilePath>
+      <AbsoluteOutputFilePath>$(MSBuildProjectDirectory)\$(OutputFileName)</AbsoluteOutputFilePath>
+    </PropertyGroup>
+    <PropertyGroup>
+      <PdbFileName>$(AssemblyName).pdb</PdbFileName>
+      <PdbFilePath>$(OutputPath)\$(PdbFileName)</PdbFilePath>
+      <AbsolutePdbFilePath>$(MSBuildProjectDirectory)\$(OutputFileName)</AbsolutePdbFilePath>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="CoreBuild"
+          DependsOnTargets="DetermineOutputFileName">
+  </Target>
+
+  <Target Name="CopyAppConfigFile"
+          DependsOnTargets="DetermineOutputFileName"
+          Condition="Exists('app.config')"
+          Inputs="app.config"
+          Output="$(OutputPath)\$(OutputFileName).config"
+          >
+    <Copy SourceFiles="app.config"
+          DestinationFiles="$(OutputPath)\$(OutputFileName).config" />
+  </Target>
+
+  <Target Name="CopyFilesToOutputDirectory"
+          DependsOnTargets="CoreBuild">
+    <Message Importance="Normal" Text="Build -> $(AbsoluteOutputFileName)" />
+  </Target>
+
+  <Target Name="Build"
+          DependsOnTargets="CopyFilesToOutputDirectory;CopyAppConfigFile">
+    <Message Importance="High" Text="Build Succeeded." />
+  </Target>
+
+</Project>

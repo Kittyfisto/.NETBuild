@@ -8,7 +8,7 @@ namespace Build.DomainModel.MSBuild
 		private readonly List<TaskItem> _deletedFiles;
 		private readonly List<TaskItem> _files;
 
-		public Delete(Condition condition = null) : base(condition)
+		public Delete()
 		{
 			_deletedFiles = new List<TaskItem>();
 			_files = new List<TaskItem>();

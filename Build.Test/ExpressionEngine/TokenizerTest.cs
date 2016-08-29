@@ -18,20 +18,20 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestTokenize1()
 		{
-			TestTokenizeWhiteLeadingWhitespace("(", new Token(TokenType.OpenBracket));
-			TestTokenizeWhiteLeadingWhitespace(")", new Token(TokenType.CloseBracket));
-			TestTokenizeWhiteLeadingWhitespace("'", new Token(TokenType.Quotation));
-			TestTokenizeWhiteLeadingWhitespace("!", new Token(TokenType.Not));
-			TestTokenizeWhiteLeadingWhitespace("==", new Token(TokenType.Equals));
-			TestTokenizeWhiteLeadingWhitespace("!=", new Token(TokenType.NotEquals));
-			TestTokenizeWhiteLeadingWhitespace("<", new Token(TokenType.LessThan));
-			TestTokenizeWhiteLeadingWhitespace("<=", new Token(TokenType.LessOrEquals));
-			TestTokenizeWhiteLeadingWhitespace(">", new Token(TokenType.GreaterThan));
-			TestTokenizeWhiteLeadingWhitespace(">=", new Token(TokenType.GreaterOrEquals));
-			TestTokenizeWhiteLeadingWhitespace("And", new Token(TokenType.And));
-			TestTokenizeWhiteLeadingWhitespace("Or", new Token(TokenType.Or));
-			TestTokenizeWhiteLeadingWhitespace("$(Foo)", new Token(TokenType.Variable, "Foo"));
-			TestTokenizeWhiteLeadingWhitespace("SomeValue", new Token(TokenType.Literal, "SomeValue"));
+			_tokenizer.Tokenize("(").Should().Equal(new Token(TokenType.OpenBracket));
+			_tokenizer.Tokenize(")").Should().Equal(new Token(TokenType.CloseBracket));
+			_tokenizer.Tokenize("'").Should().Equal(new Token(TokenType.Quotation));
+			_tokenizer.Tokenize("!").Should().Equal(new Token(TokenType.Not));
+			_tokenizer.Tokenize("==").Should().Equal(new Token(TokenType.Equals));
+			_tokenizer.Tokenize("!=").Should().Equal(new Token(TokenType.NotEquals));
+			_tokenizer.Tokenize("<").Should().Equal(new Token(TokenType.LessThan));
+			_tokenizer.Tokenize("<=").Should().Equal(new Token(TokenType.LessOrEquals));
+			_tokenizer.Tokenize(">").Should().Equal(new Token(TokenType.GreaterThan));
+			_tokenizer.Tokenize(">=").Should().Equal(new Token(TokenType.GreaterOrEquals));
+			_tokenizer.Tokenize("AND").Should().Equal(new Token(TokenType.And));
+			_tokenizer.Tokenize("OR").Should().Equal(new Token(TokenType.Or));
+			_tokenizer.Tokenize("$(Foo)").Should().Equal(new Token(TokenType.Variable, "Foo"));
+			_tokenizer.Tokenize("SomeValue").Should().Equal(new Token(TokenType.Literal, "SomeValue"));
 		}
 
 		[Test]
@@ -54,9 +54,11 @@ namespace Build.Test.ExpressionEngine
 			_tokenizer.Tokenize(" 'Debug' ")
 			          .Should().Equal(new object[]
 				          {
+							  new Token(TokenType.Whitespace, " "),
 					          new Token(TokenType.Quotation),
 					          new Token(TokenType.Literal, "Debug"),
-					          new Token(TokenType.Quotation)
+					          new Token(TokenType.Quotation),
+							  new Token(TokenType.Whitespace, " ")
 				          });
 		}
 
@@ -67,7 +69,9 @@ namespace Build.Test.ExpressionEngine
 			          .Should().Equal(new object[]
 				          {
 					          new Token(TokenType.Variable, "Configuration"),
+							  new Token(TokenType.Whitespace, " "),
 					          new Token(TokenType.Equals),
+							  new Token(TokenType.Whitespace, " "),
 					          new Token(TokenType.Quotation),
 					          new Token(TokenType.Quotation)
 				          });
@@ -83,15 +87,134 @@ namespace Build.Test.ExpressionEngine
 				});
 		}
 
-		private void TestTokenizeWhiteLeadingWhitespace(string token, Token expectedToken)
+		[Test]
+		public void TestTokenize6()
 		{
-			var expectedTokens = new object[] {expectedToken};
-			_tokenizer.Tokenize(token).Should().Equal(expectedTokens);
-			_tokenizer.Tokenize(" "+token).Should().Equal(expectedTokens);
-			_tokenizer.Tokenize("  "+token).Should().Equal(expectedTokens);
-			_tokenizer.Tokenize("	"+token).Should().Equal(expectedTokens);
-			_tokenizer.Tokenize("		"+token).Should().Equal(expectedTokens);
-			_tokenizer.Tokenize("		"+token).Should().Equal(expectedTokens);
+			_tokenizer.Tokenize("Exists('App.config')").Should().Equal(new object[]
+				{
+					new Token(TokenType.Literal, "Exists"),
+					new Token(TokenType.OpenBracket),
+					new Token(TokenType.Quotation),
+					new Token(TokenType.Literal, "App.config"),
+					new Token(TokenType.Quotation),
+					new Token(TokenType.CloseBracket)
+				});
+		}
+
+		[Test]
+		public void TestTokenize7()
+		{
+			_tokenizer.Tokenize("").Should().BeEmpty();
+		}
+
+		[Test]
+		public void TestTokenize8()
+		{
+			_tokenizer.Tokenize("'Debug'").Should().Equal(new object[]
+				{
+					new Token(TokenType.Quotation),
+					new Token(TokenType.Literal, "Debug"),
+					new Token(TokenType.Quotation)
+				});
+		}
+
+		[Test]
+		[Description("Verifies that whitespace is not left out")]
+		public void TestTokenize9()
+		{
+			_tokenizer.Tokenize(" Debug ").Should().Equal(new object[]
+				{
+					new Token(TokenType.Whitespace, " "),
+					new Token(TokenType.Literal, "Debug"),
+					new Token(TokenType.Whitespace, " ")
+				});
+			_tokenizer.Tokenize("Some File Name").Should().Equal(new object[]
+				{
+					new Token(TokenType.Literal, "Some"),
+					new Token(TokenType.Whitespace, " "),
+					new Token(TokenType.Literal, "File"),
+					new Token(TokenType.Whitespace, " "),
+					new Token(TokenType.Literal, "Name")
+				});
+		}
+
+		[Test]
+		[Description("Verifies that whitespace is grouped together")]
+		public void TestTokenize10()
+		{
+			_tokenizer.Tokenize("	 \n").Should().Equal(new object[]
+				{
+					new Token(TokenType.Whitespace, "	 \n")
+				});
+		}
+
+		[Test]
+		public void TestTokenize11()
+		{
+			_tokenizer.Tokenize(null).Should().BeEmpty();
+			_tokenizer.Tokenize(string.Empty).Should().BeEmpty();
+		}
+
+		[Test]
+		public void TestGroup1()
+		{
+			_tokenizer.GroupWhiteSpaceAndLiteral(new[] { new Token(TokenType.Literal, "f"), new Token(TokenType.OpenBracket)
+				}).Should().Equal(new[] { new Token(TokenType.Literal, "f"), new Token(TokenType.OpenBracket) });
+		}
+
+		[Test]
+		public void TestGroup2()
+		{
+			_tokenizer.GroupWhiteSpaceAndLiteral(new[] { new Token(TokenType.Whitespace, "	"), new Token(TokenType.OpenBracket)
+				}).Should().Equal(new[] { new Token(TokenType.Whitespace, "	"), new Token(TokenType.OpenBracket) });
+		}
+
+		[Test]
+		public void TestGroup3()
+		{
+			_tokenizer.GroupWhiteSpaceAndLiteral(
+				new[] { new Token(TokenType.Whitespace, "	"), new Token(TokenType.Literal, "Foobar")
+				}).Should().Equal(new[] { new Token(TokenType.Literal, "	Foobar") });
+		}
+
+		[Test]
+		public void TestGroup4()
+		{
+			_tokenizer.GroupWhiteSpaceAndLiteral(
+				new[] { new Token(TokenType.Whitespace, "	"), new Token(TokenType.Whitespace, "\r\n")
+				}).Should().Equal(new[] { new Token(TokenType.Whitespace, "	\r\n") });
+		}
+
+		[Test]
+		public void TestGroup5()
+		{
+			_tokenizer.GroupWhiteSpaceAndLiteral(
+				new[]
+				{ 
+					new Token(TokenType.Whitespace, "	"),
+					new Token(TokenType.Literal, "Foobar"),
+					new Token(TokenType.Whitespace, "\r\n")
+				}).Should().Equal(new[] { new Token(TokenType.Literal, "	Foobar\r\n") });
+		}
+
+		[Test]
+		public void TestGroup6()
+		{
+			_tokenizer.GroupWhiteSpaceAndLiteral(
+				new[]
+					{
+						new Token(TokenType.Whitespace, "	"),
+						new Token(TokenType.Literal, "Foobar"),
+						new Token(TokenType.Whitespace, "\r\n"),
+						new Token(TokenType.Variable, "Stuff"),
+						new Token(TokenType.Literal, "More stuff"),
+						new Token(TokenType.Whitespace, "	")
+					}).Should().Equal(new[]
+						{
+							new Token(TokenType.Literal, "	Foobar\r\n"),
+							new Token(TokenType.Variable, "Stuff"),
+							new Token(TokenType.Literal, "More stuff	")
+						});
 		}
 	}
 }

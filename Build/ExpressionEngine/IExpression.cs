@@ -6,6 +6,6 @@ namespace Build.ExpressionEngine
 	public interface IExpression
 	{
 		[Pure]
-		object Evaluate(BuildEnvironment environment);
+		object Evaluate(IFileSystem fileSystem, BuildEnvironment environment);
 	}
 }

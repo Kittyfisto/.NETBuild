@@ -96,7 +96,7 @@ namespace Build
 
 		public static string MakeAbsolute(string rootDirectory, string relativeOrAbsolutePath)
 		{
-			if (System.IO.Path.IsPathRooted(relativeOrAbsolutePath))
+			if (IsPathRooted(relativeOrAbsolutePath))
 				return relativeOrAbsolutePath;
 
 			var path = System.IO.Path.Combine(rootDirectory, relativeOrAbsolutePath);
@@ -107,6 +107,9 @@ namespace Build
 		[Pure]
 		public static string MakeRelative(string relativeTo, string fullPath)
 		{
+			if (!IsPathRooted(fullPath))
+				return fullPath;
+
 			var directory = EnsureBackslash(relativeTo);
 			var tmp = new Uri(directory);
 			var relative = tmp.MakeRelativeUri(new Uri(fullPath));

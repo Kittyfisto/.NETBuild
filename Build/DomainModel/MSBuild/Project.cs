@@ -9,38 +9,28 @@ namespace Build.DomainModel.MSBuild
 	public sealed class Project
 		: IFile
 	{
-		private readonly IPropertyGroups _propertyGroups;
-		private readonly IItemGroups _itemGroups;
-		private readonly string _filename;
+		private readonly List<PropertyGroup> _propertyGroups;
+		private readonly List<ItemGroup> _itemGroups;
 		private readonly List<Target> _targets;
 
-		public Project(string filename,
-							 IPropertyGroups propertyGroups = null,
-							 IItemGroups itemGroups = null)
+		public Project()
 		{
-			if (filename == null)
-				throw new ArgumentNullException("filename");
-
-			_filename = filename;
+			_propertyGroups = new List<PropertyGroup>();
+			_itemGroups = new List<ItemGroup>();
 			_targets = new List<Target>();
-			_propertyGroups = propertyGroups ?? ReadOnlyPropertyGroups.Instance;
-			_itemGroups = itemGroups ?? ReadOnlyItemGroups.Instance;
 		}
 
-		public IPropertyGroups Properties
+		public List<PropertyGroup> Properties
 		{
 			get { return _propertyGroups; }
 		}
 
-		public IItemGroups ItemGroups
+		public List<ItemGroup> ItemGroups
 		{
 			get { return _itemGroups; }
 		}
 
-		public string Filename
-		{
-			get { return _filename; }
-		}
+		public string Filename { get; set; }
 
 		public DateTime LastModified
 		{
@@ -57,7 +47,7 @@ namespace Build.DomainModel.MSBuild
 
 		public override string ToString()
 		{
-			return _filename;
+			return Filename;
 		}
 	}
 }
