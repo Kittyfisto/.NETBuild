@@ -4,13 +4,13 @@ using System.IO;
 
 namespace Build.BuildEngine.Tasks
 {
-	public sealed class DeleteFile
+	public sealed class DeleteFileTask
 	{
 		private readonly ILogger _logger;
 		private readonly string _directory;
 		private readonly string _file;
 
-		public DeleteFile(ILogger logger,
+		public DeleteFileTask(ILogger logger,
 		                string directory,
 		                string file)
 		{

@@ -1,6 +1,6 @@
 ﻿namespace Build.DomainModel.MSBuild
 {
-	public sealed class Message
+	public sealed class Error
 		: AbstractMessage
 	{
 	}

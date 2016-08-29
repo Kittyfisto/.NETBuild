@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Build.DomainModel.MSBuild
 {
@@ -11,6 +12,7 @@ namespace Build.DomainModel.MSBuild
 		private readonly IPropertyGroups _propertyGroups;
 		private readonly IItemGroups _itemGroups;
 		private readonly string _filename;
+		private readonly List<Target> _targets;
 
 		public Project(string filename,
 							 IPropertyGroups propertyGroups = null,
@@ -20,6 +22,7 @@ namespace Build.DomainModel.MSBuild
 				throw new ArgumentNullException("filename");
 
 			_filename = filename;
+			_targets = new List<Target>();
 			_propertyGroups = propertyGroups ?? ReadOnlyPropertyGroups.Instance;
 			_itemGroups = itemGroups ?? ReadOnlyItemGroups.Instance;
 		}
@@ -45,6 +48,11 @@ namespace Build.DomainModel.MSBuild
 			{
 				return DateTime.Now;
 			}
+		}
+
+		public List<Target> Targets
+		{
+			get { return _targets; }
 		}
 
 		public override string ToString()

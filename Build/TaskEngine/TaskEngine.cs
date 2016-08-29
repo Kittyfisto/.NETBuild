@@ -1,0 +1,197 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using Build.BuildEngine;
+using Build.DomainModel.MSBuild;
+
+namespace Build.TaskEngine
+{
+	public sealed class TaskEngine
+	{
+		private readonly BuildEnvironment _environment;
+		private readonly ExpressionEngine.ExpressionEngine _expressionEngine;
+		private readonly ILogger _logger;
+		private readonly Project _project;
+		private readonly string _target;
+		private readonly Dictionary<Type, Action<Task>> _tasks;
+
+		public TaskEngine(ExpressionEngine.ExpressionEngine expressionEngine,
+		                  Project project,
+		                  string target,
+		                  BuildEnvironment environment,
+		                  ILogger logger)
+		{
+			if (expressionEngine == null)
+				throw new ArgumentNullException("expressionEngine");
+			if (project == null)
+				throw new ArgumentNullException("project");
+			if (environment == null)
+				throw new ArgumentNullException("environment");
+			if (logger == null)
+				throw new ArgumentNullException("logger");
+
+			_expressionEngine = expressionEngine;
+			_project = project;
+			_target = target;
+			_environment = environment;
+			_logger = logger;
+
+			_tasks = new Dictionary<Type, Action<Task>>
+				{
+					{typeof (Message), x => Run((Message) x)},
+					{typeof (Warning), x => Run((Warning) x)},
+					{typeof (Error), x => Run((Error) x)},
+					{typeof (DomainModel.MSBuild.Copy), x => Run((DomainModel.MSBuild.Copy) x)},
+					{typeof (Delete), x => Run((Delete) x)}
+				};
+		}
+
+		public void Run()
+		{
+			//
+			// #1: Serialize list of targets that shall be executed.
+			//
+
+			var allTargets = new Dictionary<string, Target>();
+			foreach (Target target in _project.Targets)
+			{
+				allTargets.Add(target.Name, target);
+			}
+
+			var targetOrder = new List<Target>();
+
+			var pendingTargets = new Stack<string>();
+			pendingTargets.Push(_target);
+			while (pendingTargets.Count > 0)
+			{
+				string targetName = pendingTargets.Pop();
+				Target target;
+				if (!allTargets.TryGetValue(targetName, out target))
+				{
+					throw new NotImplementedException();
+				}
+
+				targetOrder.Add(target);
+
+				string dependsOn = target.DependsOnTargets;
+				if (dependsOn != null)
+				{
+					string[] targets = dependsOn.Split(';');
+					foreach (string name in targets)
+					{
+						pendingTargets.Push(name);
+					}
+				}
+			}
+
+			targetOrder.Reverse();
+
+
+			//
+			// #2: Execute targets one by one
+			//
+
+			foreach (Target target in targetOrder)
+			{
+				Run(target);
+			}
+		}
+
+		public void Run(Target target)
+		{
+			if (target == null)
+				throw new ArgumentNullException("target");
+
+			if (target.Condition != null)
+			{
+				if (!_expressionEngine.IsTrue(target.Condition, _environment))
+				{
+					_logger.WriteLine(Verbosity.Diagnostic, "Skipping target \"{0}\" because {1} does not evaluate to true",
+					                  target.Name,
+					                  target.Condition);
+					return;
+				}
+			}
+
+			// TODO: This is the place to check input files for having been modified and output files for their presence:
+			//       If both are in order then we don't need to run this target at all...
+
+			_logger.WriteLine(Verbosity.Normal, "{0}:", target.Name);
+
+			foreach (Task task in target.Tasks)
+			{
+				Run(task);
+			}
+		}
+
+		public void Run(Task task)
+		{
+			if (task == null)
+				throw new ArgumentNullException("task");
+
+			var condition = task.Condition;
+			if (condition != null)
+			{
+				if (!_expressionEngine.IsTrue(condition, _environment))
+				{
+					_logger.WriteLine(Verbosity.Diagnostic, "Skipping task \"{0}\" because {1} does not evaluate to true",
+					                  task.GetType().Name,
+					                  condition);
+					return;
+				}
+			}
+
+			Action<Task> method;
+			if (!_tasks.TryGetValue(task.GetType(), out method))
+			{
+				throw new BuildException(string.Format("Unknown task: {0}", task.GetType()));
+			}
+
+			method(task);
+		}
+
+		private static Verbosity ImportanceToVerbosity(Importance importance)
+		{
+			switch (importance)
+			{
+				case Importance.High:
+					return Verbosity.Quiet;
+
+				case Importance.Normal:
+					return Verbosity.Normal;
+
+				case Importance.Low:
+					return Verbosity.Detailed;
+
+				default:
+					throw new InvalidEnumArgumentException("importance", (int)importance, typeof(Importance));
+			}
+		}
+
+		private void Run(Message message)
+		{
+			var verbosity = ImportanceToVerbosity(message.Importance);
+			_logger.WriteLine(verbosity, "  {0}", message.Text);
+		}
+
+		private void Run(Warning warning)
+		{
+			var verbosity = ImportanceToVerbosity(warning.Importance);
+			_logger.WriteLine(verbosity, "  Warning: {0}", warning.Text);
+		}
+
+		private void Run(Error error)
+		{
+			var verbosity = ImportanceToVerbosity(error.Importance);
+			_logger.WriteLine(verbosity, "  Error: {0}", error.Text);
+		}
+
+		private void Run(DomainModel.MSBuild.Copy copy)
+		{
+		}
+
+		private void Run(Delete delete)
+		{
+		}
+	}
+}

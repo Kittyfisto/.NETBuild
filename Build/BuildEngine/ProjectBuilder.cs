@@ -108,7 +108,7 @@ namespace Build.BuildEngine
 		private void DeleteFile(string fileName)
 		{
 			var projectDirectory = _environment[Properties.MSBuildProjectDirectory];
-			var task = new DeleteFile(_logger, projectDirectory, fileName);
+			var task = new DeleteFileTask(_logger, projectDirectory, fileName);
 			task.Run();
 		}
 
@@ -170,7 +170,7 @@ namespace Build.BuildEngine
 			var fileName = outputFileName ?? Path.GetFilename(inputFilePath);
 			var outputFilePath = Path.Combine(outputPath, fileName);
 
-			var task = new CopyFile(_logger, projectDirectory, inputFilePath, outputFilePath, Copy.IfNewer);
+			var task = new CopyFileTask(_logger, projectDirectory, inputFilePath, outputFilePath, Copy.IfNewer);
 			task.Run();
 			return outputFilePath;
 		}

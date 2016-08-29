@@ -53,6 +53,8 @@
     <Compile Include="BuildEngine\Tasks\Compilers\AbstractCompilerTest.cs" />
     <Compile Include="BuildEngine\Tasks\Compilers\EmbeddedResourceTest.cs" />
     <Compile Include="BuildEngine\Tasks\Compilers\HelloWorldTest.cs" />
+    <Compile Include="TestLogger.cs" />
+    <Compile Include="TaskEngine\TaskEngineTest.cs" />
     <Compile Include="ExpressionEngine\BinaryExpressionTest.cs" />
     <Compile Include="ExpressionEngine\ExpressionEngineParsingTest.cs" />
     <Compile Include="ExpressionEngine\ExpressionEngineEvaluationTest.cs" />

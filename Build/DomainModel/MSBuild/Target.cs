@@ -3,13 +3,17 @@
 namespace Build.DomainModel.MSBuild
 {
 	public sealed class Target
+		: Node
 	{
 		private readonly List<Task> _tasks;
 
-		public Target()
+		public Target(Condition condition = null)
+			: base(condition)
 		{
 			_tasks = new List<Task>();
 		}
+
+		public string DependsOnTargets { get; set; }
 
 		public string Name { get; set; }
 

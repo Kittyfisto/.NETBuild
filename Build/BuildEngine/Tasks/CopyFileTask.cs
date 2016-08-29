@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Build.BuildEngine.Tasks
 {
-	public sealed class CopyFile
+	public sealed class CopyFileTask
 	{
 		private readonly string _destination;
 		private readonly ILogger _logger;
@@ -14,7 +14,7 @@ namespace Build.BuildEngine.Tasks
 		private readonly string _relativeSource;
 		private readonly string _relativeDestination;
 
-		public CopyFile(ILogger logger,
+		public CopyFileTask(ILogger logger,
 		                string directory,
 		                string source,
 		                string destination,
