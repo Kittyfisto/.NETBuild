@@ -54,7 +54,7 @@ namespace Build.BuildEngine
 			_environment = new BuildEnvironment(name: "Build Engine Environment");
 			foreach (Property property in arguments.Properties)
 			{
-				_environment.Add(property.Name, property.Value);
+				_environment.Properties.Add(property.Name, property.Value);
 			}
 		}
 

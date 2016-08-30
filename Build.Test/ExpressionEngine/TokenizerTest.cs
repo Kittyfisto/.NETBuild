@@ -30,7 +30,7 @@ namespace Build.Test.ExpressionEngine
 			_tokenizer.Tokenize(">=").Should().Equal(new Token(TokenType.GreaterOrEquals));
 			_tokenizer.Tokenize("AND").Should().Equal(new Token(TokenType.And));
 			_tokenizer.Tokenize("OR").Should().Equal(new Token(TokenType.Or));
-			_tokenizer.Tokenize("$(Foo)").Should().Equal(new Token(TokenType.Variable, "Foo"));
+			_tokenizer.Tokenize("$").Should().Equal(new Token(TokenType.Dollar));
 			_tokenizer.Tokenize("SomeValue").Should().Equal(new Token(TokenType.Literal, "SomeValue"));
 		}
 
@@ -68,7 +68,10 @@ namespace Build.Test.ExpressionEngine
 			_tokenizer.Tokenize("$(Configuration) == ''")
 			          .Should().Equal(new object[]
 				          {
-					          new Token(TokenType.Variable, "Configuration"),
+					          new Token(TokenType.Dollar),
+							  new Token(TokenType.OpenBracket),
+							  new Token(TokenType.Literal, "Configuration"),
+							  new Token(TokenType.CloseBracket),
 							  new Token(TokenType.Whitespace, " "),
 					          new Token(TokenType.Equals),
 							  new Token(TokenType.Whitespace, " "),
@@ -156,6 +159,18 @@ namespace Build.Test.ExpressionEngine
 		}
 
 		[Test]
+		public void TestTokenize12()
+		{
+			_tokenizer.Tokenize("@(References)").Should().Equal(new object[]
+				{
+					new Token(TokenType.At),
+					new Token(TokenType.OpenBracket),
+					new Token(TokenType.Literal, "References"),
+					new Token(TokenType.CloseBracket)
+				});
+		}
+
+		[Test]
 		public void TestGroup1()
 		{
 			_tokenizer.GroupWhiteSpaceAndLiteral(new[] { new Token(TokenType.Literal, "f"), new Token(TokenType.OpenBracket)
@@ -206,13 +221,13 @@ namespace Build.Test.ExpressionEngine
 						new Token(TokenType.Whitespace, "	"),
 						new Token(TokenType.Literal, "Foobar"),
 						new Token(TokenType.Whitespace, "\r\n"),
-						new Token(TokenType.Variable, "Stuff"),
+						new Token(TokenType.Dollar, "Stuff"),
 						new Token(TokenType.Literal, "More stuff"),
 						new Token(TokenType.Whitespace, "	")
 					}).Should().Equal(new[]
 						{
 							new Token(TokenType.Literal, "	Foobar\r\n"),
-							new Token(TokenType.Variable, "Stuff"),
+							new Token(TokenType.Dollar, "Stuff"),
 							new Token(TokenType.Literal, "More stuff	")
 						});
 		}

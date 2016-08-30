@@ -5,32 +5,32 @@ using NUnit.Framework;
 namespace Build.Test.ExpressionEngine
 {
 	[TestFixture]
-	public sealed class ExpressionEngineParsingTest
+	public sealed class ExpressionParserTest
 	{
 		[SetUp]
 		public void SetUp()
 		{
-			_engine = new Build.ExpressionEngine.ExpressionEngine(new FileSystem());
+			_parser = new ExpressionParser();
 		}
 
-		private Build.ExpressionEngine.ExpressionEngine _engine;
+		private ExpressionParser _parser;
 
 		[Test]
 		public void TestParse1()
 		{
-			_engine.Parse("foo").Should().Be(new Literal("foo"));
+			_parser.ParseExpression("foo").Should().Be(new Literal("foo"));
 		}
 
 		[Test]
 		public void TestParse2()
 		{
-			_engine.Parse("$(foo)").Should().Be(new Variable("foo"));
+			_parser.ParseExpression("$(foo)").Should().Be(new Variable("foo"));
 		}
 
 		[Test]
 		public void TestParse20()
 		{
-			_engine.Parse(" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ")
+			_parser.ParseExpression(" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ")
 			       .Should().Be(new BinaryExpression(
 				                    new ConcatExpression(new Variable("Configuration"),
 				                                         new Literal("|"),
@@ -44,13 +44,13 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestParse3()
 		{
-			_engine.Parse("!False").Should().Be(new UnaryExpression(UnaryOperation.Not, new Literal("False")));
+			_parser.ParseExpression("!False").Should().Be(new UnaryExpression(UnaryOperation.Not, new Literal("False")));
 		}
 
 		[Test]
 		public void TestParse4()
 		{
-			_engine.Parse("'foo'=='bar'")
+			_parser.ParseExpression("'foo'=='bar'")
 			       .Should()
 			       .Be(new BinaryExpression(
 				           new ConcatExpression(new Literal("foo")),
@@ -61,7 +61,7 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestParse5()
 		{
-			_engine.Parse("'foo' == 'bar'")
+			_parser.ParseExpression("'foo' == 'bar'")
 			       .Should()
 			       .Be(new BinaryExpression(
 				           new ConcatExpression(new Literal("foo")),
@@ -72,7 +72,7 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestParse6()
 		{
-			_engine.Parse("$(Configuration) == Debug")
+			_parser.ParseExpression("$(Configuration) == Debug")
 			       .Should()
 			       .Be(new BinaryExpression(new Variable("Configuration"), BinaryOperation.Equals, new Literal("Debug")));
 		}
@@ -80,7 +80,7 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestParse7()
 		{
-			_engine.Parse("$(Configuration) == Debug|Foo")
+			_parser.ParseExpression("$(Configuration) == Debug|Foo")
 			       .Should()
 			       .Be(new BinaryExpression(new Variable("Configuration"), BinaryOperation.Equals,
 			                                new Literal("Debug|Foo")));
@@ -89,20 +89,20 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestParse8()
 		{
-			_engine.Parse(" 'Debug' ").Should().Be(new ConcatExpression(new Literal("Debug")));
+			_parser.ParseExpression(" 'Debug' ").Should().Be(new ConcatExpression(new Literal("Debug")));
 		}
 
 		[Test]
 		public void TestParse9()
 		{
-			_engine.Parse(" 'Debug|AnyCPU' ")
+			_parser.ParseExpression(" 'Debug|AnyCPU' ")
 			       .Should().Be(new ConcatExpression(new Literal("Debug|AnyCPU")));
 		}
 
 		[Test]
 		public void TestParse10()
 		{
-			_engine.Parse(" '$(Configuration)' == '' ").Should().Be(new BinaryExpression(
+			_parser.ParseExpression(" '$(Configuration)' == '' ").Should().Be(new BinaryExpression(
 																		new ConcatExpression(new Variable("Configuration")),
 																		BinaryOperation.Equals,
 																		new ConcatExpression()));
@@ -111,7 +111,7 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestParse11()
 		{
-			_engine.Parse(" '$(Platform)' != '' ").Should().Be(new BinaryExpression(
+			_parser.ParseExpression(" '$(Platform)' != '' ").Should().Be(new BinaryExpression(
 																   new ConcatExpression(new Variable("Platform")),
 																   BinaryOperation.EqualsNot,
 																   new ConcatExpression()));
@@ -120,7 +120,7 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestParse12()
 		{
-			_engine.Parse("'$(Configuration)|$(Platform)'").Should().Be(new ConcatExpression(
+			_parser.ParseExpression("'$(Configuration)|$(Platform)'").Should().Be(new ConcatExpression(
 				                                                            new Variable("Configuration"),
 				                                                            new Literal("|"),
 				                                                            new Variable("Platform")));
@@ -129,7 +129,7 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestParse13()
 		{
-			_engine.Parse("'$(Configuration)' == 'Debug' AND '$(Platform)' == 'AnyCPU'").
+			_parser.ParseExpression("'$(Configuration)' == 'Debug' AND '$(Platform)' == 'AnyCPU'").
 			        Should().Be(new BinaryExpression(
 				                    new BinaryExpression(new ConcatExpression(new Variable("Configuration")), BinaryOperation.Equals, new ConcatExpression(new Literal("Debug"))),
 				                    BinaryOperation.And,
@@ -139,7 +139,27 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestParse14()
 		{
-			_engine.Parse("'$(Configuration)' == 'Debug' OR '$(Platform)' == 'AnyCPU'").
+			_parser.ParseExpression("$(Configuration) == 'Debug' AND $(Platform) == 'AnyCPU'").
+					Should().Be(new BinaryExpression(
+									new BinaryExpression(new Variable("Configuration"), BinaryOperation.Equals, new ConcatExpression(new Literal("Debug"))),
+									BinaryOperation.And,
+									new BinaryExpression(new Variable("Platform"), BinaryOperation.Equals, new ConcatExpression(new Literal("AnyCPU")))));
+		}
+
+		[Test]
+		public void TestParse15()
+		{
+			_parser.ParseExpression("$(Configuration) == 'Debug' OR $(Platform) == 'AnyCPU'").
+					Should().Be(new BinaryExpression(
+									new BinaryExpression(new Variable("Configuration"), BinaryOperation.Equals, new ConcatExpression(new Literal("Debug"))),
+									BinaryOperation.Or,
+									new BinaryExpression(new Variable("Platform"), BinaryOperation.Equals, new ConcatExpression(new Literal("AnyCPU")))));
+		}
+
+		[Test]
+		public void TestParse16()
+		{
+			_parser.ParseExpression("'$(Configuration)' == 'Debug' OR '$(Platform)' == 'AnyCPU'").
 					Should().Be(new BinaryExpression(
 									new BinaryExpression(new ConcatExpression(new Variable("Configuration")), BinaryOperation.Equals, new ConcatExpression(new Literal("Debug"))),
 									BinaryOperation.Or,
@@ -147,11 +167,17 @@ namespace Build.Test.ExpressionEngine
 		}
 
 		[Test]
-		public void TestParse15()
+		public void TestParse17()
 		{
-			_engine.Parse("Exists('App.config')").
+			_parser.ParseExpression("Exists('App.config')").
 			        Should().Be(new FunctionExpression(FunctionOperation.Exists,
 			                                           new ConcatExpression(new Literal("App.config"))));
+		}
+
+		[Test]
+		public void TestParse18()
+		{
+			_parser.ParseExpression("@(Content)").Should().Be(new ItemList("Content"));
 		}
 	}
 }

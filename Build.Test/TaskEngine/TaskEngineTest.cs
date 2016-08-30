@@ -85,10 +85,13 @@ namespace Build.Test.TaskEngine
 			var project = _parser.Parse(@"Microsoft\common.props");
 			var environment = new BuildEnvironment
 				{
-					{Properties.AssemblyName, "Foo"},
-					{Properties.OutputPath, @"bin\Debug"},
-					{Properties.MSBuildProjectDirectory, Directory.GetCurrentDirectory()},
-					{Properties.OutputType, "Exe"},
+					Properties =
+						{
+							{Properties.AssemblyName, "Foo"},
+							{Properties.OutputPath, @"bin\Debug"},
+							{Properties.MSBuildProjectDirectory, Directory.GetCurrentDirectory()},
+							{Properties.OutputType, "Exe"},
+						}
 				};
 			_fileSystem.Setup(x => x.Exists(It.Is<string>(y => y == "app.config"))).Returns(true);
 			var engine = Create(project, "CopyAppConfigFile", environment);

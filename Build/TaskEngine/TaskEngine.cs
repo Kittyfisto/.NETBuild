@@ -7,15 +7,19 @@ using Node = Build.DomainModel.MSBuild.Node;
 
 namespace Build.TaskEngine
 {
+	/// <summary>
+	///     Responsible for executing the <see cref="Target" />s of a <see cref="Project" />
+	///     (especially the <see cref="DomainModel.MSBuild.Node" />s within).
+	/// </summary>
 	public sealed class TaskEngine
 	{
 		private readonly BuildEnvironment _environment;
 		private readonly ExpressionEngine.ExpressionEngine _expressionEngine;
+		private readonly IFileSystem _fileSystem;
 		private readonly ILogger _logger;
 		private readonly Project _project;
 		private readonly string _target;
 		private readonly Dictionary<Type, Action<Node>> _tasks;
-		private readonly IFileSystem _fileSystem;
 
 		public TaskEngine(ExpressionEngine.ExpressionEngine expressionEngine,
 		                  IFileSystem fileSystem,
@@ -50,7 +54,7 @@ namespace Build.TaskEngine
 					{typeof (Error), x => Run((Error) x)},
 					{typeof (Copy), x => Run((Copy) x)},
 					{typeof (Delete), x => Run((Delete) x)},
-					{typeof (Csc), x => Run((Csc)x)}
+					{typeof (Csc), x => Run((Csc) x)}
 				};
 		}
 
@@ -219,11 +223,11 @@ namespace Build.TaskEngine
 
 		private void Run(Delete delete)
 		{
+			delete.Files = _expressionEngine.EvaluateConcatenation(delete.Files, _environment);
 		}
 
 		private void Run(Csc csc)
 		{
-			
 		}
 	}
 }

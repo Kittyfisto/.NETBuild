@@ -64,6 +64,8 @@
     <Compile Include="BuildEngine\Tasks\CopyFileTask.cs" />
     <Compile Include="DomainModel\MSBuild\Csc.cs" />
     <Compile Include="ExpressionEngine\Expression.cs" />
+    <Compile Include="ExpressionEngine\ExpressionParser.cs" />
+    <Compile Include="ExpressionEngine\ItemList.cs" />
     <Compile Include="Filesystem.cs" />
     <Compile Include="IFilesystem.cs" />
     <Compile Include="TaskEngine\CopyTask.cs" />

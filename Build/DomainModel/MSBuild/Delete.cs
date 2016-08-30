@@ -1,27 +1,10 @@
-﻿using System.Collections.Generic;
-
-namespace Build.DomainModel.MSBuild
+﻿namespace Build.DomainModel.MSBuild
 {
 	public sealed class Delete
 		: Task
 	{
-		private readonly List<TaskItem> _deletedFiles;
-		private readonly List<TaskItem> _files;
+		public string DeletedFiles { get; set; }
 
-		public Delete()
-		{
-			_deletedFiles = new List<TaskItem>();
-			_files = new List<TaskItem>();
-		}
-
-		public List<TaskItem> DeletedFiles
-		{
-			get { return _deletedFiles; }
-		}
-
-		public List<TaskItem> Files
-		{
-			get { return _files; }
-		}
+		public string Files { get; set; }
 	}
 }

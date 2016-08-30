@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Build.BuildEngine;
+using Build.DomainModel.MSBuild;
 
 namespace Build.ExpressionEngine
 {
@@ -9,6 +11,14 @@ namespace Build.ExpressionEngine
 		: IExpression
 	{
 		public readonly IExpression[] Arguments;
+
+		public ConcatExpression(IEnumerable<IExpression> arguments)
+		{
+			if (arguments == null)
+				throw new ArgumentNullException("arguments");
+
+			Arguments = arguments.ToArray();
+		}
 
 		public ConcatExpression(params IExpression[] arguments)
 		{
@@ -54,6 +64,17 @@ namespace Build.ExpressionEngine
 
 		public object Evaluate(IFileSystem fileSystem, BuildEnvironment environment)
 		{
+			return ToString(fileSystem, environment);
+		}
+
+		public bool IsTrue(IFileSystem fileSystem, BuildEnvironment environment)
+		{
+			var value = ToString(fileSystem, environment);
+			return Expression.IsTrue(value);
+		}
+
+		public string ToString(IFileSystem fileSystem, BuildEnvironment environment)
+		{
 			var builder = new StringBuilder();
 			for (int i = 0; i < Arguments.Length; ++i)
 			{
@@ -61,6 +82,11 @@ namespace Build.ExpressionEngine
 				builder.Append(value);
 			}
 			return builder.ToString();
+		}
+
+		public List<ProjectItem> ToItemList(IFileSystem fileSystem, BuildEnvironment environment)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

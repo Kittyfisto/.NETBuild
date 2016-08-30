@@ -56,8 +56,8 @@
     <Compile Include="TestLogger.cs" />
     <Compile Include="TaskEngine\TaskEngineTest.cs" />
     <Compile Include="ExpressionEngine\BinaryExpressionTest.cs" />
-    <Compile Include="ExpressionEngine\ExpressionEngineParsingTest.cs" />
-    <Compile Include="ExpressionEngine\ExpressionEngineEvaluationTest.cs" />
+    <Compile Include="ExpressionEngine\ExpressionParserTest.cs" />
+    <Compile Include="ExpressionEngine\ExpressionEngineTest.cs" />
     <Compile Include="ExpressionEngine\TokenizerTest.cs" />
     <Compile Include="ExpressionEngine\UnaryExpressionTest.cs" />
     <Compile Include="Parser\CSharpProjectParserTest.cs" />

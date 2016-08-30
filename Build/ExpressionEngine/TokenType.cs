@@ -26,7 +26,8 @@
 		#endregion
 
 		Quotation,
-		Variable,
+		Dollar,
+		At,
 		Literal,
 	}
 }

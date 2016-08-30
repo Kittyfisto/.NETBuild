@@ -1,4 +1,6 @@
-﻿using Build.BuildEngine;
+﻿using System.Collections.Generic;
+using Build.BuildEngine;
+using Build.DomainModel.MSBuild;
 
 namespace Build.ExpressionEngine
 {
@@ -19,7 +21,23 @@ namespace Build.ExpressionEngine
 
 		public object Evaluate(IFileSystem fileSystem, BuildEnvironment environment)
 		{
-			return environment[Name];
+			return ToString(fileSystem, environment);
+		}
+
+		public bool IsTrue(IFileSystem fileSystem, BuildEnvironment environment)
+		{
+			var value = ToString(fileSystem, environment);
+			return string.Equals(value, "true");
+		}
+
+		public string ToString(IFileSystem fileSystem, BuildEnvironment environment)
+		{
+			return environment.Properties[Name];
+		}
+
+		public List<ProjectItem> ToItemList(IFileSystem fileSystem, BuildEnvironment environment)
+		{
+			throw new System.NotImplementedException();
 		}
 
 		private bool Equals(Variable other)

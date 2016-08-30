@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using Build.BuildEngine;
+using Build.DomainModel.MSBuild;
 
 namespace Build.ExpressionEngine
 {
@@ -57,18 +59,23 @@ namespace Build.ExpressionEngine
 
 		public object Evaluate(IFileSystem fileSystem, BuildEnvironment environment)
 		{
-			var value = Parameter.Evaluate(fileSystem, environment);
+			return IsTrue(fileSystem, environment);
+		}
+
+		public bool IsTrue(IFileSystem fileSystem, BuildEnvironment environment)
+		{
+			var value = Parameter.ToString(fileSystem, environment);
 			switch (Operation)
 			{
 				case FunctionOperation.Exists:
-					var fileName = value as string;
+					var fileName = value;
 					if (fileName == null)
 						return false;
 
 					return fileSystem.Exists(fileName);
 
 				case FunctionOperation.HasTrailingSlash:
-					var path = value as string;
+					var path = value;
 					if (path == null)
 						return false;
 
@@ -83,6 +90,16 @@ namespace Build.ExpressionEngine
 				default:
 					throw new InvalidEnumArgumentException("Operation", (int)Operation, typeof(FunctionOperation));
 			}
+		}
+
+		public string ToString(IFileSystem fileSystem, BuildEnvironment environment)
+		{
+			throw new NotImplementedException();
+		}
+
+		public List<ProjectItem> ToItemList(IFileSystem fileSystem, BuildEnvironment environment)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

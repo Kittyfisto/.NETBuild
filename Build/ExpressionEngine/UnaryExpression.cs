@@ -1,6 +1,8 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics.Contracts;
 using Build.BuildEngine;
+using Build.DomainModel.MSBuild;
 
 namespace Build.ExpressionEngine
 {
@@ -24,32 +26,30 @@ namespace Build.ExpressionEngine
 		[Pure]
 		public object Evaluate(IFileSystem fileSystem, BuildEnvironment environment)
 		{
-			object value = Expression.Evaluate(fileSystem, environment);
+			return IsTrue(fileSystem, environment);
+		}
+
+		public bool IsTrue(IFileSystem fileSystem, BuildEnvironment environment)
+		{
+			bool value = Expression.IsTrue(fileSystem, environment);
 			switch (Operation)
 			{
 				case UnaryOperation.Not:
-					if (value == null)
-						return true;
-
-					bool booleanValue;
-					if (!(value is bool))
-					{
-						if (!bool.TryParse(value.ToString(), out booleanValue))
-						{
-							// TODO: Add warning that we're negating a non boolean value
-							return false;
-						}
-					}
-					else
-					{
-						booleanValue = (bool) value;
-					}
-
-					return !booleanValue;
+					return !value;
 
 				default:
-					throw new InvalidEnumArgumentException("Operation", (int) Operation, typeof (UnaryOperation));
+					throw new InvalidEnumArgumentException("Operation", (int)Operation, typeof(UnaryOperation));
 			}
+		}
+
+		public string ToString(IFileSystem fileSystem, BuildEnvironment environment)
+		{
+			return IsTrue(fileSystem, environment).ToString();
+		}
+
+		public List<ProjectItem> ToItemList(IFileSystem fileSystem, BuildEnvironment environment)
+		{
+			return new List<ProjectItem>();
 		}
 
 		private bool Equals(UnaryExpression other)

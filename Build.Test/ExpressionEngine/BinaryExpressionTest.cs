@@ -35,11 +35,14 @@ namespace Build.Test.ExpressionEngine
 		public void TestEvaluate2()
 		{
 			new BinaryExpression(new Variable("Foo"),
-								 BinaryOperation.Equals,
-								 new Literal("Hello World"))
+			                     BinaryOperation.Equals,
+			                     new Literal("Hello World"))
 				.Evaluate(_fs, new BuildEnvironment
 					{
-						{"Foo", "Hello World"}
+						Properties =
+							{
+								{"Foo", "Hello World"}
+							}
 					}).Should().Be(true);
 		}
 

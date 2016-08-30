@@ -31,8 +31,11 @@ namespace Build.BuildEngine.Tasks.Compilers
 		{
 			DefaultValues = new BuildEnvironment
 				{
-					{Properties.SubsystemVersion, "6.00"},
-					{Properties.Prefer32Bit, "true"}
+					Properties =
+						{
+							{Properties.SubsystemVersion, "6.00"},
+							{Properties.Prefer32Bit, "true"}
+						}
 				};
 		}
 
@@ -68,7 +71,7 @@ namespace Build.BuildEngine.Tasks.Compilers
 		{
 			get
 			{
-				string outputType = _projectEnvironment[Properties.OutputType];
+				string outputType = _projectEnvironment.Properties[Properties.OutputType];
 				switch (outputType)
 				{
 					case "Library":
@@ -90,13 +93,13 @@ namespace Build.BuildEngine.Tasks.Compilers
 		{
 			get
 			{
-				string platform = _projectEnvironment[Properties.Platform];
-				string prefer32Bit = _projectEnvironment[Properties.Prefer32Bit];
+				string platform = _projectEnvironment.Properties[Properties.Platform];
+				string prefer32Bit = _projectEnvironment.Properties[Properties.Prefer32Bit];
 
 				switch (platform)
 				{
 					case "AnyCPU":
-						if (_projectEnvironment[Properties.OutputType] == "Library")
+						if (_projectEnvironment.Properties[Properties.OutputType] == "Library")
 						{
 							return "anycpu";
 						}
@@ -129,11 +132,11 @@ namespace Build.BuildEngine.Tasks.Compilers
 
 		public void Run()
 		{
-			if (_projectEnvironment[Properties.DebugSymbols] == "true")
+			if (_projectEnvironment.Properties[Properties.DebugSymbols] == "true")
 				_arguments.Flag("debug+");
 
-			_arguments.Add("debug", _projectEnvironment[Properties.DebugType]);
-			if (_projectEnvironment[Properties.Optimize] == "False")
+			_arguments.Add("debug", _projectEnvironment.Properties[Properties.DebugType]);
+			if (_projectEnvironment.Properties[Properties.Optimize] == "False")
 				_arguments.Flag("optmize-");
 
 			_arguments.Add("target", Target);
@@ -142,18 +145,18 @@ namespace Build.BuildEngine.Tasks.Compilers
 			_arguments.Flag("nowarn:1701,1702,2008");
 			_arguments.Flag("nostdlib+");
 			_arguments.Add("platform", Platform);
-			_arguments.Add("warn", _projectEnvironment[Properties.WarningLevel]);
-			_arguments.Add("define", _projectEnvironment[Properties.DefineConstants]);
-			_arguments.Add("filealign", _projectEnvironment[Properties.FileAlignment]);
-			_arguments.Add("errorreport", _projectEnvironment[Properties.ErrorReport]);
+			_arguments.Add("warn", _projectEnvironment.Properties[Properties.WarningLevel]);
+			_arguments.Add("define", _projectEnvironment.Properties[Properties.DefineConstants]);
+			_arguments.Add("filealign", _projectEnvironment.Properties[Properties.FileAlignment]);
+			_arguments.Add("errorreport", _projectEnvironment.Properties[Properties.ErrorReport]);
 			_arguments.Flag("errorendlocation");
 			_arguments.Flag("preferreduilang:en-US");
 			_arguments.Flag("highentropyva+");
 
-			if (_projectEnvironment[Properties.Utf8Output] == "true")
+			if (_projectEnvironment.Properties[Properties.Utf8Output] == "true")
 				_arguments.Flag("utf8output");
 
-			if (_projectEnvironment[Properties.AllowUnsafeBlocks] == "true")
+			if (_projectEnvironment.Properties[Properties.AllowUnsafeBlocks] == "true")
 				_arguments.Flag("unsafe");
 
 			_arguments.Add("out", _outputFilePath);
@@ -178,7 +181,7 @@ namespace Build.BuildEngine.Tasks.Compilers
 				AddCompile(compile);
 			}
 
-			string fullOutputPath = Path.Combine(_rootPath, _projectEnvironment[Properties.OutputPath]);
+			string fullOutputPath = Path.Combine(_rootPath, _projectEnvironment.Properties[Properties.OutputPath]);
 			if (!Directory.Exists(fullOutputPath))
 				Directory.CreateDirectory(fullOutputPath);
 
@@ -211,8 +214,8 @@ namespace Build.BuildEngine.Tasks.Compilers
 
 		private static string CreateOutputPdbFilePath(BuildEnvironment environment)
 		{
-			string path = environment[Properties.OutputPath];
-			string assemblyName = environment[Properties.AssemblyName];
+			string path = environment.Properties[Properties.OutputPath];
+			string assemblyName = environment.Properties[Properties.AssemblyName];
 			string fileName = string.Format("{0}.pdb", assemblyName);
 			string fullPath = Path.Combine(path, fileName);
 			return fullPath;
@@ -220,7 +223,7 @@ namespace Build.BuildEngine.Tasks.Compilers
 
 		private static string CreateOutputFilePath(BuildEnvironment environment)
 		{
-			string outputType = environment[Properties.OutputType];
+			string outputType = environment.Properties[Properties.OutputType];
 			string fileEnding;
 			switch (outputType)
 			{
@@ -237,8 +240,8 @@ namespace Build.BuildEngine.Tasks.Compilers
 					throw new Exception(string.Format("Unknown output type: '{0}'", outputType));
 			}
 
-			string path = environment[Properties.OutputPath];
-			string assemblyName = environment[Properties.AssemblyName];
+			string path = environment.Properties[Properties.OutputPath];
+			string assemblyName = environment.Properties[Properties.AssemblyName];
 			string fileName = string.Format("{0}.{1}", assemblyName, fileEnding);
 			string fullPath = Path.Combine(path, fileName);
 			return fullPath;

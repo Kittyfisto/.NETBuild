@@ -22,9 +22,10 @@ namespace Build.ExpressionEngine
 					{TokenType.NotEquals, "!="},
 					{TokenType.Not, "!"},
 					{TokenType.And, "AND"},
-					{TokenType.Or, @"OR"},
+					{TokenType.Or, "OR"},
 					{TokenType.Quotation, "'"},
-					{TokenType.Variable, "$("},
+					{TokenType.Dollar, "$"},
+					{TokenType.At, "@"},
 				};
 		}
 
@@ -61,21 +62,6 @@ namespace Build.ExpressionEngine
 				if (StartsWith(expression, startIndex, pair.Value))
 				{
 					startIndex += pair.Value.Length;
-					if (pair.Key == TokenType.Variable)
-					{
-						int endIndex = expression.IndexOf(')', startIndex);
-						if (endIndex == -1)
-						{
-							token = default(Token);
-							return false;
-						}
-
-						var name = expression.Substring(startIndex, endIndex - startIndex);
-						token = new Token(TokenType.Variable, name);
-						startIndex = endIndex + 1;
-						return true;
-					}
-
 					token = new Token(pair.Key);
 					return true;
 				}

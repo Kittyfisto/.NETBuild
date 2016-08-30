@@ -37,23 +37,23 @@ namespace Build.BuildEngine
 			_logger = logger;
 			_target = target;
 
-			var projectDirectory = _environment[Properties.MSBuildProjectDirectory];
+			var projectDirectory = _environment.Properties[Properties.MSBuildProjectDirectory];
 			_tempOutputPath = Path.Combine(projectDirectory,
 			                               "obj",
-			                               _environment[Properties.Configuration]);
+										   _environment.Properties[Properties.Configuration]);
 
 			// Compilation shall be performed into a project exclusive temporary folder
 			_compileEnvironment = new BuildEnvironment(_environment, name: "Compiler Environment");
-			_compileEnvironment[Properties.OutputPath] = _tempOutputPath;
+			_compileEnvironment.Properties[Properties.OutputPath] = _tempOutputPath;
 		}
 
 		public void Run()
 		{
 			_logger.WriteLine(Verbosity.Quiet, "------ {0} started: Project: {1}, Configuration: {2} {3} ------",
 			                  _target,
-			                  _environment[Properties.MSBuildProjectName],
-			                  _environment[Properties.Configuration],
-			                  _environment[Properties.PlatformTarget]
+							  _environment.Properties[Properties.MSBuildProjectName],
+							  _environment.Properties[Properties.Configuration],
+							  _environment.Properties[Properties.PlatformTarget]
 				);
 
 			DateTime started = DateTime.Now;
@@ -89,8 +89,8 @@ namespace Build.BuildEngine
 			var outputFiles = new List<string>();
 			foreach (var file in intermediateFiles)
 			{
-				var projectDirectory = _environment[Properties.MSBuildProjectDirectory];
-				var outputPath = Path.MakeAbsolute(projectDirectory, _environment[Properties.OutputPath]);
+				var projectDirectory = _environment.Properties[Properties.MSBuildProjectDirectory];
+				var outputPath = Path.MakeAbsolute(projectDirectory, _environment.Properties[Properties.OutputPath]);
 				var outputFile = Path.Combine(outputPath, Path.GetFilename(file));
 				outputFiles.Add(outputFile);
 			}
@@ -107,7 +107,7 @@ namespace Build.BuildEngine
 
 		private void DeleteFile(string fileName)
 		{
-			var projectDirectory = _environment[Properties.MSBuildProjectDirectory];
+			var projectDirectory = _environment.Properties[Properties.MSBuildProjectDirectory];
 			var task = new DeleteFileTask(_logger, projectDirectory, fileName);
 			task.Run();
 		}
@@ -137,7 +137,7 @@ namespace Build.BuildEngine
 			_logger.WriteLine(Verbosity.Normal, "CopyFilesToOutputDirectory:");
 
 			var destinationFile = CopyToOutputPath(outputFile);
-			var projectName = _environment[Properties.MSBuildProjectName];
+			var projectName = _environment.Properties[Properties.MSBuildProjectName];
 			_logger.WriteLine(Verbosity.Minimal, "  {0} -> {1}", projectName, destinationFile);
 
 			foreach (var file in additionalOutputFiles)
@@ -155,7 +155,7 @@ namespace Build.BuildEngine
 				                        x => string.Equals(x.Include, "App.config", StringComparison.CurrentCultureIgnoreCase));
 			if (appConfig != null)
 			{
-				var sourceFilePath = Path.MakeAbsolute(_environment[Properties.MSBuildProjectDirectory], appConfig.Include);
+				var sourceFilePath = Path.MakeAbsolute(_environment.Properties[Properties.MSBuildProjectDirectory], appConfig.Include);
 				var fileName = Path.GetFilename(outputFile);
 				var appConfigFileName = string.Format("{0}.config", fileName);
 				CopyToOutputPath(sourceFilePath, appConfigFileName);
@@ -164,8 +164,8 @@ namespace Build.BuildEngine
 
 		private string CopyToOutputPath(string inputFilePath, string outputFileName = null)
 		{
-			var projectDirectory = _environment[Properties.MSBuildProjectDirectory];
-			var outputPath = Path.MakeAbsolute(projectDirectory, _environment[Properties.OutputPath]);
+			var projectDirectory = _environment.Properties[Properties.MSBuildProjectDirectory];
+			var outputPath = Path.MakeAbsolute(projectDirectory, _environment.Properties[Properties.OutputPath]);
 
 			var fileName = outputFileName ?? Path.GetFilename(inputFilePath);
 			var outputFilePath = Path.Combine(outputPath, fileName);

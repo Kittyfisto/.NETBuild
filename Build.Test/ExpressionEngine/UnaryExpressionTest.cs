@@ -23,7 +23,7 @@ namespace Build.Test.ExpressionEngine
 			var env = new BuildEnvironment();
 			new UnaryExpression(UnaryOperation.Not, new Literal("False")).Evaluate(_fs, env).Should().Be(true);
 			new UnaryExpression(UnaryOperation.Not, new Literal(null)).Evaluate(_fs, env).Should().Be(true);
-			new UnaryExpression(UnaryOperation.Not, new Literal("SomeValue")).Evaluate(_fs, env).Should().Be(false);
+			new UnaryExpression(UnaryOperation.Not, new Literal("SomeValue")).Evaluate(_fs, env).Should().Be(true);
 		}
 
 		[Test]

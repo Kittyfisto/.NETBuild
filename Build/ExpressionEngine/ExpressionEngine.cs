@@ -14,7 +14,7 @@ namespace Build.ExpressionEngine
 	public sealed class ExpressionEngine
 	{
 		private readonly IFileSystem _fileSystem;
-		private readonly Tokenizer _tokenizer;
+		private readonly ExpressionParser _parser;
 
 		public ExpressionEngine(IFileSystem fileSystem)
 		{
@@ -22,7 +22,7 @@ namespace Build.ExpressionEngine
 				throw new ArgumentNullException("fileSystem");
 
 			_fileSystem = fileSystem;
-			_tokenizer = new Tokenizer();
+			_parser =new ExpressionParser();
 		}
 
 		/// <summary>
@@ -39,12 +39,12 @@ namespace Build.ExpressionEngine
 				throw new ArgumentNullException("environment");
 
 			var relativeOrAbsoluteProjectFilePath = project.Filename;
-			environment[Properties.MSBuildProjectExtension] = Path.GetExtension(relativeOrAbsoluteProjectFilePath);
-			environment[Properties.MSBuildProjectFile] = Path.GetFilename(relativeOrAbsoluteProjectFilePath);
-			environment[Properties.MSBuildProjectName] = Path.GetFilenameWithoutExtension(relativeOrAbsoluteProjectFilePath);
-			environment[Properties.MSBuildProjectFullPath] = Path.MakeAbsolute(Directory.GetCurrentDirectory(), relativeOrAbsoluteProjectFilePath);
-			environment[Properties.MSBuildProjectDirectory] = Path.GetDirectory(environment[Properties.MSBuildProjectFullPath]);
-			environment[Properties.MSBuildProjectDirectoryNoRoot] = Path.GetDirectoryWithoutRoot(environment[Properties.MSBuildProjectFullPath], Slash.Exclude);
+			environment.Properties[Properties.MSBuildProjectExtension] = Path.GetExtension(relativeOrAbsoluteProjectFilePath);
+			environment.Properties[Properties.MSBuildProjectFile] = Path.GetFilename(relativeOrAbsoluteProjectFilePath);
+			environment.Properties[Properties.MSBuildProjectName] = Path.GetFilenameWithoutExtension(relativeOrAbsoluteProjectFilePath);
+			environment.Properties[Properties.MSBuildProjectFullPath] = Path.MakeAbsolute(Directory.GetCurrentDirectory(), relativeOrAbsoluteProjectFilePath);
+			environment.Properties[Properties.MSBuildProjectDirectory] = Path.GetDirectory(environment.Properties[Properties.MSBuildProjectFullPath]);
+			environment.Properties[Properties.MSBuildProjectDirectoryNoRoot] = Path.GetDirectoryWithoutRoot(environment.Properties[Properties.MSBuildProjectFullPath], Slash.Exclude);
 
 			// First we shall evaluate the property groups of the project using the given environment.
 			// We can then evaluate all item groups.
@@ -108,7 +108,7 @@ namespace Build.ExpressionEngine
 			{
 				var value = property.Value;
 				var expanded = Expand(value, environment);
-				environment.Add(property.Name, expanded);
+				environment.Properties.Add(property.Name, expanded);
 			}
 		}
 
@@ -162,7 +162,7 @@ namespace Build.ExpressionEngine
 			var expandedRemove = Expand(item.Remove, environment);
 
 			// TODO: Split each string into lists of filenames (; as separator) and build a complete list of files represented by this item
-			var fullPath = Path.MakeAbsolute(environment[Properties.MSBuildProjectDirectory], expandedInclude);
+			var fullPath = Path.MakeAbsolute(environment.Properties[Properties.MSBuildProjectDirectory], expandedInclude);
 			var info = new FileInfo(fullPath);
 			var metadata = new List<Metadata>
 				{
@@ -197,7 +197,7 @@ namespace Build.ExpressionEngine
 
 		public string EvaluateExpression(string expression, BuildEnvironment environment)
 		{
-			IExpression exp = Parse(expression);
+			IExpression exp = _parser.ParseExpression(expression);
 			object value = exp.Evaluate(_fileSystem, environment);
 			return value != null ? value.ToString() : string.Empty;
 		}
@@ -207,17 +207,8 @@ namespace Build.ExpressionEngine
 			if (string.IsNullOrWhiteSpace(expression))
 				return expression;
 
-			// This is much simpler since we don't interpret general expressions
-			// in string concatenation: We only replace property values..
-			var tokens = _tokenizer.Tokenize(expression);
-			tokens = _tokenizer.GroupWhiteSpaceAndLiteral(tokens);
-			var arguments = new IExpression[tokens.Count];
-			for (int i = 0; i < tokens.Count; ++i)
-			{
-				arguments[i] = Parse(tokens[i]);
-			}
-			var exp = new ConcatExpression(arguments);
-			object value = exp.Evaluate(_fileSystem, environment);
+			var concatenation = _parser.ParseConcatenation(expression);
+			object value = concatenation.Evaluate(_fileSystem, environment);
 			return value != null ? value.ToString() : string.Empty;
 		}
 
@@ -226,308 +217,6 @@ namespace Build.ExpressionEngine
 			var evaluated = EvaluateConcatenation(value, environment);
 			// TODO: replace properties with values, evaluate wildcards, perform projections, etc...
 			return evaluated;
-		}
-
-		private bool IsFunctionName(Token token, out FunctionOperation operation)
-		{
-			switch (token.Value)
-			{
-				case "Exists":
-					operation = FunctionOperation.Exists;
-					return true;
-
-				case "HasTrailingSlash":
-					operation = FunctionOperation.HasTrailingSlash;
-					return true;
-			}
-
-			operation = (FunctionOperation) (-1);
-			return false;
-		}
-
-		private static bool IsBinaryOperator(TokenType type, out BinaryOperation operation)
-		{
-			switch (type)
-			{
-				case TokenType.Equals:
-					operation = BinaryOperation.Equals;
-					return true;
-
-				case TokenType.NotEquals:
-					operation = BinaryOperation.EqualsNot;
-					return true;
-				case TokenType.LessThan:
-					operation = BinaryOperation.LessThan;
-					return true;
-
-				case TokenType.LessOrEquals:
-					operation = BinaryOperation.LessOrEquals;
-					return true;
-
-				case TokenType.GreaterThan:
-					operation = BinaryOperation.GreaterThan;
-					return true;
-
-				case TokenType.GreaterOrEquals:
-					operation = BinaryOperation.GreaterOrEquals;
-					return true;
-
-				case TokenType.And:
-					operation = BinaryOperation.And;
-					return true;
-
-				case TokenType.Or:
-					operation = BinaryOperation.Or;
-					return true;
-
-				default:
-					operation = (BinaryOperation) (-1);
-					return false;
-			}
-		}
-
-		private static bool IsOperator(TokenType type)
-		{
-			BinaryOperation unused1;
-			if (IsBinaryOperator(type, out unused1))
-				return true;
-
-			UnaryOperation unused2;
-			if (IsUnaryOperator(type, out unused2))
-				return true;
-
-			return false;
-		}
-
-		private static bool IsUnaryOperator(TokenType type, out UnaryOperation operation)
-		{
-			switch (type)
-			{
-				case TokenType.Not:
-					operation = UnaryOperation.Not;
-					return true;
-
-				default:
-					operation = (UnaryOperation) (-1);
-					return false;
-			}
-		}
-
-		private static int Precedence(TokenType type)
-		{
-			switch (type)
-			{
-				case TokenType.Not:
-					return 5;
-
-				case TokenType.LessThan:
-				case TokenType.LessOrEquals:
-				case TokenType.GreaterThan:
-				case TokenType.GreaterOrEquals:
-					return 4;
-
-				case TokenType.Equals:
-				case TokenType.NotEquals:
-					return 3;
-
-				case TokenType.And:
-					return 2;
-
-				case TokenType.Or:
-					return 1;
-
-				default:
-					return 0;
-			}
-		}
-
-		public IExpression Parse(string expression)
-		{
-			List<Token> tokens = _tokenizer.Tokenize(expression);
-			return Parse(tokens);
-		}
-
-		private IExpression Parse(IEnumerable<Token> tokens)
-		{
-			var stack = new List<TokenOrExpression>();
-			int highestPrecedence = 0;
-			bool insideQuotation = false;
-			foreach (Token token in tokens)
-			{
-				if (IsOperator(token.Type))
-				{
-					int precedence = Precedence(token.Type);
-					if (precedence < highestPrecedence)
-					{
-						ParseExpression(stack);
-					}
-
-					stack.Add(token);
-					highestPrecedence = precedence;
-				}
-				else if (token.Type == TokenType.Quotation)
-				{
-					stack.Add(token);
-					insideQuotation = !insideQuotation;
-				}
-				else if (token.Type == TokenType.CloseBracket)
-				{
-					stack.Add(token);
-					ParseExpression(stack);
-				}
-				else
-				{
-					// We completely ignore whitespace in expressions unless it's
-					// inside a quotation.
-					if (insideQuotation || token.Type != TokenType.Whitespace)
-					{
-						stack.Add(token);
-					}
-				}
-			}
-
-			if (stack.Count > 0)
-			{
-				ParseExpression(stack);
-			}
-			else
-			{
-				throw new ParseException("Empty input given");
-			}
-
-			if (stack.Count != 1)
-			{
-				throw new ParseException();
-			}
-			TokenOrExpression tok = stack[0];
-			return tok.Expression;
-		}
-
-		private IExpression Parse(TokenOrExpression tokenOrExpression)
-		{
-			if (tokenOrExpression.Expression != null)
-				return tokenOrExpression.Expression;
-
-			return Parse(tokenOrExpression.Token);
-		}
-
-		/// <summary>
-		///     Parses an expression from the given stack in left-to-right order.
-		///     Operator precedences are ignored.
-		/// </summary>
-		/// <param name="tokens"></param>
-		private void ParseExpression(List<TokenOrExpression> tokens)
-		{
-			FunctionOperation operation;
-			UnaryOperation unaryOperation;
-			BinaryOperation binaryOperation;
-
-			if (tokens.Count >= 3 && IsFunctionName(tokens[0].Token, out operation) && 
-				tokens[1].Token.Type == TokenType.OpenBracket &&
-				tokens[tokens.Count - 1].Token.Type == TokenType.CloseBracket)
-			{
-				// Function call fn(...)
-				// to obtain the parameter we need to remove the function name and paranetheses, then
-				// parse the sub-expression
-				tokens.RemoveRange(0, 2);
-				tokens.RemoveAt(tokens.Count - 1);
-
-				ParseExpression(tokens);
-				if (tokens.Count != 1)
-					throw new ParseException();
-
-				// Currently all function calls have one parameter
-				var parameter = tokens[0].Expression;
-				var expression = new FunctionExpression(operation, parameter);
-				tokens.RemoveAt(0);
-				tokens.Insert(0, new TokenOrExpression(expression));
-			}
-			else if (tokens.Count >= 3 && IsBinaryOperator(tokens[1].Token.Type, out binaryOperation))
-			{
-				// Binary expression
-
-				TokenOrExpression leftHandSide = tokens[0];
-				tokens.RemoveRange(0, 2);
-				ParseExpression(tokens);
-				if (tokens.Count != 1)
-					throw new ParseException();
-
-				IExpression rightHandSide = tokens[0].Expression;
-				var expression = new BinaryExpression(Parse(leftHandSide), binaryOperation, rightHandSide);
-				tokens.RemoveAt(0);
-				tokens.Insert(0, new TokenOrExpression(expression));
-			}
-			else if (tokens.Count >= 2 && tokens[0].Token.Type == TokenType.Quotation)
-			{
-				int endIndex = FindQuote(tokens, 1);
-				if (endIndex == -1)
-					throw new ParseException("Expected closing quote");
-
-				var arguments = new IExpression[endIndex - 1];
-				for (int i = 0; i < arguments.Length; ++i)
-				{
-					arguments[i] = Parse(tokens[i + 1]);
-				}
-				var expression = new ConcatExpression(arguments);
-				tokens.RemoveRange(0, endIndex + 1);
-				tokens.Insert(0, new TokenOrExpression(expression));
-				// But we're not done yet!
-				// There might be further expressions to the right, hence let's go one deeper
-				ParseExpression(tokens);
-			}
-			else if (tokens.Count >= 2 && IsUnaryOperator(tokens[0].Token.Type, out unaryOperation))
-			{
-				tokens.RemoveAt(0);
-				ParseExpression(tokens);
-				if (tokens.Count != 1)
-					throw new ParseException();
-
-				IExpression rightHandSide = tokens[0].Expression;
-				var expression = new UnaryExpression(unaryOperation, rightHandSide);
-				tokens.RemoveAt(0);
-				tokens.Insert(0, new TokenOrExpression(expression));
-			}
-			else if (tokens.Count == 1)
-			{
-				TokenOrExpression token = tokens[0];
-				if (tokens[0].Expression == null)
-				{
-					tokens[0] = new TokenOrExpression(Parse(token));
-				}
-				// Otherwise we don't need to do anything because there's already an expression
-			}
-			else
-			{
-				throw new ParseException();
-			}
-		}
-
-		private IExpression Parse(Token token)
-		{
-			switch (token.Type)
-			{
-				case TokenType.Variable:
-					return new Variable(token.Value);
-
-				case TokenType.Literal:
-					return new Literal(token.Value);
-
-				default:
-					throw new ParseException(string.Format("Expected token or literal but found: {0}", token));
-			}
-		}
-
-		private static int FindQuote(List<TokenOrExpression> stack, int startIndex)
-		{
-			for (int i = startIndex; i < stack.Count; ++i)
-			{
-				if (stack[i].Token.Type == TokenType.Quotation)
-				{
-					return i;
-				}
-			}
-
-			return -1;
 		}
 
 		/// <summary>
@@ -539,7 +228,7 @@ namespace Build.ExpressionEngine
 		[Pure]
 		public bool IsTrue(Condition condition, BuildEnvironment environment)
 		{
-			IExpression expression = Parse(condition.Expression);
+			IExpression expression = _parser.ParseExpression(condition.Expression);
 			object result = expression.Evaluate(_fileSystem, environment);
 			return Expression.IsTrue(result);
 		}
