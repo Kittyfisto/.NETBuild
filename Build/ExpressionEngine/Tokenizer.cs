@@ -6,11 +6,11 @@ namespace Build.ExpressionEngine
 {
 	public sealed class Tokenizer
 	{
-		private readonly Dictionary<TokenType, string> _specialTokens;
+		private static readonly Dictionary<TokenType, string> SpecialTokens;
 
-		public Tokenizer()
+		static Tokenizer()
 		{
-			_specialTokens = new Dictionary<TokenType, string>
+			SpecialTokens = new Dictionary<TokenType, string>
 				{
 					{TokenType.OpenBracket, "("},
 					{TokenType.CloseBracket, ")"},
@@ -27,6 +27,13 @@ namespace Build.ExpressionEngine
 					{TokenType.Dollar, "$"},
 					{TokenType.At, "@"},
 				};
+		}
+
+		public static string ToString(TokenType type)
+		{
+			string value;
+			SpecialTokens.TryGetValue(type, out value);
+			return value;
 		}
 
 		[Pure]
@@ -57,7 +64,7 @@ namespace Build.ExpressionEngine
 				return true;
 			}
 
-			foreach (var pair in _specialTokens)
+			foreach (var pair in SpecialTokens)
 			{
 				if (StartsWith(expression, startIndex, pair.Value))
 				{
@@ -74,7 +81,7 @@ namespace Build.ExpressionEngine
 				if (char.IsWhiteSpace(expression[i]))
 					break;
 
-				foreach (var pair in _specialTokens)
+				foreach (var pair in SpecialTokens)
 				{
 					if (StartsWith(expression, i, pair.Value))
 						goto eol;

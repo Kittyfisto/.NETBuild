@@ -68,6 +68,7 @@
     <Compile Include="ExpressionEngine\ItemList.cs" />
     <Compile Include="Filesystem.cs" />
     <Compile Include="IFilesystem.cs" />
+    <Compile Include="ListExtensions.cs" />
     <Compile Include="TaskEngine\CopyTask.cs" />
     <Compile Include="TaskEngine\TaskEngine.cs" />
     <Compile Include="DomainModel\MSBuild\Copy.cs" />

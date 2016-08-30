@@ -1,4 +1,5 @@
-﻿using Build.ExpressionEngine;
+﻿using System;
+using Build.ExpressionEngine;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -25,20 +26,6 @@ namespace Build.Test.ExpressionEngine
 		public void TestParse2()
 		{
 			_parser.ParseExpression("$(foo)").Should().Be(new Variable("foo"));
-		}
-
-		[Test]
-		public void TestParse20()
-		{
-			_parser.ParseExpression(" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ")
-			       .Should().Be(new BinaryExpression(
-				                    new ConcatExpression(new Variable("Configuration"),
-				                                         new Literal("|"),
-				                                         new Variable("Platform")
-					                    ),
-				                    BinaryOperation.Equals,
-				                    new ConcatExpression(
-					                    new Literal("Debug|AnyCPU"))));
 		}
 
 		[Test]
@@ -176,6 +163,72 @@ namespace Build.Test.ExpressionEngine
 
 		[Test]
 		public void TestParse18()
+		{
+			_parser.ParseExpression("true != $(Foobar)").
+					Should().Be(new BinaryExpression(new Literal("true"), BinaryOperation.EqualsNot, new Variable("Foobar")));
+		}
+
+		[Test]
+		public void TestParse19()
+		{
+			_parser.ParseExpression("42 > $(Foobar)").
+					Should().Be(new BinaryExpression(new Literal("42"), BinaryOperation.GreaterThan, new Variable("Foobar")));
+			_parser.ParseExpression("42 < $(Foobar)").
+					Should().Be(new BinaryExpression(new Literal("42"), BinaryOperation.LessThan, new Variable("Foobar")));
+			_parser.ParseExpression("42 >= $(Foobar)").
+					Should().Be(new BinaryExpression(new Literal("42"), BinaryOperation.GreaterOrEquals, new Variable("Foobar")));
+			_parser.ParseExpression("42 <= $(Foobar)").
+					Should().Be(new BinaryExpression(new Literal("42"), BinaryOperation.LessOrEquals, new Variable("Foobar")));
+		}
+
+		[Test]
+		public void TestParse20()
+		{
+			new Action(() => _parser.ParseExpression("Exists('foo.txt') > 42"))
+				.ShouldThrow<ParseException>()
+				.WithMessage("Expected literal or variable left of >, but found \"Exists('foo.txt')\"");
+		}
+
+		[Test]
+		public void TestParse21()
+		{
+			new Action(() => _parser.ParseExpression("42 > false"))
+				.ShouldThrow<ParseException>()
+				.WithMessage("Expected literal or variable right of >, but found \"false\"");
+		}
+
+		[Test]
+		public void TestParse22()
+		{
+			new Action(() => _parser.ParseExpression("true >= 42"))
+				.ShouldThrow<ParseException>()
+				.WithMessage("Expected literal or variable left of >=, but found \"true\"");
+		}
+
+		[Test]
+		public void TestParse23()
+		{
+			new Action(() => _parser.ParseExpression("42 <= true"))
+				.ShouldThrow<ParseException>()
+				.WithMessage("Expected literal or variable right of <=, but found \"true\"");
+		}
+
+		[Test]
+		public void TestParse30()
+		{
+			_parser.ParseExpression(" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ")
+				   .Should().Be(new BinaryExpression(
+									new ConcatExpression(new Variable("Configuration"),
+														 new Literal("|"),
+														 new Variable("Platform")
+										),
+									BinaryOperation.Equals,
+									new ConcatExpression(
+										new Literal("Debug|AnyCPU"))));
+		}
+
+		[Test]
+		public void TestParse40()
 		{
 			_parser.ParseExpression("@(Content)").Should().Be(new ItemList("Content"));
 		}

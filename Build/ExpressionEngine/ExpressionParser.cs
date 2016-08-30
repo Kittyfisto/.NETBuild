@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace Build.ExpressionEngine
 {
@@ -247,18 +248,6 @@ namespace Build.ExpressionEngine
 
 		private bool TryParseOne(List<TokenOrExpression> tokens)
 		{
-			if (tokens.Count == 1)
-			{
-				if (tokens[0].Expression != null)
-					return true;
-
-				if (tokens[0].Token.Type == TokenType.Literal)
-				{
-					tokens[0] = new TokenOrExpression(new Literal(tokens[0].Token.Value));
-					return true;
-				}
-			}
-
 			if (TryParseVariable(tokens))
 				return true;
 
@@ -273,6 +262,18 @@ namespace Build.ExpressionEngine
 
 			if (TryParseUnaryOperation(tokens))
 				return true;
+
+			if (tokens.Count >= 1)
+			{
+				if (tokens[0].Expression != null)
+					return true;
+
+				if (tokens[0].Token.Type == TokenType.Literal)
+				{
+					tokens[0] = new TokenOrExpression(new Literal(tokens[0].Token.Value));
+					return true;
+				}
+			}
 
 			return false;
 		}
@@ -314,24 +315,25 @@ namespace Build.ExpressionEngine
 		private bool TryParseFunctionCall(List<TokenOrExpression> tokens)
 		{
 			FunctionOperation operation;
+			int endIndex;
 			if (tokens.Count >= 3 && IsFunctionName(tokens[0].Token, out operation) &&
 			    tokens[1].Token.Type == TokenType.OpenBracket &&
-			    tokens[tokens.Count - 1].Token.Type == TokenType.CloseBracket)
+				TryFindFirst(tokens, TokenType.CloseBracket, out endIndex))
 			{
 				// Function call fn(...)
-				// to obtain the parameter we need to remove the function name and paranetheses, then
-				// parse the sub-expression
-				tokens.RemoveRange(0, 2);
-				tokens.RemoveAt(tokens.Count - 1);
+				// We want to retrieve the arguments from the token-stack
+				// parse them and trash the fn(...) part
+				var arguments = tokens.Splice(2, endIndex - 2);
+				tokens.RemoveRange(0, endIndex+1);
 
-				TryParseLeftToRight(tokens);
-				if (tokens.Count != 1)
+				if (!TryParseOne(arguments))
+					throw new ParseException();
+				if (arguments.Count != 1)
 					throw new ParseException();
 
 				// Currently all function calls have one parameter
-				IExpression parameter = tokens[0].Expression;
+				IExpression parameter = arguments[0].Expression;
 				var expression = new FunctionExpression(operation, parameter);
-				tokens.RemoveAt(0);
 				tokens.Insert(0, new TokenOrExpression(expression));
 				return true;
 			}
@@ -341,20 +343,64 @@ namespace Build.ExpressionEngine
 
 		private bool TryParseBinaryOperation(List<TokenOrExpression> tokens)
 		{
-			BinaryOperation binaryOperation;
-			if (tokens.Count >= 3 && IsBinaryOperator(tokens[1].Token.Type, out binaryOperation))
+			BinaryOperation operation;
+			if (tokens.Count >= 3 && IsBinaryOperator(tokens[1].Token.Type, out operation))
 			{
 				// Binary expression
-				TokenOrExpression leftHandSide = tokens[0];
+				TokenOrExpression lhs = tokens[0];
+				var op = tokens[1].Token.Type;
 				tokens.RemoveRange(0, 2);
 				TryParseLeftToRight(tokens);
 				if (tokens.Count != 1)
 					throw new ParseException();
 
+				IExpression leftHandSide = Parse(lhs);
 				IExpression rightHandSide = tokens[0].Expression;
-				var expression = new BinaryExpression(Parse(leftHandSide), binaryOperation, rightHandSide);
+
+				if (IsNumeric(operation))
+				{
+					if (!CouldEvaluateToNumber(leftHandSide))
+						throw new ParseException(string.Format("Expected literal or variable left of {0}, but found \"{1}\"", Tokenizer.ToString(op), leftHandSide));
+					if (!CouldEvaluateToNumber(rightHandSide))
+						throw new ParseException(string.Format("Expected literal or variable right of {0}, but found \"{1}\"", Tokenizer.ToString(op), rightHandSide));
+				}
+
+				var expression = new BinaryExpression(leftHandSide, operation, rightHandSide);
 				tokens.RemoveAt(0);
 				tokens.Insert(0, new TokenOrExpression(expression));
+				return true;
+			}
+
+			return false;
+		}
+
+		private bool IsNumeric(BinaryOperation binaryOperation)
+		{
+			switch (binaryOperation)
+			{
+				case BinaryOperation.GreaterOrEquals:
+				case BinaryOperation.GreaterThan:
+				case BinaryOperation.LessOrEquals:
+				case BinaryOperation.LessThan:
+					return true;
+
+				default:
+					return false;
+			}
+		}
+
+		private bool CouldEvaluateToNumber(IExpression expression)
+		{
+			var literal = expression as Literal;
+			if (literal != null)
+			{
+				int unused;
+				if (int.TryParse(literal.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out unused))
+					return true;
+			}
+			var variable = expression as Variable;
+			if (variable != null)
+			{
 				return true;
 			}
 
@@ -379,6 +425,21 @@ namespace Build.ExpressionEngine
 				return true;
 			}
 
+			return false;
+		}
+
+		private bool TryFindFirst(List<TokenOrExpression> tokens, TokenType type, out int index)
+		{
+			for (int i = 0; i < tokens.Count; ++i)
+			{
+				if (tokens[i].Token.Type == type)
+				{
+					index = i;
+					return true;
+				}
+			}
+
+			index = -1;
 			return false;
 		}
 
