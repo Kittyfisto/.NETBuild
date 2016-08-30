@@ -216,9 +216,14 @@ namespace Build.TaskEngine
 
 		private void Run(Copy copy)
 		{
-			copy.SourceFiles = _expressionEngine.EvaluateConcatenation(copy.SourceFiles, _environment);
-			copy.DestinationFiles = _expressionEngine.EvaluateConcatenation(copy.DestinationFiles, _environment);
-			CopyTask.Run(_fileSystem, _environment, copy, _logger);
+			var sourceFiles = _expressionEngine.EvaluateItemList(copy.SourceFiles, _environment);
+			var destinationFiles = _expressionEngine.EvaluateItemList(copy.DestinationFiles, _environment);
+
+			CopyTask.Run(_fileSystem,
+			             _environment,
+			             sourceFiles,
+			             destinationFiles,
+			             _logger);
 		}
 
 		private void Run(Delete delete)

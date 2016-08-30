@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using Build.BuildEngine;
@@ -178,7 +179,7 @@ namespace Build.ExpressionEngine
 
 			// TODO: Split each string into lists of filenames (; as separator) and build a complete list of files represented by this item
 			var fullPath = Path.MakeAbsolute(environment.Properties[Properties.MSBuildProjectDirectory], expandedInclude);
-			var info = new FileInfo(fullPath);
+			var info = _fileSystem.GetInfo(fullPath);
 			var metadata = new List<Metadata>
 				{
 					new Metadata(Metadatas.FullPath, fullPath),
@@ -188,9 +189,9 @@ namespace Build.ExpressionEngine
 					new Metadata(Metadatas.RelativeDir, Path.GetRelativeDir(expandedInclude)),
 					new Metadata(Metadatas.Directory, Path.GetDirectoryWithoutRoot(fullPath, Slash.Include)),
 					new Metadata(Metadatas.Identity, expandedInclude),
-					new Metadata(Metadatas.ModifiedTime, FormatTime(info.LastWriteTime)),
-					new Metadata(Metadatas.CreatedTime, FormatTime(info.CreationTime)),
-					new Metadata(Metadatas.AccessedTime, FormatTime(info.LastAccessTime))
+					new Metadata(Metadatas.ModifiedTime, FormatTime(info.ModifiedTime)),
+					new Metadata(Metadatas.CreatedTime, FormatTime(info.CreatedTime)),
+					new Metadata(Metadatas.AccessedTime, FormatTime(info.AccessTime))
 				};
 
 			metadata.AddRange(item.Metadata);
@@ -264,7 +265,24 @@ namespace Build.ExpressionEngine
 			for (int i = 0; i < fileNames.Length; ++i)
 			{
 				var fileName = fileNames[i];
-				files[i] = environment.Items[fileName];
+				var file = environment.Items[fileName];
+				if (file == null)
+				{
+					file = new ProjectItem
+						{
+							Type = "None",
+							Include = fileName
+						};
+					var path = Path.MakeAbsolute(environment.Properties[Properties.MSBuildProjectDirectory], fileName);
+					var info = _fileSystem.GetInfo(path);
+
+					file[Metadatas.FullPath] = path;
+					file[Metadatas.CreatedTime] = info.CreatedTime.ToString(CultureInfo.InvariantCulture);
+					file[Metadatas.ModifiedTime] = info.ModifiedTime.ToString(CultureInfo.InvariantCulture);
+					file[Metadatas.AccessedTime] = info.AccessTime.ToString(CultureInfo.InvariantCulture);
+				}
+
+				files[i] = file;
 			}
 			return files;
 		}

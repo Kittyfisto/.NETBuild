@@ -230,7 +230,7 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestParse40()
 		{
-			_parser.ParseExpression("@(Content)").Should().Be(new ItemList("Content"));
+			_parser.ParseExpression("@(Content)").Should().Be(new ItemListExpression("Content"));
 		}
 	}
 }

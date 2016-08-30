@@ -13,6 +13,9 @@ namespace Build
 		[Pure]
 		bool Exists(string filename);
 
+		[Pure]
+		FileInfo GetInfo(string filename);
+
 		/// <summary>
 		/// 
 		/// </summary>

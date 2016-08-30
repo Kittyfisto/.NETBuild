@@ -305,7 +305,7 @@ namespace Build.ExpressionEngine
 			{
 				TokenOrExpression name = tokens[2];
 				tokens.RemoveRange(0, 4);
-				tokens.Insert(0, new TokenOrExpression(new ItemList(name.Token.Value)));
+				tokens.Insert(0, new TokenOrExpression(new ItemListExpression(name.Token.Value)));
 				return true;
 			}
 

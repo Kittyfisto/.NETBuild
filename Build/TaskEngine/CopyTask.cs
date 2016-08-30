@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Text;
 using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 
@@ -8,50 +7,55 @@ namespace Build.TaskEngine
 {
 	internal static class CopyTask
 	{
-		private static readonly char[] Separator = new[] {';'};
-
-		public static void Run(IFileSystem fileSystem,
-		                       BuildEnvironment environment,
-		                       Copy task,
-		                       ILogger logger)
+		public static ProjectItem[] Run(IFileSystem fileSystem,
+		                                BuildEnvironment environment,
+		                                ProjectItem[] sourceFiles,
+		                                ProjectItem[] destinationFiles,
+		                                ILogger logger)
 		{
-			if (task.SourceFiles == null)
-				throw new BuildException();
-			if (task.DestinationFiles == null)
-				throw new BuildException();
+			if (fileSystem == null)
+				throw new ArgumentNullException("fileSystem");
+			if (environment == null)
+				throw new ArgumentNullException("environment");
+			if (sourceFiles == null)
+				throw new ArgumentNullException("sourceFiles");
+			if (destinationFiles == null)
+				throw new ArgumentNullException("destinationFiles");
+			if (logger == null)
+				throw new ArgumentNullException("logger");
 
-			string[] input = task.SourceFiles.Split(Separator);
-			string[] output = task.DestinationFiles.Split(Separator);
-			var copied = new StringBuilder();
+			if (sourceFiles.Length != destinationFiles.Length)
+				throw new BuildException(
+					string.Format("SourceFiles and DestinationFiles must be of the same length, but \"{0}\" and \"{1}\" are given",
+					              sourceFiles.Length,
+					              destinationFiles.Length));
 
-			if (input.Length != output.Length)
-				throw new BuildException();
-
-			for (int i = 0; i < input.Length; ++i)
+			string directory = environment.Properties[Properties.MSBuildProjectDirectory];
+			var copied = new ProjectItem[sourceFiles.Length];
+			for (int i = 0; i < sourceFiles.Length; ++i)
 			{
-				var directory = environment.Properties[Properties.MSBuildProjectDirectory];
-				string source = input[i];
-				var destination = output[i];
+				ProjectItem source = sourceFiles[i];
+				ProjectItem destination = destinationFiles[i];
 
 				if (Copy(fileSystem, directory, source, destination, logger))
 				{
-					copied.Append(destination);
-					copied.Append(';');
+					copied[i] = destination;
 				}
 			}
 
-			if (copied.Length > 0)
-				copied.Remove(copied.Length - 1, 1);
-			task.CopiedFiles = copied.ToString();
+			return copied;
 		}
 
-		private static bool Copy(IFileSystem fileSystem, string directory, string source, string destination, ILogger logger)
+		private static bool Copy(IFileSystem fileSystem, string directory,
+		                         ProjectItem source,
+		                         ProjectItem destination,
+		                         ILogger logger)
 		{
-			var relativeSource = Path.MakeRelative(directory, source);
-			var absoluteSource = Path.MakeAbsolute(directory, source);
+			string absoluteSource = source[Metadatas.FullPath];
+			string absoluteDestination = destination[Metadatas.FullPath];
 
-			var relativeDestination = Path.MakeRelative(directory, destination);
-			var absoluteDestination = Path.MakeAbsolute(directory, destination);
+			string relativeSource = Path.MakeRelative(directory, absoluteSource);
+			string relativeDestination = Path.MakeRelative(directory, absoluteDestination);
 
 			logger.WriteLine(Verbosity.Normal, "  Copying file from \"{0}\" to \"{1}\".",
 			                 relativeSource,

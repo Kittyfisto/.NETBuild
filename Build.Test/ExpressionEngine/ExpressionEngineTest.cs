@@ -347,6 +347,20 @@ namespace Build.Test.ExpressionEngine
 				   .Equal(new object[] { item1, item2 });
 		}
 
+		[Test]
+		[Description("Verifies that a new ProjectItem is created and returned for every queried file, even if it doesn't exist!")]
+		public void TestEvaluateItemList6()
+		{
+			var environment = new BuildEnvironment();
+			environment.Properties[Properties.MSBuildProjectDirectory] = @"C:\work\doodledoo";
+			var items = _engine.EvaluateItemList("someimportantfile.bin", environment);
+			items.Should().NotBeNull();
+			items.Length.Should().Be(1);
+			var item = items[0];
+			item.Should().NotBeNull();
+			item.Include.Should().Be("someimportantfile.bin");
+		}
+
 		#endregion
 
 		#region Item Evaluation

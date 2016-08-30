@@ -6,12 +6,12 @@ using Build.DomainModel.MSBuild;
 
 namespace Build.ExpressionEngine
 {
-	public sealed class ItemList
+	public sealed class ItemListExpression
 		: IExpression
 	{
 		private readonly string _itemListName;
 
-		public ItemList(string itemListName)
+		public ItemListExpression(string itemListName)
 		{
 			if (itemListName == null)
 				throw new ArgumentNullException("itemListName");
@@ -58,7 +58,7 @@ namespace Build.ExpressionEngine
 			return items;
 		}
 
-		private bool Equals(ItemList other)
+		private bool Equals(ItemListExpression other)
 		{
 			return string.Equals(_itemListName, other._itemListName);
 		}
@@ -67,7 +67,7 @@ namespace Build.ExpressionEngine
 		{
 			if (ReferenceEquals(null, obj)) return false;
 			if (ReferenceEquals(this, obj)) return true;
-			return obj is ItemList && Equals((ItemList) obj);
+			return obj is ItemListExpression && Equals((ItemListExpression) obj);
 		}
 
 		public override int GetHashCode()
