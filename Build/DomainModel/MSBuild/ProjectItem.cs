@@ -121,6 +121,10 @@ namespace Build.DomainModel.MSBuild
 
 				return string.Empty;
 			}
+			set
+			{
+				_metadata[metadataName] = new Metadata(metadataName, value);
+			}
 		}
 
 		public string Type { get; set; }

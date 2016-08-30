@@ -45,6 +45,9 @@ namespace Build.ExpressionEngine
 				throw new ArgumentNullException("environment");
 
 			var relativeOrAbsoluteProjectFilePath = project.Filename;
+			if (relativeOrAbsoluteProjectFilePath == null)
+				throw new ArgumentException("The project is required to have a filename");
+
 			environment.Properties[Properties.MSBuildProjectExtension] = Path.GetExtension(relativeOrAbsoluteProjectFilePath);
 			environment.Properties[Properties.MSBuildProjectFile] = Path.GetFilename(relativeOrAbsoluteProjectFilePath);
 			environment.Properties[Properties.MSBuildProjectName] = Path.GetFilenameWithoutExtension(relativeOrAbsoluteProjectFilePath);
@@ -62,7 +65,13 @@ namespace Build.ExpressionEngine
 				{
 					Filename = project.Filename,
 				};
-			evaluated.ItemGroups.AddRange(Evaluate(project.ItemGroups, environment));
+			foreach (var itemGroup in Evaluate(project.ItemGroups, environment))
+			{
+				foreach (var item in itemGroup)
+				{
+					environment.Items.Add(item);
+				}
+			}
 			return evaluated;
 		}
 
@@ -255,7 +264,7 @@ namespace Build.ExpressionEngine
 			for (int i = 0; i < fileNames.Length; ++i)
 			{
 				var fileName = fileNames[i];
-				files[i] = environment.ItemLists[fileName];
+				files[i] = environment.Items[fileName];
 			}
 			return files;
 		}

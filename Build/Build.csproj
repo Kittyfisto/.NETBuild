@@ -48,6 +48,7 @@
     <Compile Include="BuildEngine\AssemblyResolver.cs" />
     <Compile Include="BuildEngine\BuildEngine.cs" />
     <Compile Include="BuildEngine\BuildEnvironment.cs" />
+    <Compile Include="BuildEngine\FilenameComparer.cs" />
     <Compile Include="BuildEngine\Node.cs" />
     <Compile Include="BuildEngine\ProjectBuilder.cs" />
     <Compile Include="BuildEngine\BuildGraph.cs" />

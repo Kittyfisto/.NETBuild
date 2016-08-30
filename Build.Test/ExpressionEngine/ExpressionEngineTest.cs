@@ -249,7 +249,7 @@ namespace Build.Test.ExpressionEngine
 					Type = "Content",
 					Include = "data.xml"
 				};
-			environment.ItemLists.Add(item);
+			environment.Items.Add(item);
 
 			_engine.EvaluateItemList("data.xml", environment)
 			       .Should()
@@ -265,13 +265,13 @@ namespace Build.Test.ExpressionEngine
 				Type = "Content",
 				Include = "data.xml"
 			};
-			environment.ItemLists.Add(item1);
+			environment.Items.Add(item1);
 			var item2 = new ProjectItem
 			{
 				Type = "Content",
 				Include = "schema.xsd"
 			};
-			environment.ItemLists.Add(item2);
+			environment.Items.Add(item2);
 
 			_engine.EvaluateItemList("data.xml;schema.xsd", environment)
 				   .Should()
@@ -287,7 +287,7 @@ namespace Build.Test.ExpressionEngine
 				Type = "Content",
 				Include = "data.xml"
 			};
-			environment.ItemLists.Add(item);
+			environment.Items.Add(item);
 			environment.Properties["Filename"] = "data.xml";
 
 			_engine.EvaluateItemList("$(Filename)", environment)
@@ -304,13 +304,13 @@ namespace Build.Test.ExpressionEngine
 				Type = "Content",
 				Include = "data.xml"
 			};
-			environment.ItemLists.Add(item1);
+			environment.Items.Add(item1);
 			var item2 = new ProjectItem
 			{
 				Type = "Content",
 				Include = "schema.xsd"
 			};
-			environment.ItemLists.Add(item2);
+			environment.Items.Add(item2);
 			environment.Properties["DataFilename"] = "data.xml";
 			environment.Properties["SchemaFilename"] = "schema.xsd";
 
@@ -328,19 +328,19 @@ namespace Build.Test.ExpressionEngine
 				Type = "Content",
 				Include = "data.xml"
 			};
-			environment.ItemLists.Add(item1);
+			environment.Items.Add(item1);
 			var item2 = new ProjectItem
 			{
 				Type = "Content",
 				Include = "schema.xsd"
 			};
-			environment.ItemLists.Add(item2);
+			environment.Items.Add(item2);
 			var item3 = new ProjectItem
 			{
 				Type = "Compile",
 				Include = "Program.cs"
 			};
-			environment.ItemLists.Add(item3);
+			environment.Items.Add(item3);
 
 			_engine.EvaluateItemList("@(Content)", environment)
 				   .Should()
@@ -384,8 +384,58 @@ namespace Build.Test.ExpressionEngine
 		#region Project Evaluation
 
 		[Test]
+		public void TestEvaluateProject1()
+		{
+			var project = new Project
+				{
+					Filename = @"C:\snapshots\foo.csproj",
+					Properties =
+						{
+							new PropertyGroup
+								{
+									new Property("Foo", "Bar")
+								}
+						}
+				};
+			var environment = new BuildEnvironment();
+			_engine.Evaluate(project, environment);
+			environment.Properties["Foo"].Should().Be("Bar");
+		}
+
+		[Test]
+		public void TestEvaluateProject2()
+		{
+			var item = new ItemGroup
+				{
+					new ProjectItem
+						{
+							Type = "None",
+							Include = "foo.txt"
+						}
+				};
+			var project = new Project
+			{
+				Filename = @"C:\work\interestingproject\foo.csproj",
+				ItemGroups = { item }
+			};
+			var environment = new BuildEnvironment();
+			_engine.Evaluate(project, environment);
+			environment.Items.Count().Should().Be(1);
+			var actualItem = environment.Items.First();
+			actualItem.Should().NotBeNull();
+			actualItem.Include.Should().Be("foo.txt");
+			actualItem[Metadatas.FullPath].Should().Be(@"C:\work\interestingproject\foo.txt");
+			actualItem[Metadatas.Directory].Should().Be(@"work\interestingproject\");
+			actualItem[Metadatas.Extension].Should().Be(".txt");
+			actualItem[Metadatas.Filename].Should().Be("foo");
+			actualItem[Metadatas.Identity].Should().Be("foo.txt");
+			actualItem[Metadatas.RelativeDir].Should().Be("");
+			actualItem[Metadatas.RootDir].Should().Be(@"C:\");
+		}
+
+		[Test]
 		[Description("Verifies that evaluating a project adds resvered/well known properties in the environment")]
-		public void TestEaluateProject1()
+		public void TestEaluateProject3()
 		{
 			const string fname = @"..\..\Build.Test.csproj";
 			var project = CSharpProjectParser.Instance.Parse(fname);

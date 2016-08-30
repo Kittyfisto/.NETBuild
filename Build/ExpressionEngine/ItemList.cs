@@ -54,7 +54,7 @@ namespace Build.ExpressionEngine
 
 		public List<ProjectItem> ToItemList(IFileSystem fileSystem, BuildEnvironment environment)
 		{
-			var items = environment.ItemLists.GetItemsOfType(_itemListName);
+			var items = environment.Items.GetItemsOfType(_itemListName);
 			return items;
 		}
 

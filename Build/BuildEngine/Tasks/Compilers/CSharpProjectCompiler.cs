@@ -161,7 +161,7 @@ namespace Build.BuildEngine.Tasks.Compilers
 
 			_arguments.Add("out", _outputFilePath);
 
-			List<ProjectItem> items = _project.ItemGroups.SelectMany(x => x).ToList();
+			List<ProjectItem> items = _projectEnvironment.Items.ToList();
 			IEnumerable<ProjectItem> referenceItems = items.Where(x => x.Type == Items.Reference);
 			foreach (ProjectItem reference in referenceItems)
 			{
