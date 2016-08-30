@@ -204,6 +204,9 @@ namespace Build.ExpressionEngine
 
 		public string EvaluateConcatenation(string expression, BuildEnvironment environment)
 		{
+			if (string.IsNullOrWhiteSpace(expression))
+				return expression;
+
 			// This is much simpler since we don't interpret general expressions
 			// in string concatenation: We only replace property values..
 			var tokens = _tokenizer.Tokenize(expression);

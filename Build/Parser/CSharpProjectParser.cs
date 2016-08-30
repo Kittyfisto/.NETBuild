@@ -140,6 +140,10 @@ namespace Build.Parser
 							target.Children.Add(ReadCopy(innerReader));
 							break;
 
+						case "Csc":
+							target.Children.Add(ReadCsc(innerReader));
+							break;
+
 						default:
 							throw new ParseException(string.Format("Unsupported node: '{0}'", innerReader.Name));
 					}
@@ -151,6 +155,87 @@ namespace Build.Parser
 			return target;
 		}
 
+		private static Node ReadCsc(XmlReader reader)
+		{
+			var task = new Csc();
+			for (int i = 0; i < reader.AttributeCount; ++i)
+			{
+				reader.MoveToAttribute(i);
+				switch (reader.Name)
+				{
+					case "Condition":
+						task.Condition = new Condition(reader.Value);
+						break;
+
+					case "AllowUnsafeBlocks":
+						task.AllowUnsafeBlocks = reader.Value;
+						break;
+					case "Prefer32Bit":
+						task.Prefer32Bit = reader.Value;
+						break;
+					case "BaseAddress":
+						task.BaseAddress = reader.Value;
+						break;
+					case "CheckForOverflowUnderflow":
+						task.CheckForOverflowUnderflow = reader.Value;
+						break;
+					case "DebugType":
+						task.DebugType = reader.Value;
+						break;
+					case "DefineConstants":
+						task.DefineConstants = reader.Value;
+						break;
+					case "DelaySign":
+						task.DelaySign = reader.Value;
+						break;
+					case "DisabledWarnings":
+						task.DisabledWarnings = reader.Value;
+						break;
+					case "EmitDebugInformation":
+						task.EmitDebugInformation = reader.Value;
+						break;
+					case "ErrorEndLocation":
+						task.ErrorEndLocation = reader.Value;
+						break;
+					case "ErrorReport":
+						task.ErrorReport = reader.Value;
+						break;
+					case "FileAlignment":
+						task.FileAlignment = reader.Value;
+						break;
+					case "HighEntropyVA":
+						task.HighEntropyVA = reader.Value;
+						break;
+					case "MainEntryPoint":
+						task.MainEntryPoint = reader.Value;
+						break;
+					case "ModuleAssemblyName":
+						task.ModuleAssemblyName = reader.Value;
+						break;
+					case "NoConfig":
+						task.NoConfig = reader.Value;
+						break;
+					case "NoLogo":
+						task.NoLogo = reader.Value;
+						break;
+					case "Optimize":
+						task.Optimize = reader.Value;
+						break;
+					case "OutputAssembly":
+						task.OutputAssembly = reader.Value;
+						break;
+					case "PdbFile":
+						task.PdbFile = reader.Value;
+						break;
+					default:
+						throw new ParseException(string.Format("Unknown attribute \"{0}\" on Csc element",
+						                                       reader.Name));
+				}
+			}
+
+			return task;
+		}
+
 		private static Copy ReadCopy(XmlReader reader)
 		{
 			var task = new Copy();
@@ -159,6 +244,10 @@ namespace Build.Parser
 				reader.MoveToAttribute(i);
 				switch (reader.Name)
 				{
+					case "Condition":
+						task.Condition = new Condition(reader.Value);
+						break;
+
 					case "SourceFiles":
 						task.SourceFiles = reader.Value;
 						break;
@@ -168,7 +257,7 @@ namespace Build.Parser
 						break;
 
 					default:
-						throw new ParseException(string.Format("Unsupported attribute: {0}", reader.Name));
+						throw new ParseException(string.Format("Unsupported attribute \"{0}\" on Copy element", reader.Name));
 				}
 			}
 			return task;

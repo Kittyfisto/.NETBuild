@@ -20,12 +20,12 @@ namespace Build.Test
 			}
 		}
 
-		public void WriteWarning(string message)
+		public void WriteWarning(string format, params  object[] arguments)
 		{
 			throw new NotImplementedException();
 		}
 
-		public void WriteError(string message)
+		public void WriteError(string format, params  object[] arguments)
 		{
 			throw new NotImplementedException();
 		}

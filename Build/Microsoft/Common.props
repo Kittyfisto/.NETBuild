@@ -9,37 +9,64 @@
     </PropertyGroup>
   </Target>
 
-  <Target Name="DetermineOutputFileName"
+  <Target Name="DetermineOutputPaths"
           DependsOnTargets="DetermineOutputFileExtension">
     <PropertyGroup>
-      <OutputFileName>$(AssemblyName)$(OutputFileExtension)</OutputFileName>
-      <OutputFilePath>$(OutputPath)\$(OutputFileName)</OutputFilePath>
-      <AbsoluteOutputFilePath>$(MSBuildProjectDirectory)\$(OutputFileName)</AbsoluteOutputFilePath>
-    </PropertyGroup>
-    <PropertyGroup>
-      <PdbFileName>$(AssemblyName).pdb</PdbFileName>
-      <PdbFilePath>$(OutputPath)\$(PdbFileName)</PdbFilePath>
-      <AbsolutePdbFilePath>$(MSBuildProjectDirectory)\$(OutputFileName)</AbsolutePdbFilePath>
+      <OutputAssemblyName>$(AssemblyName)$(OutputFileExtension)</OutputAssemblyName>
+      <OutputPdbName>$(AssemblyName).pdb</OutputPdbName>
+      
+      <IntermediatePath>bin\$(Configuration)</IntermediatePath>
+      <IntermediateAssembly>$(IntermediatePath)\$(OutputAssemblyName)</IntermediateAssembly>
+      <IntermediatePdb>$(IntermediatePath)\$(OutputPdbName)</IntermediatePdb>
+
+      <OutputAssembly>$(OutputPath)\$(OutputAssemblyName)</OutputAssembly>
+      <OutputPdb>$(OutputPath)\$(OutputPdbName)</OutputPdb>
     </PropertyGroup>
   </Target>
 
   <Target Name="CoreBuild"
-          DependsOnTargets="DetermineOutputFileName">
+          DependsOnTargets="DetermineOutputPaths">
+    <Csc
+      AllowUnsafeBlocks="$(AllowUnsafeBlocks)"
+      Prefer32Bit="$(Prefer32Bit)"
+      BaseAddress="$(BaseAddress)"
+      CheckForOverflowUnderflow="$(CheckForOverflowUnderflow)"
+      DebugType="$(DebugType)"
+      DefineConstants="$(DefineConstants)"
+      DelaySign="$(DelaySign)"
+      DisabledWarnings="$(DisabledWarnings)"
+      EmitDebugInformation="$(DebugSymbols)"
+      ErrorEndLocation="$(ErrorEndLocation)"
+      ErrorReport="$(ErrorReport)"
+      FileAlignment="$(FileAlignment)"
+      HighEntropyVA="$(HighEntropyVA)"
+      MainEntryPoint="$(MainEntryPoint)"
+      ModuleAssemblyName="$(ModuleAssemblyName)"
+      NoConfig="true"
+      NoLogo="$(NoLogo)"
+      Optimize="$(Optimize)"
+      OutputAssembly="$(IntermediateAssembly)"
+      PdbFile="$(IntermediatePdb)"
+      />
   </Target>
 
   <Target Name="CopyAppConfigFile"
-          DependsOnTargets="DetermineOutputFileName"
+          DependsOnTargets="CoreBuild"
           Condition="Exists('app.config')"
           Inputs="app.config"
           Output="$(OutputPath)\$(OutputFileName).config"
           >
     <Copy SourceFiles="app.config"
-          DestinationFiles="$(OutputPath)\$(OutputFileName).config" />
+          DestinationFiles="$(OutputPath)\$(OutputAssemblyName).config" />
   </Target>
 
   <Target Name="CopyFilesToOutputDirectory"
           DependsOnTargets="CoreBuild">
-    <Message Importance="Normal" Text="Build -> $(AbsoluteOutputFileName)" />
+
+    <Copy SourceFiles="$(IntermediateAssembly)" DestinationFiles="$(OutputAssembly)" />
+    <Message Importance="Normal" Text="Build -> $(MSBuildProjectDirectory)\$(OutputFilePath)" />
+    <Copy SourceFiles="$(IntermediatePdb)" DestinationFiles="$(OutputPdb)"
+          Condition="Exists($(IntermediatePdb))" />
   </Target>
 
   <Target Name="Build"

@@ -5,7 +5,7 @@
 		void WriteLine(Verbosity verbosity, string format, params object[] arguments);
 		void WriteMultiLine(Verbosity verbosity, string message);
 
-		void WriteWarning(string message);
-		void WriteError(string message);
+		void WriteWarning(string format, params object[] arguments);
+		void WriteError(string foramt, params object[] arguments);
 	}
 }

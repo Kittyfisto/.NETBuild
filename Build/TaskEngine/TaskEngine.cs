@@ -49,7 +49,8 @@ namespace Build.TaskEngine
 					{typeof (Warning), x => Run((Warning) x)},
 					{typeof (Error), x => Run((Error) x)},
 					{typeof (Copy), x => Run((Copy) x)},
-					{typeof (Delete), x => Run((Delete) x)}
+					{typeof (Delete), x => Run((Delete) x)},
+					{typeof (Csc), x => Run((Csc)x)}
 				};
 		}
 
@@ -75,7 +76,8 @@ namespace Build.TaskEngine
 				Target target;
 				if (!allTargets.TryGetValue(targetName, out target))
 				{
-					throw new NotImplementedException();
+					_logger.WriteWarning("No such target \"{0}\"", targetName);
+					continue;
 				}
 
 				targetOrder.Add(target);
@@ -120,8 +122,14 @@ namespace Build.TaskEngine
 				}
 			}
 
-			// TODO: This is the place to check input files for having been modified and output files for their presence:
-			//       If both are in order then we don't need to run this target at all...
+			target.Inputs = _expressionEngine.EvaluateConcatenation(target.Inputs, _environment);
+			target.Output = _expressionEngine.EvaluateConcatenation(target.Output, _environment);
+			if (IsUpToDate(target))
+			{
+				_logger.WriteLine(Verbosity.Normal,
+				                  "  Skipping target \"{0}\" because it's inputs are up-to-date with respect to its outputs",
+				                  target.Name);
+			}
 
 			_logger.WriteLine(Verbosity.Normal, "{0}:", target.Name);
 
@@ -129,6 +137,12 @@ namespace Build.TaskEngine
 			{
 				Run(node);
 			}
+		}
+
+		private bool IsUpToDate(Target target)
+		{
+			// TODO:
+			return false;
 		}
 
 		public void Run(Node task)
@@ -205,6 +219,11 @@ namespace Build.TaskEngine
 
 		private void Run(Delete delete)
 		{
+		}
+
+		private void Run(Csc csc)
+		{
+			
 		}
 	}
 }
