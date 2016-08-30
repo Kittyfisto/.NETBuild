@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 
@@ -40,12 +41,21 @@ namespace Build.ExpressionEngine
 
 		public string ToString(IFileSystem fileSystem, BuildEnvironment environment)
 		{
-			throw new NotImplementedException();
+			var items = ToItemList(fileSystem, environment);
+			var builder = new StringBuilder();
+			for(int i = 0; i < items.Count; ++i)
+			{
+				builder.Append(items[i].Include);
+				if (i < items.Count - 1)
+					builder.Append(';');
+			}
+			return builder.ToString();
 		}
 
 		public List<ProjectItem> ToItemList(IFileSystem fileSystem, BuildEnvironment environment)
 		{
-			throw new NotImplementedException();
+			var items = environment.ItemLists.GetItemsOfType(_itemListName);
+			return items;
 		}
 
 		private bool Equals(ItemList other)

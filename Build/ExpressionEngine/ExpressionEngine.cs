@@ -15,6 +15,12 @@ namespace Build.ExpressionEngine
 	{
 		private readonly IFileSystem _fileSystem;
 		private readonly ExpressionParser _parser;
+		private static readonly char[] ItemListSeparator;
+
+		static ExpressionEngine()
+		{
+			ItemListSeparator = new[] {';'};
+		}
 
 		public ExpressionEngine(IFileSystem fileSystem)
 		{
@@ -231,6 +237,27 @@ namespace Build.ExpressionEngine
 			IExpression expression = _parser.ParseExpression(condition.Expression);
 			object result = expression.Evaluate(_fileSystem, environment);
 			return Expression.IsTrue(result);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="environment"></param>
+		/// <returns></returns>
+		[Pure]
+		public ProjectItem[] EvaluateItemList(string expression, BuildEnvironment environment)
+		{
+			var concatenation = _parser.ParseConcatenation(expression);
+			var value = concatenation.ToString(_fileSystem, environment);
+			var fileNames = value.Split(ItemListSeparator);
+			var files = new ProjectItem[fileNames.Length];
+			for (int i = 0; i < fileNames.Length; ++i)
+			{
+				var fileName = fileNames[i];
+				files[i] = environment.ItemLists[fileName];
+			}
+			return files;
 		}
 	}
 }

@@ -10,16 +10,16 @@ namespace Build.DomainModel.MSBuild
 	{
 		private bool Equals(ProjectItem other)
 		{
-			if (!string.Equals(_exclude, other._exclude))
+			if (!string.Equals(Exclude, other.Exclude))
 				return false;
 
-			if (!string.Equals(_include, other._include))
+			if (!string.Equals(Include, other.Include))
 				return false;
 
-			if (!string.Equals(_remove, other._remove))
+			if (!string.Equals(Remove, other.Remove))
 				return false;
 
-			if (!string.Equals(_type, other._type))
+			if (!string.Equals(Type, other.Type))
 				return false;
 
 			if (_metadata.Count != other._metadata.Count)
@@ -49,18 +49,14 @@ namespace Build.DomainModel.MSBuild
 		{
 			unchecked
 			{
-				int hashCode = (_exclude != null ? _exclude.GetHashCode() : 0);
-				hashCode = (hashCode*397) ^ (_include != null ? _include.GetHashCode() : 0);
-				hashCode = (hashCode*397) ^ (_remove != null ? _remove.GetHashCode() : 0);
-				hashCode = (hashCode*397) ^ (_type != null ? _type.GetHashCode() : 0);
+				int hashCode = (Exclude != null ? Exclude.GetHashCode() : 0);
+				hashCode = (hashCode*397) ^ (Include != null ? Include.GetHashCode() : 0);
+				hashCode = (hashCode*397) ^ (Remove != null ? Remove.GetHashCode() : 0);
+				hashCode = (hashCode*397) ^ (Type != null ? Type.GetHashCode() : 0);
 				return hashCode;
 			}
 		}
 
-		private readonly string _exclude;
-		private readonly string _include;
-		private readonly string _remove;
-		private readonly string _type;
 		private readonly Dictionary<string, Metadata> _metadata;
 
 		private static readonly Dictionary<string, Metadata> NoMetadata;
@@ -68,6 +64,11 @@ namespace Build.DomainModel.MSBuild
 		static ProjectItem()
 		{
 			NoMetadata = new Dictionary<string, Metadata>();
+		}
+
+		public ProjectItem()
+		{
+			_metadata = new Dictionary<string, Metadata>();
 		}
 
 		public ProjectItem(string type,
@@ -99,10 +100,10 @@ namespace Build.DomainModel.MSBuild
 				}
 			}
 
-			_type = type;
-			_include = include;
-			_exclude = exclude;
-			_remove = remove;
+			Type = type;
+			Include = include;
+			Exclude = exclude;
+			Remove = remove;
 		}
 
 		public IEnumerable<Metadata> Metadata
@@ -122,41 +123,29 @@ namespace Build.DomainModel.MSBuild
 			}
 		}
 
-		public string Type
-		{
-			get { return _type; }
-		}
+		public string Type { get; set; }
 
-		public string Include
-		{
-			get { return _include; }
-		}
+		public string Include { get; set; }
 
-		public string Exclude
-		{
-			get { return _exclude; }
-		}
+		public string Exclude { get; set; }
 
-		public string Remove
-		{
-			get { return _remove; }
-		}
+		public string Remove { get; set; }
 
 		public override string ToString()
 		{
 			var builder = new StringBuilder();
 			builder.AppendFormat("<{0} Include=\"{1}\" ",
-			                     _type,
-			                     _include);
+			                     Type,
+			                     Include);
 
-			if (_exclude != null)
+			if (Exclude != null)
 			{
-				builder.AppendFormat("Exclude=\"{0}\" ", _exclude);
+				builder.AppendFormat("Exclude=\"{0}\" ", Exclude);
 			}
 
-			if (_remove != null)
+			if (Remove != null)
 			{
-				builder.AppendFormat("Remove=\"{0}\" ", _remove);
+				builder.AppendFormat("Remove=\"{0}\" ", Remove);
 			}
 
 			if (_metadata == NoMetadata)
@@ -170,7 +159,7 @@ namespace Build.DomainModel.MSBuild
 				{
 					builder.AppendFormat("	{0}", metadata);
 				}
-				builder.AppendFormat("</{0}>", _type);
+				builder.AppendFormat("</{0}>", Type);
 			}
 
 			return builder.ToString();

@@ -51,34 +51,34 @@ namespace Build.BuildEngine
 		}
 
 		public sealed class EnvironmentItemLists
-			: IEnumerable<KeyValuePair<string, ProjectItem>>
+			: IEnumerable<ProjectItem>
 		{
 			private readonly EnvironmentItemLists _defaultItems;
 			private readonly EnvironmentItemLists _parentItems;
-			private readonly Dictionary<string, ProjectItem> _values;
+			private readonly Dictionary<string, ProjectItem> _items;
 
 			public EnvironmentItemLists(EnvironmentItemLists parentItems = null,
 			                            EnvironmentItemLists defaultItems = null)
 			{
 				_parentItems = parentItems;
 				_defaultItems = defaultItems;
-				_values = new Dictionary<string, ProjectItem>();
+				_items = new Dictionary<string, ProjectItem>();
 			}
 
-			public ProjectItem this[string propertyName]
+			public ProjectItem this[string itemName]
 			{
 				get
 				{
 					ProjectItem value;
-					TryGetValue(propertyName, out value);
+					TryGetValue(itemName, out value);
 					return value;
 				}
-				set { _values[propertyName] = value; }
+				set { _items[itemName] = value; }
 			}
 
-			public IEnumerator<KeyValuePair<string, ProjectItem>> GetEnumerator()
+			public IEnumerator<ProjectItem> GetEnumerator()
 			{
-				return _values.GetEnumerator();
+				return _items.Values.GetEnumerator();
 			}
 
 			IEnumerator IEnumerable.GetEnumerator()
@@ -88,7 +88,7 @@ namespace Build.BuildEngine
 
 			public bool TryGetValue(string itemName, out ProjectItem item)
 			{
-				if (_values.TryGetValue(itemName, out item))
+				if (_items.TryGetValue(itemName, out item))
 					return true;
 
 				if (_parentItems != null && _parentItems.TryGetValue(itemName, out item))
@@ -101,9 +101,20 @@ namespace Build.BuildEngine
 				return false;
 			}
 
-			public void Add(string name, ProjectItem value)
+			public void Add(ProjectItem item)
 			{
-				_values[name] = value;
+				_items[item.Include] = item;
+			}
+
+			public List<ProjectItem> GetItemsOfType(string type)
+			{
+				var items = new List<ProjectItem>();
+				foreach (var item in _items.Values)
+				{
+					if (string.Equals(item.Type, type))
+						items.Add(item);
+				}
+				return items;
 			}
 		}
 

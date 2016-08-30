@@ -238,6 +238,117 @@ namespace Build.Test.ExpressionEngine
 
 		#endregion
 
+		#region ItemLists
+
+		[Test]
+		public void TestEvaluateItemList1()
+		{
+			var environment = new BuildEnvironment();
+			var item = new ProjectItem
+				{
+					Type = "Content",
+					Include = "data.xml"
+				};
+			environment.ItemLists.Add(item);
+
+			_engine.EvaluateItemList("data.xml", environment)
+			       .Should()
+			       .Equal(new object[] { item });
+		}
+
+		[Test]
+		public void TestEvaluateItemList2()
+		{
+			var environment = new BuildEnvironment();
+			var item1 = new ProjectItem
+			{
+				Type = "Content",
+				Include = "data.xml"
+			};
+			environment.ItemLists.Add(item1);
+			var item2 = new ProjectItem
+			{
+				Type = "Content",
+				Include = "schema.xsd"
+			};
+			environment.ItemLists.Add(item2);
+
+			_engine.EvaluateItemList("data.xml;schema.xsd", environment)
+				   .Should()
+				   .Equal(new object[] { item1, item2 });
+		}
+
+		[Test]
+		public void TestEvaluateItemList3()
+		{
+			var environment = new BuildEnvironment();
+			var item = new ProjectItem
+			{
+				Type = "Content",
+				Include = "data.xml"
+			};
+			environment.ItemLists.Add(item);
+			environment.Properties["Filename"] = "data.xml";
+
+			_engine.EvaluateItemList("$(Filename)", environment)
+				   .Should()
+				   .Equal(new object[] { item });
+		}
+
+		[Test]
+		public void TestEvaluateItemList4()
+		{
+			var environment = new BuildEnvironment();
+			var item1 = new ProjectItem
+			{
+				Type = "Content",
+				Include = "data.xml"
+			};
+			environment.ItemLists.Add(item1);
+			var item2 = new ProjectItem
+			{
+				Type = "Content",
+				Include = "schema.xsd"
+			};
+			environment.ItemLists.Add(item2);
+			environment.Properties["DataFilename"] = "data.xml";
+			environment.Properties["SchemaFilename"] = "schema.xsd";
+
+			_engine.EvaluateItemList("$(DataFilename);$(SchemaFilename)", environment)
+				   .Should()
+				   .Equal(new object[] { item1, item2 });
+		}
+
+		[Test]
+		public void TestEvaluateItemList5()
+		{
+			var environment = new BuildEnvironment();
+			var item1 = new ProjectItem
+			{
+				Type = "Content",
+				Include = "data.xml"
+			};
+			environment.ItemLists.Add(item1);
+			var item2 = new ProjectItem
+			{
+				Type = "Content",
+				Include = "schema.xsd"
+			};
+			environment.ItemLists.Add(item2);
+			var item3 = new ProjectItem
+			{
+				Type = "Compile",
+				Include = "Program.cs"
+			};
+			environment.ItemLists.Add(item3);
+
+			_engine.EvaluateItemList("@(Content)", environment)
+				   .Should()
+				   .Equal(new object[] { item1, item2 });
+		}
+
+		#endregion
+
 		#region Item Evaluation
 
 		[Test]
