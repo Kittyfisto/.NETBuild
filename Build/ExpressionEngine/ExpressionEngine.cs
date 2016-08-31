@@ -212,8 +212,8 @@ namespace Build.ExpressionEngine
 
 		public string EvaluateExpression(string expression, BuildEnvironment environment)
 		{
-			IExpression exp = _parser.ParseExpression(expression);
-			object value = exp.Evaluate(_fileSystem, environment);
+			var expr = _parser.ParseConcatenation(expression);
+			object value = expr.Evaluate(_fileSystem, environment);
 			return value != null ? value.ToString() : string.Empty;
 		}
 

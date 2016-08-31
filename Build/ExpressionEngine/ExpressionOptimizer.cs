@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Build.ExpressionEngine
 {
@@ -77,6 +78,9 @@ namespace Build.ExpressionEngine
 		{
 			optimized = null;
 
+			// In the first step we optimize each argument individually so that we optimize
+			// the entire tree.
+			// This includes flattening child ConcatExpressions.
 			var arguments = new List<IExpression>();
 			bool optimizedAnything = false;
 			foreach (IExpression item in expression.Arguments)
@@ -97,18 +101,42 @@ namespace Build.ExpressionEngine
 				}
 			}
 
+			// After this step we may end up with two adjacent StringLiteral tokens.
+			// These should be joined as well.
+			for (int i = 0; i < arguments.Count - 1; )
+			{
+				var lhs = arguments[i] as StringLiteral;
+				var rhs = arguments[i + 1] as StringLiteral;
+
+				if (lhs != null && rhs != null)
+				{
+					arguments[i] = new StringLiteral(lhs.Value + rhs.Value);
+					arguments.RemoveAt(i + 1);
+					optimizedAnything = true;
+				}
+				else
+				{
+					++i;
+				}
+			}
+
+			// It's possible that we ended up with a completely empty concatenation
+			// in which case an empty string literal yields an identical result.
 			if (arguments.Count == 0)
 			{
 				optimized = StringLiteral.Empty;
 				return true;
 			}
 
+			// It's also possible we optimize the entire expression down to one child
+			// in which case we don't need the concatenation expression anymore.
 			if (arguments.Count == 1)
 			{
 				optimized = arguments[0];
 				return true;
 			}
 
+			// If none of these steps achieved anything, then we can return early
 			if (!optimizedAnything)
 				return false;
 

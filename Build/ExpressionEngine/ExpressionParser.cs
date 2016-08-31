@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
-using System.Globalization;
 
 namespace Build.ExpressionEngine
 {
@@ -56,28 +55,37 @@ namespace Build.ExpressionEngine
 			return optimized;
 		}
 
-		public ConcatExpression ParseConcatenation(string expression)
+		public IExpression ParseConcatenation(string expression)
 		{
 			// This is much simpler since we don't interpret general expressions
 			// in string concatenation: We only replace property values..
 			List<Token> tokens = _tokenizer.Tokenize(expression);
-			tokens = _tokenizer.GroupWhiteSpaceAndLiteral(tokens);
 			var stack = new List<TokenOrExpression>(tokens.Count);
-			var arguments = new List<IExpression>();
-			foreach (Token token in tokens)
-			{
+			foreach (var token in tokens)
 				stack.Add(token);
-				if (TryParseOne(stack))
-				{
-					arguments.Add(stack[0].Expression);
-					stack.Clear();
-				}
-			}
 
-			if (stack.Count != 0)
+			bool successfullyParsed;
+			do
+			{
+				successfullyParsed = false;
+				if (TryParseLiteral(stack))
+					successfullyParsed = true;
+				if (TryParseSpecialCharsAsLiteral(stack, consumeItemListSeparator: true))
+					successfullyParsed = true;
+				if (TryParseVariableReference(stack))
+					successfullyParsed = true;
+				if (TryParseConcatenation(stack, consumeItemListSeparator: true))
+					successfullyParsed = true;
+			} while (stack.Count > 1 && successfullyParsed);
+
+			if (stack.Count != 1)
+				throw new ParseException();
+			if (stack[0].Expression == null)
 				throw new ParseException();
 
-			return new ConcatExpression(arguments);
+			var expr = stack[0].Expression;
+			var optimized = ExpressionOptimizer.Run(expr);
+			return optimized;
 		}
 
 		public IExpression ParseExpression(string expression)
@@ -332,7 +340,8 @@ namespace Build.ExpressionEngine
 			return false;
 		}
 
-		private bool TryParseConcatenation(List<TokenOrExpression> tokens)
+		private bool TryParseConcatenation(List<TokenOrExpression> tokens,
+			bool consumeItemListSeparator)
 		{
 			Func<TokenOrExpression, bool> isLiteralOrVariable = (pair) =>
 				{
@@ -342,24 +351,43 @@ namespace Build.ExpressionEngine
 						return true;
 					if (pair.Expression is ConcatExpression)
 						return true;
-					if (pair.Token.Type == TokenType.Literal)
-						return true;
-					if (pair.Token.Type == TokenType.Whitespace)
-						return true;
+
+					switch (pair.Token.Type)
+					{
+						case TokenType.Equals:
+						case TokenType.NotEquals:
+						case TokenType.And:
+						case TokenType.Or:
+						case TokenType.GreaterThan:
+						case TokenType.GreaterOrEquals:
+						case TokenType.LessThan:
+						case TokenType.LessOrEquals:
+						case TokenType.Literal:
+						case TokenType.Not:
+						case TokenType.OpenBracket:
+						case TokenType.CloseBracket:
+						case TokenType.Quotation:
+						case TokenType.Whitespace:
+							return true;
+
+						case TokenType.ItemListSeparator:
+							return consumeItemListSeparator;
+					}
+
 					return false;
 				};
 
 			if (tokens.Count >= 2 &&
 			    isLiteralOrVariable(tokens[0]) &&
-			    tokens[1].Token.Type != TokenType.ItemListSeparator)
+				(consumeItemListSeparator || tokens[1].Token.Type != TokenType.ItemListSeparator))
 			{
 				var lhs = tokens.Cut(0, 1);
-				if (!TryParseLiteralOrVariableReference(lhs))
+				if (!TryParseOneConcatenationContent(lhs, consumeItemListSeparator))
 					throw new ParseException("Internal error");
 
 				var leftHandSide = lhs[0].Expression;
 
-				if (!TryParseLiteralOrVariableReference(tokens))
+				if (!TryParseOneConcatenationContent(tokens, consumeItemListSeparator))
 					throw new ParseException("Internal error");
 
 				var rightHandSide = tokens[0].Expression;
@@ -371,7 +399,8 @@ namespace Build.ExpressionEngine
 			return false;
 		}
 
-		private bool TryParseLiteralOrVariableReference(List<TokenOrExpression> tokens)
+		private bool TryParseOneConcatenationContent(List<TokenOrExpression> tokens,
+			bool consumeItemListSeparator)
 		{
 			if (tokens.Count >= 1 && tokens[0].Expression != null)
 			{
@@ -390,17 +419,85 @@ namespace Build.ExpressionEngine
 			if (TryParseVariableReference(tokens))
 				return true;
 
+			if (TryParseItemListReference(tokens))
+				return true;
+
+			if (TryParseOperatorsAsLiteral(tokens))
+				return true;
+
+			if (TryParseSpecialCharsAsLiteral(tokens, consumeItemListSeparator: consumeItemListSeparator))
+				return true;
+
+			return false;
+		}
+
+		private bool TryParseSpecialCharsAsLiteral(List<TokenOrExpression> tokens,
+			bool consumeItemListSeparator)
+		{
+			if (tokens.Count >= 1)
+			{
+				var type = tokens[0].Token.Type;
+				switch (type)
+				{
+					case TokenType.Not:
+					case TokenType.OpenBracket:
+					case TokenType.CloseBracket:
+					case TokenType.Quotation:
+						tokens[0] = new TokenOrExpression(new StringLiteral(Tokenizer.ToString(type)));
+						return true;
+
+					case TokenType.ItemListSeparator:
+						if (consumeItemListSeparator)
+						{
+							tokens[0] = new TokenOrExpression(
+								new StringLiteral(Tokenizer.ToString(type))
+								);
+							return true;
+						}
+						break;
+
+					case TokenType.Whitespace:
+						tokens[0] = new TokenOrExpression(new StringLiteral(tokens[0].Token.Value));
+						return true;
+				}
+			}
+
 			return false;
 		}
 
 		private bool TryParseLiteral(List<TokenOrExpression> tokens)
 		{
 			if (tokens.Count >= 1 &&
-				(tokens[0].Token.Type == TokenType.Literal || tokens[0].Token.Type == TokenType.Whitespace))
+				(tokens[0].Token.Type == TokenType.Literal))
 			{
 				var value = tokens[0].Token.Value;
 				tokens[0] = new TokenOrExpression(
 					new StringLiteral(value));
+				return true;
+			}
+
+			return false;
+		}
+
+		private bool TryParseOperatorsAsLiteral(List<TokenOrExpression> tokens)
+		{
+			UnaryOperation unaryOperation;
+			if (tokens.Count >= 1 &&
+			    IsUnaryOperator(tokens[0].Token.Type, out unaryOperation))
+			{
+				tokens[0] = new TokenOrExpression(new StringLiteral(
+					                                  Tokenizer.ToString(tokens[0].Token.Type)
+					                                  ));
+				return true;
+			}
+
+			BinaryOperation binaryOperation;
+			if (tokens.Count >= 1 &&
+			    IsBinaryOperator(tokens[0].Token.Type, out binaryOperation))
+			{
+				tokens[0] = new TokenOrExpression(new StringLiteral(
+					                                  Tokenizer.ToString(tokens[0].Token.Type)
+					                                  ));
 				return true;
 			}
 
@@ -447,7 +544,7 @@ namespace Build.ExpressionEngine
 				return true;
 			if (TryParseLiteral(tokens))
 				return true;
-			if (TryParseConcatenation(tokens))
+			if (TryParseConcatenation(tokens, consumeItemListSeparator: false))
 				return true;
 			if (TryParseItemListReference(tokens))
 				return true;

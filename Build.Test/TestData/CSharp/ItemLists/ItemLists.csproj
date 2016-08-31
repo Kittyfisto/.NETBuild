@@ -20,8 +20,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-	<Foo>false</Foo>
-	<Bar>!$(Foo)</Bar>
+	<Foo>42</Foo>
+	<Bar>$(Foo) > 10</Bar>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>

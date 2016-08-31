@@ -225,7 +225,7 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestParse24()
 		{
-			_parser.ParseExpression("Hello World!").Should().Be(
+			_parser.ParseConcatenation("Hello World!").Should().Be(
 				new StringLiteral("Hello World!"));
 		}
 
@@ -246,6 +246,93 @@ namespace Build.Test.ExpressionEngine
 		public void TestParse40()
 		{
 			_parser.ParseExpression("@(Content)").Should().Be(new ItemListReference("Content"));
+		}
+
+		#endregion
+
+		#region Concatenation
+
+		[Test]
+		public void TestParseConcatenation1()
+		{
+			_parser.ParseConcatenation("Debug").Should().Be(new StringLiteral("Debug"));
+		}
+
+		[Test]
+		public void TestParseConcatenation2()
+		{
+			_parser.ParseConcatenation(" Debug ").Should().Be(new StringLiteral(" Debug "));
+		}
+
+		[Test]
+		public void TestParseConcatenation3()
+		{
+			_parser.ParseConcatenation(" 'Debug' ").Should().Be(new StringLiteral(" 'Debug' "));
+		}
+
+		[Test]
+		public void TestParseConcatenation4()
+		{
+			_parser.ParseConcatenation("$(Foo)").Should().Be(new VariableReference("Foo"));
+		}
+
+		[Test]
+		public void TestParseConcatenation5()
+		{
+			_parser.ParseConcatenation(" $(Foo) ").Should().Be(
+				new ConcatExpression(
+					new StringLiteral(" "),
+					new VariableReference("Foo"),
+					new StringLiteral(" ")));
+		}
+
+		[Test]
+		public void TestParseConcatenation6()
+		{
+			_parser.ParseConcatenation(" '$(Foo)' ").Should().Be(
+				new ConcatExpression(
+					new StringLiteral(" '"),
+					new VariableReference("Foo"),
+					new StringLiteral("' ")));
+		}
+
+		[Test]
+		public void TestParseConcatenation7()
+		{
+			_parser.ParseConcatenation("$(Foo) $(Bar)").Should().Be(
+				new ConcatExpression(
+					new VariableReference("Foo"),
+					new StringLiteral(" "),
+					new VariableReference("Bar")));
+		}
+
+		[Test]
+		public void TestParseConcatenation8()
+		{
+			_parser.ParseConcatenation("$(Foo) @(Content)").Should().Be(
+				new ConcatExpression(
+					new VariableReference("Foo"),
+					new StringLiteral(" "),
+					new ItemListReference("Content")));
+		}
+
+		[Test]
+		public void TestParseConcatenation9()
+		{
+			_parser.ParseConcatenation("Program.cs;Foo.cs").Should().Be(
+				new StringLiteral("Program.cs;Foo.cs"));
+		}
+
+		[Test]
+		public void TestParseConcatenation10()
+		{
+			_parser.ParseConcatenation("$(Foo);$(Bar).cs").Should().Be(
+				new ConcatExpression(
+					new VariableReference("Foo"),
+					new StringLiteral(";"),
+					new VariableReference("Bar"),
+					new StringLiteral(".cs")
+					));
 		}
 
 		#endregion
