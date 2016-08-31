@@ -473,6 +473,45 @@ namespace Build.Test.ExpressionEngine
 			       .Should().Be(new ItemListExpression());
 		}
 
+		[Test]
+		public void TestParseItemList12()
+		{
+			_parser.ParseItemList("data.xaml;$(Foo);foo'bar")
+				   .Should().Be(
+				   new ItemListExpression(
+					   new StringLiteral("data.xaml"),
+					   new VariableReference("Foo"),
+					   new StringLiteral("foo'bar")
+					   ));
+		}
+
+		[Test]
+		public void TestParseItemList13()
+		{
+			_parser.ParseItemList("data.xaml;$(Foo);foo'bar;program.cs")
+				   .Should().Be(
+				   new ItemListExpression(
+					   new StringLiteral("data.xaml"),
+					   new VariableReference("Foo"),
+					   new StringLiteral("foo'bar"),
+					   new StringLiteral("program.cs")
+					   ));
+		}
+
+		[Test]
+		public void TestParseItemList14()
+		{
+			_parser.ParseItemList("data.xaml;$(Foo);foo'bar;@(Content);program.cs")
+				   .Should().Be(
+				   new ItemListExpression(
+					   new StringLiteral("data.xaml"),
+					   new VariableReference("Foo"),
+					   new StringLiteral("foo'bar"),
+					   new ItemListReference("Content"),
+					   new StringLiteral("program.cs")
+					   ));
+		}
+
 		#endregion
 	}
 }

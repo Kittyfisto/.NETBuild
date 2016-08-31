@@ -542,11 +542,13 @@ namespace Build.ExpressionEngine
 
 		private bool TryParseItemListContent(List<TokenOrExpression> tokens)
 		{
+			if (TryParseConcatenation(tokens, consumeItemListSeparator: false))
+				return true;
+			if (TryParseOperatorsAsLiteral(tokens))
+				return true;
 			if (TryParseVariableReference(tokens))
 				return true;
 			if (TryParseLiteral(tokens))
-				return true;
-			if (TryParseConcatenation(tokens, consumeItemListSeparator: false))
 				return true;
 			if (TryParseItemListReference(tokens))
 				return true;
@@ -574,7 +576,10 @@ namespace Build.ExpressionEngine
 					rhs = tokens.Cut(0, index);
 				}
 
-				if (!TryParseItemListContent(rhs))
+				while (TryParseItemListContent(rhs))
+				{ }
+
+				if (rhs.Count != 1)
 					throw new ParseException();
 
 				var rightHandSide = rhs[0].Expression;
