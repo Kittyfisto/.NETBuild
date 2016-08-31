@@ -28,6 +28,7 @@
 		Quotation,
 		Dollar,
 		At,
+		ItemListSeparator,
 		Literal,
 	}
 }

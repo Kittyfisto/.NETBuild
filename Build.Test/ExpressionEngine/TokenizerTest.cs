@@ -31,6 +31,7 @@ namespace Build.Test.ExpressionEngine
 			_tokenizer.Tokenize("AND").Should().Equal(new Token(TokenType.And));
 			_tokenizer.Tokenize("OR").Should().Equal(new Token(TokenType.Or));
 			_tokenizer.Tokenize("$").Should().Equal(new Token(TokenType.Dollar));
+			_tokenizer.Tokenize(";").Should().Equal(new Token(TokenType.ItemListSeparator));
 			_tokenizer.Tokenize("SomeValue").Should().Equal(new Token(TokenType.Literal, "SomeValue"));
 		}
 

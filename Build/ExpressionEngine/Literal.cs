@@ -36,9 +36,10 @@ namespace Build.ExpressionEngine
 			return Value;
 		}
 
-		public List<ProjectItem> ToItemList(IFileSystem fileSystem, BuildEnvironment environment)
+		public void ToItemList(IFileSystem fileSystem, BuildEnvironment environment, List<ProjectItem> items)
 		{
-			throw new System.NotImplementedException();
+			var item = environment.GetOrCreate(fileSystem, Value);
+			items.Add(item);
 		}
 
 		private bool Equals(Literal other)

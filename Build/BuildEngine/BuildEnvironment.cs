@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using Build.DomainModel.MSBuild;
 
 namespace Build.BuildEngine
@@ -48,6 +49,28 @@ namespace Build.BuildEngine
 				return "<Unnamed>";
 
 			return _name;
+		}
+
+		public ProjectItem GetOrCreate(IFileSystem fileSystem, string fileName)
+		{
+			ProjectItem item;
+			if (!Items.TryGetValue(fileName, out item))
+			{
+				item = new ProjectItem
+				{
+					Type = "None",
+					Include = fileName
+				};
+				var path = Path.MakeAbsolute(Properties[DomainModel.MSBuild.Properties.MSBuildProjectDirectory], fileName);
+				var info = fileSystem.GetInfo(path);
+
+				item[Metadatas.FullPath] = path;
+				item[Metadatas.CreatedTime] = info.CreatedTime.ToString(CultureInfo.InvariantCulture);
+				item[Metadatas.ModifiedTime] = info.ModifiedTime.ToString(CultureInfo.InvariantCulture);
+				item[Metadatas.AccessedTime] = info.AccessTime.ToString(CultureInfo.InvariantCulture);
+			}
+
+			return item;
 		}
 
 		public sealed class EnvironmentItemLists

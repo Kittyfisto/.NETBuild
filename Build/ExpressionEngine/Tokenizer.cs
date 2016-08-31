@@ -7,6 +7,7 @@ namespace Build.ExpressionEngine
 	public sealed class Tokenizer
 	{
 		private static readonly Dictionary<TokenType, string> SpecialTokens;
+		public const string ItemListSeparator = ";";
 
 		static Tokenizer()
 		{
@@ -26,6 +27,7 @@ namespace Build.ExpressionEngine
 					{TokenType.Quotation, "'"},
 					{TokenType.Dollar, "$"},
 					{TokenType.At, "@"},
+					{TokenType.ItemListSeparator, ItemListSeparator}
 				};
 		}
 
@@ -148,12 +150,16 @@ namespace Build.ExpressionEngine
 			foreach (var token in tokens)
 			{
 				if (token.Type == TokenType.Literal ||
-				    token.Type == TokenType.Whitespace)
+				    token.Type == TokenType.Whitespace ||
+					token.Type == TokenType.ItemListSeparator)
 				{
 					if (type != TokenType.Literal && token.Type == TokenType.Literal)
 						type = TokenType.Literal;
 
-					builder.Append(token.Value);
+					builder.Append(
+						type == TokenType.ItemListSeparator
+							? ToString(type)
+							: token.Value);
 				}
 				else
 				{

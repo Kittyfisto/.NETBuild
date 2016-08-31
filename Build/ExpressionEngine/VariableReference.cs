@@ -1,15 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 
 namespace Build.ExpressionEngine
 {
-	public sealed class Variable
+	public sealed class VariableReference
 		: IExpression
 	{
 		public readonly string Name;
 
-		public Variable(string name)
+		public VariableReference(string name)
 		{
 			Name = name;
 		}
@@ -35,12 +36,19 @@ namespace Build.ExpressionEngine
 			return environment.Properties[Name];
 		}
 
-		public List<ProjectItem> ToItemList(IFileSystem fileSystem, BuildEnvironment environment)
+		public void ToItemList(IFileSystem fileSystem, BuildEnvironment environment, List<ProjectItem> items)
 		{
-			throw new System.NotImplementedException();
+			var fileNames = ToString(fileSystem, environment)
+				.Split(new[] {Tokenizer.ItemListSeparator}, StringSplitOptions.RemoveEmptyEntries);
+			items.Capacity += fileNames.Length;
+			foreach (var fileName in fileNames)
+			{
+				var item = environment.GetOrCreate(fileSystem, fileName);
+				items.Add(item);
+			}
 		}
 
-		private bool Equals(Variable other)
+		private bool Equals(VariableReference other)
 		{
 			return string.Equals(Name, other.Name);
 		}
@@ -49,7 +57,7 @@ namespace Build.ExpressionEngine
 		{
 			if (ReferenceEquals(null, obj)) return false;
 			if (ReferenceEquals(this, obj)) return true;
-			return obj is Variable && Equals((Variable) obj);
+			return obj is VariableReference && Equals((VariableReference) obj);
 		}
 
 		public override int GetHashCode()

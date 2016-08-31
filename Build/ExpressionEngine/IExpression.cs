@@ -16,7 +16,8 @@ namespace Build.ExpressionEngine
 		[Pure]
 		string ToString(IFileSystem fileSystem, BuildEnvironment environment);
 
-		[Pure]
-		List<ProjectItem> ToItemList(IFileSystem fileSystem, BuildEnvironment environment);
+		void ToItemList(IFileSystem fileSystem,
+			BuildEnvironment environment,
+			List<ProjectItem> items);
 	}
 }

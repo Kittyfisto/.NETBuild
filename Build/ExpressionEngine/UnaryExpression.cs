@@ -47,9 +47,9 @@ namespace Build.ExpressionEngine
 			return IsTrue(fileSystem, environment).ToString();
 		}
 
-		public List<ProjectItem> ToItemList(IFileSystem fileSystem, BuildEnvironment environment)
+		public void ToItemList(IFileSystem fileSystem, BuildEnvironment environment, List<ProjectItem> items)
 		{
-			return new List<ProjectItem>();
+			
 		}
 
 		private bool Equals(UnaryExpression other)

@@ -13,6 +13,169 @@ namespace Build.ExpressionEngine
 			_tokenizer = new Tokenizer();
 		}
 
+		public IExpression ParseConditionExpression(string expression)
+		{
+			throw new NotImplementedException();
+		}
+
+		public IExpression ParseItemListExpression(string expression)
+		{
+			List<Token> tokens = _tokenizer.Tokenize(expression);
+			var stack = new List<TokenOrExpression>();
+			foreach (var token in tokens)
+			{
+				stack.Add(token);
+			}
+
+			bool successfullyParsed;
+			do
+			{
+				successfullyParsed = false;
+				if (TryParseItemListContent(stack))
+					successfullyParsed = true;
+
+				if (TryParseItemList(stack))
+					successfullyParsed = true;
+
+			} while (stack.Count > 1 && successfullyParsed);
+
+			if (stack.Count != 1 || stack[0].Expression == null)
+				throw new ParseException();
+
+			var itemList = stack[0].Expression;
+			var optimized = OptimizeExpressionTree(itemList);
+			return optimized;
+		}
+
+		public ConcatExpression ParseConcatenation(string expression)
+		{
+			// This is much simpler since we don't interpret general expressions
+			// in string concatenation: We only replace property values..
+			List<Token> tokens = _tokenizer.Tokenize(expression);
+			tokens = _tokenizer.GroupWhiteSpaceAndLiteral(tokens);
+			var stack = new List<TokenOrExpression>(tokens.Count);
+			var arguments = new List<IExpression>();
+			foreach (Token token in tokens)
+			{
+				stack.Add(token);
+				if (TryParseOne(stack))
+				{
+					arguments.Add(stack[0].Expression);
+					stack.Clear();
+				}
+			}
+
+			if (stack.Count != 0)
+				throw new ParseException();
+
+			return new ConcatExpression(arguments);
+		}
+
+		public IExpression ParseExpression(string expression)
+		{
+			List<Token> tokens = _tokenizer.Tokenize(expression);
+			return Parse(tokens);
+		}
+
+		#region Optimization
+
+		private IExpression OptimizeExpressionTree(IExpression expression)
+		{
+			bool optimizedThisRound;
+			do
+			{
+				optimizedThisRound = false;
+				IExpression optimized;
+				if (FlattenItemListExpression(expression, out optimized))
+				{
+					expression = optimized;
+					optimizedThisRound = true;
+				}
+				if (FlattenConcatenationExpression(expression, out optimized))
+				{
+					expression = optimized;
+					optimizedThisRound = true;
+				}
+			}
+			while (optimizedThisRound);
+
+			return expression;
+		}
+
+		private bool FlattenConcatenationExpression(IExpression expression, out IExpression optimized)
+		{
+			optimized = null;
+
+			var concatenation = expression as ConcatExpression;
+			if (concatenation == null)
+				return false;
+
+			var arguments = new List<IExpression>();
+			bool optimizedAnything = false;
+			foreach (var item in concatenation.Arguments)
+			{
+				var optimizedItem = OptimizeExpressionTree(item);
+				if (!ReferenceEquals(optimizedItem, item))
+					optimizedAnything = true;
+
+				var childConcatenation = optimizedItem as ConcatExpression;
+				if (childConcatenation != null)
+				{
+					arguments.AddRange(childConcatenation.Arguments);
+					optimizedAnything = true;
+				}
+				else
+				{
+					arguments.Add(optimizedItem);
+				}
+			}
+
+			if (!optimizedAnything)
+				return false;
+
+			optimized = new ConcatExpression(arguments);
+			return true;
+		}
+
+		private bool FlattenItemListExpression(IExpression expression, out IExpression optimized)
+		{
+			optimized = null;
+
+			var itemList = expression as ItemListExpression;
+			if (itemList == null)
+				return false;
+
+			var arguments = new List<IExpression>();
+			bool optimizedAnything = false;
+			foreach (var argument in itemList.Arguments)
+			{
+				var optimizedItem = OptimizeExpressionTree(argument);
+				if (!ReferenceEquals(optimizedItem, argument))
+					optimizedAnything = true;
+
+				var childList = optimizedItem as ItemListExpression;
+				if (childList != null)
+				{
+					arguments.AddRange(childList.Arguments);
+					optimizedAnything = true;
+				}
+				else
+				{
+					arguments.Add(optimizedItem);
+				}
+			}
+
+			if (!optimizedAnything)
+				return false;
+
+			optimized = new ItemListExpression(arguments);
+			return true;
+		}
+
+		#endregion
+
+		#region Actual Parsing
+
 		private bool IsFunctionName(Token token, out FunctionOperation operation)
 		{
 			switch (token.Value)
@@ -126,12 +289,6 @@ namespace Build.ExpressionEngine
 			}
 		}
 
-		public IExpression ParseExpression(string expression)
-		{
-			List<Token> tokens = _tokenizer.Tokenize(expression);
-			return Parse(tokens);
-		}
-
 		private IExpression Parse(IEnumerable<Token> tokens)
 		{
 			var stack = new List<TokenOrExpression>();
@@ -188,30 +345,6 @@ namespace Build.ExpressionEngine
 			return tok.Expression;
 		}
 
-		public ConcatExpression ParseConcatenation(string expression)
-		{
-			// This is much simpler since we don't interpret general expressions
-			// in string concatenation: We only replace property values..
-			List<Token> tokens = _tokenizer.Tokenize(expression);
-			tokens = _tokenizer.GroupWhiteSpaceAndLiteral(tokens);
-			var stack = new List<TokenOrExpression>(tokens.Count);
-			var arguments = new List<IExpression>();
-			foreach (Token token in tokens)
-			{
-				stack.Add(token);
-				if (TryParseOne(stack))
-				{
-					arguments.Add(stack[0].Expression);
-					stack.Clear();
-				}
-			}
-
-			if (stack.Count != 0)
-				throw new ParseException();
-
-			return new ConcatExpression(arguments);
-		}
-
 		private IExpression Parse(TokenOrExpression tokenOrExpression)
 		{
 			if (tokenOrExpression.Expression != null)
@@ -248,10 +381,10 @@ namespace Build.ExpressionEngine
 
 		private bool TryParseOne(List<TokenOrExpression> tokens)
 		{
-			if (TryParseVariable(tokens))
+			if (TryParseVariableReference(tokens))
 				return true;
 
-			if (TryParseItemList(tokens))
+			if (TryParseItemListReference(tokens))
 				return true;
 
 			if (TryParseFunctionCall(tokens))
@@ -278,7 +411,83 @@ namespace Build.ExpressionEngine
 			return false;
 		}
 
-		private bool TryParseVariable(List<TokenOrExpression> tokens)
+		private bool TryParseConcatenation(List<TokenOrExpression> tokens)
+		{
+			Func<TokenOrExpression, bool> isLiteralOrVariable = (pair) =>
+				{
+					if (pair.Expression is Literal)
+						return true;
+					if (pair.Expression is VariableReference)
+						return true;
+					if (pair.Expression is ConcatExpression)
+						return true;
+					if (pair.Token.Type == TokenType.Literal)
+						return true;
+					if (pair.Token.Type == TokenType.Whitespace)
+						return true;
+					return false;
+				};
+
+			if (tokens.Count >= 2 &&
+			    isLiteralOrVariable(tokens[0]) &&
+			    tokens[1].Token.Type != TokenType.ItemListSeparator)
+			{
+				var lhs = tokens.Cut(0, 1);
+				if (!TryParseLiteralOrVariableReference(lhs))
+					throw new ParseException("Internal error");
+
+				var leftHandSide = lhs[0].Expression;
+
+				if (!TryParseLiteralOrVariableReference(tokens))
+					throw new ParseException("Internal error");
+
+				var rightHandSide = tokens[0].Expression;
+				tokens[0] = new TokenOrExpression(
+					new ConcatExpression(leftHandSide, rightHandSide));
+				return true;
+			}
+
+			return false;
+		}
+
+		private bool TryParseLiteralOrVariableReference(List<TokenOrExpression> tokens)
+		{
+			if (tokens.Count >= 1 && tokens[0].Expression != null)
+			{
+				var expression = tokens[0].Expression;
+				if (expression is ConcatExpression)
+					return true;
+				if (expression is Literal)
+					return true;
+				if (expression is VariableReference)
+					return true;
+			}
+
+			if (TryParseLiteral(tokens))
+				return true;
+
+			if (TryParseVariableReference(tokens))
+				return true;
+
+			return false;
+		}
+
+		private bool TryParseLiteral(List<TokenOrExpression> tokens)
+		{
+			if (tokens.Count >= 1 &&
+				tokens[0].Token.Type == TokenType.Literal ||
+				tokens[0].Token.Type == TokenType.Whitespace)
+			{
+				var value = tokens[0].Token.Value;
+				tokens[0] = new TokenOrExpression(
+					new Literal(value));
+				return true;
+			}
+
+			return false;
+		}
+
+		private bool TryParseVariableReference(List<TokenOrExpression> tokens)
 		{
 			if (tokens.Count >= 4 &&
 			    tokens[0].Token.Type == TokenType.Dollar &&
@@ -288,14 +497,14 @@ namespace Build.ExpressionEngine
 			{
 				TokenOrExpression name = tokens[2];
 				tokens.RemoveRange(0, 4);
-				tokens.Insert(0, new TokenOrExpression(new Variable(name.Token.Value)));
+				tokens.Insert(0, new TokenOrExpression(new VariableReference(name.Token.Value)));
 				return true;
 			}
 
 			return false;
 		}
 
-		private bool TryParseItemList(List<TokenOrExpression> tokens)
+		private bool TryParseItemListReference(List<TokenOrExpression> tokens)
 		{
 			if (tokens.Count >= 4 &&
 			    tokens[0].Token.Type == TokenType.At &&
@@ -305,10 +514,54 @@ namespace Build.ExpressionEngine
 			{
 				TokenOrExpression name = tokens[2];
 				tokens.RemoveRange(0, 4);
-				tokens.Insert(0, new TokenOrExpression(new ItemListExpression(name.Token.Value)));
+				tokens.Insert(0, new TokenOrExpression(new ItemListReference(name.Token.Value)));
 				return true;
 			}
 
+			return false;
+		}
+
+		private bool TryParseItemListContent(List<TokenOrExpression> tokens)
+		{
+			if (TryParseVariableReference(tokens))
+				return true;
+			if (TryParseLiteral(tokens))
+				return true;
+			if (TryParseConcatenation(tokens))
+				return true;
+			if (TryParseItemListReference(tokens))
+				return true;
+			return false;
+		}
+
+		private bool TryParseItemList(List<TokenOrExpression> tokens)
+		{
+			if (tokens.Count >= 3 &&
+			    tokens[0].Token.Type != TokenType.ItemListSeparator &&
+			    tokens[1].Token.Type == TokenType.ItemListSeparator)
+			{
+				var leftHandSide = Parse(tokens[0]);
+				tokens.RemoveRange(0, 2);
+
+				List<TokenOrExpression> rhs;
+				int index;
+				if (!TryFindFirst(tokens, TokenType.ItemListSeparator, out index))
+				{
+					// No matter, we shall consume everything
+					rhs = tokens.Cut(0, tokens.Count);
+				}
+				else
+				{
+					rhs = tokens.Cut(0, index);
+				}
+
+				if (!TryParseItemListContent(rhs))
+					throw new ParseException();
+
+				var rightHandSide = rhs[0].Expression;
+				tokens.Insert(0, new TokenOrExpression(new ItemListExpression(leftHandSide, rightHandSide)));
+				return true;
+			}
 			return false;
 		}
 
@@ -398,7 +651,7 @@ namespace Build.ExpressionEngine
 				if (int.TryParse(literal.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out unused))
 					return true;
 			}
-			var variable = expression as Variable;
+			var variable = expression as VariableReference;
 			if (variable != null)
 			{
 				return true;
@@ -454,5 +707,7 @@ namespace Build.ExpressionEngine
 					throw new ParseException(string.Format("Expected token or literal but found: {0}", token));
 			}
 		}
+
+		#endregion
 	}
 }

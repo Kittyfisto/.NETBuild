@@ -34,7 +34,7 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestEvaluate2()
 		{
-			new BinaryExpression(new Variable("Foo"),
+			new BinaryExpression(new VariableReference("Foo"),
 			                     BinaryOperation.Equals,
 			                     new Literal("Hello World"))
 				.Evaluate(_fs, new BuildEnvironment

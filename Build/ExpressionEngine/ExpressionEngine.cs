@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using Build.BuildEngine;
@@ -258,33 +257,10 @@ namespace Build.ExpressionEngine
 		[Pure]
 		public ProjectItem[] EvaluateItemList(string expression, BuildEnvironment environment)
 		{
-			var concatenation = _parser.ParseConcatenation(expression);
-			var value = concatenation.ToString(_fileSystem, environment);
-			var fileNames = value.Split(ItemListSeparator);
-			var files = new ProjectItem[fileNames.Length];
-			for (int i = 0; i < fileNames.Length; ++i)
-			{
-				var fileName = fileNames[i];
-				var file = environment.Items[fileName];
-				if (file == null)
-				{
-					file = new ProjectItem
-						{
-							Type = "None",
-							Include = fileName
-						};
-					var path = Path.MakeAbsolute(environment.Properties[Properties.MSBuildProjectDirectory], fileName);
-					var info = _fileSystem.GetInfo(path);
-
-					file[Metadatas.FullPath] = path;
-					file[Metadatas.CreatedTime] = info.CreatedTime.ToString(CultureInfo.InvariantCulture);
-					file[Metadatas.ModifiedTime] = info.ModifiedTime.ToString(CultureInfo.InvariantCulture);
-					file[Metadatas.AccessedTime] = info.AccessTime.ToString(CultureInfo.InvariantCulture);
-				}
-
-				files[i] = file;
-			}
-			return files;
+			var exp = _parser.ParseItemListExpression(expression);
+			var files = new List<ProjectItem>();
+			exp.ToItemList(_fileSystem, environment, files);
+			return files.ToArray();
 		}
 	}
 }

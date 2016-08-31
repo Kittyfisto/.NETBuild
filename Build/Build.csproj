@@ -67,6 +67,7 @@
     <Compile Include="ExpressionEngine\Expression.cs" />
     <Compile Include="ExpressionEngine\ExpressionParser.cs" />
     <Compile Include="ExpressionEngine\ItemListExpression.cs" />
+    <Compile Include="ExpressionEngine\ItemListReference.cs" />
     <Compile Include="FileInfo.cs" />
     <Compile Include="Filesystem.cs" />
     <Compile Include="IFilesystem.cs" />
@@ -100,7 +101,7 @@
     <Compile Include="ExpressionEngine\TokenType.cs" />
     <Compile Include="ExpressionEngine\UnaryExpression.cs" />
     <Compile Include="ExpressionEngine\UnaryOperation.cs" />
-    <Compile Include="ExpressionEngine\Variable.cs" />
+    <Compile Include="ExpressionEngine\VariableReference.cs" />
     <Compile Include="Slash.cs" />
     <Compile Include="Path.cs" />
     <Compile Include="ProcessEx.cs" />

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 
@@ -97,7 +96,7 @@ namespace Build.ExpressionEngine
 			throw new NotImplementedException();
 		}
 
-		public List<ProjectItem> ToItemList(IFileSystem fileSystem, BuildEnvironment environment)
+		public void ToItemList(IFileSystem fileSystem, BuildEnvironment environment, List<ProjectItem> items)
 		{
 			throw new NotImplementedException();
 		}

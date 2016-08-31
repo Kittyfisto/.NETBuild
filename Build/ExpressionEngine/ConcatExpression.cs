@@ -84,9 +84,16 @@ namespace Build.ExpressionEngine
 			return builder.ToString();
 		}
 
-		public List<ProjectItem> ToItemList(IFileSystem fileSystem, BuildEnvironment environment)
+		public void ToItemList(IFileSystem fileSystem, BuildEnvironment environment, List<ProjectItem> items)
 		{
-			throw new NotImplementedException();
+			var fileNames = ToString(fileSystem, environment)
+				.Split(new[] { Tokenizer.ItemListSeparator }, StringSplitOptions.RemoveEmptyEntries);
+			items.Capacity += fileNames.Length;
+			foreach (var fileName in fileNames)
+			{
+				var item = environment.GetOrCreate(fileSystem, fileName);
+				items.Add(item);
+			}
 		}
 	}
 }
