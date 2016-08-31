@@ -75,7 +75,7 @@ namespace Build.DomainModel.MSBuild
 		            string include,
 		            string exclude = null,
 		            string remove = null,
-		            Condition condition = null,
+		            string condition = null,
 					List<Metadata> metadata = null)
 			: base(condition)
 		{

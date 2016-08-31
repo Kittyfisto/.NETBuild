@@ -67,12 +67,6 @@ namespace Build.ExpressionEngine
 			return ToString(fileSystem, environment);
 		}
 
-		public bool IsTrue(IFileSystem fileSystem, BuildEnvironment environment)
-		{
-			var value = ToString(fileSystem, environment);
-			return Expression.IsTrue(value);
-		}
-
 		public string ToString(IFileSystem fileSystem, BuildEnvironment environment)
 		{
 			var builder = new StringBuilder();

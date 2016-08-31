@@ -64,7 +64,6 @@
     <Compile Include="Parser\CSharpProjectParserTest.cs" />
     <Compile Include="PathTest.cs" />
     <Compile Include="DomainModel\ProjectItemTest.cs" />
-    <Compile Include="DomainModel\ConditionTest.cs" />
     <Compile Include="DomainModel\PropertyTest.cs" />
     <None Include="TestData\CSharp\HelloWorld\Program.cs" />
     <None Include="TestData\CSharp\HelloWorld\Properties\AssemblyInfo.cs" />

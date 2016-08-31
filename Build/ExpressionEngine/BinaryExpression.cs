@@ -46,6 +46,22 @@ namespace Build.ExpressionEngine
 					op = "!=";
 					break;
 
+				case BinaryOperation.GreaterThan:
+					op = ">";
+					break;
+
+				case BinaryOperation.GreaterOrEquals:
+					op = ">=";
+					break;
+
+				case BinaryOperation.LessThan:
+					op = "<";
+					break;
+
+				case BinaryOperation.LessOrEquals:
+					op = "<=";
+					break;
+
 				default:
 					op = null;
 					break;
@@ -60,35 +76,40 @@ namespace Build.ExpressionEngine
 		[Pure]
 		public object Evaluate(IFileSystem fileSystem, BuildEnvironment environment)
 		{
-			return IsTrue(fileSystem, environment);
-		}
-
-		public bool IsTrue(IFileSystem fileSystem, BuildEnvironment environment)
-		{
-			object lhs = LeftHandSide.Evaluate(fileSystem, environment);
-			object rhs = RightHandSide.Evaluate(fileSystem, environment);
+			object leftValue = LeftHandSide.Evaluate(fileSystem, environment);
+			object rightValue = RightHandSide.Evaluate(fileSystem, environment);
 
 			switch (Operation)
 			{
 				case BinaryOperation.Equals:
-					return Equals(lhs, rhs);
+					return Equals(leftValue, rightValue);
 
 				case BinaryOperation.EqualsNot:
-					return !Equals(lhs, rhs);
+					return !Equals(leftValue, rightValue);
 
 				case BinaryOperation.And:
-					if (!Expression.IsTrue(lhs))
-						return false;
-					if (!Expression.IsTrue(rhs))
-						return false;
-					return true;
+					return Expression.CastToBoolean(LeftHandSide, leftValue) &&
+					       Expression.CastToBoolean(RightHandSide, rightValue);
 
 				case BinaryOperation.Or:
-					if (Expression.IsTrue(lhs))
-						return true;
-					if (Expression.IsTrue(rhs))
-						return true;
-					return false;
+					return Expression.CastToBoolean(LeftHandSide, leftValue) ||
+					       Expression.CastToBoolean(RightHandSide, rightValue);
+
+				case BinaryOperation.GreaterThan:
+					return Expression.CastToNumber(LeftHandSide, leftValue) >
+						   Expression.CastToNumber(RightHandSide, rightValue);
+
+				case BinaryOperation.GreaterOrEquals:
+					return Expression.CastToNumber(LeftHandSide, leftValue) >=
+						   Expression.CastToNumber(RightHandSide, rightValue);
+
+				case BinaryOperation.LessThan:
+					return Expression.CastToNumber(LeftHandSide, leftValue) <
+						   Expression.CastToNumber(RightHandSide, rightValue);
+
+				case BinaryOperation.LessOrEquals:
+					return Expression.CastToNumber(LeftHandSide, leftValue) <=
+						   Expression.CastToNumber(RightHandSide, rightValue);
 
 				default:
 					throw new NotImplementedException();

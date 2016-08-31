@@ -26,16 +26,11 @@ namespace Build.ExpressionEngine
 		[Pure]
 		public object Evaluate(IFileSystem fileSystem, BuildEnvironment environment)
 		{
-			return IsTrue(fileSystem, environment);
-		}
-
-		public bool IsTrue(IFileSystem fileSystem, BuildEnvironment environment)
-		{
-			bool value = Expression.IsTrue(fileSystem, environment);
+			var value = Expression.Evaluate(fileSystem, environment);
 			switch (Operation)
 			{
 				case UnaryOperation.Not:
-					return !value;
+					return !Build.ExpressionEngine.Expression.CastToBoolean(this, value);
 
 				default:
 					throw new InvalidEnumArgumentException("Operation", (int)Operation, typeof(UnaryOperation));
@@ -44,7 +39,7 @@ namespace Build.ExpressionEngine
 
 		public string ToString(IFileSystem fileSystem, BuildEnvironment environment)
 		{
-			return IsTrue(fileSystem, environment).ToString();
+			return Evaluate(fileSystem, environment).ToString();
 		}
 
 		public void ToItemList(IFileSystem fileSystem, BuildEnvironment environment, List<ProjectItem> items)

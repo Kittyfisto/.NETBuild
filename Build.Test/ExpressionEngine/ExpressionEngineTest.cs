@@ -25,7 +25,7 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestEvaluate1()
 		{
-			var condition = new Condition(" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ");
+			var condition = " '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ";
 			var environment = new BuildEnvironment
 				{
 					Properties =
@@ -37,13 +37,13 @@ namespace Build.Test.ExpressionEngine
 
 			for(int i = 0; i < 100; ++i)
 			{
-				_engine.IsTrue(condition, environment);
+				_engine.EvaluateCondition(condition, environment);
 			}
 
 			var sw = new Stopwatch();
 			sw.Start();
 
-			_engine.IsTrue(condition, environment).Should().BeTrue();
+			_engine.EvaluateCondition(condition, environment).Should().BeTrue();
 
 			sw.Stop();
 			Console.WriteLine("Parsing&Evalauation: {0}ms", sw.ElapsedMilliseconds);
@@ -52,7 +52,7 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestEvaluate2()
 		{
-			var condition = new Condition(" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ");
+			var condition = " '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ";
 			var environment = new BuildEnvironment
 				{
 					Properties =
@@ -62,15 +62,15 @@ namespace Build.Test.ExpressionEngine
 						}
 				};
 
-			_engine.IsTrue(condition, environment).Should().BeFalse();
+			_engine.EvaluateCondition(condition, environment).Should().BeFalse();
 		}
 
 		[Test]
 		public void TestEvaluate3()
 		{
-			var condition = new Condition(" '$(Configuration)' == '' ");
-			_engine.IsTrue(condition, new BuildEnvironment()).Should().BeTrue();
-			_engine.IsTrue(condition, new BuildEnvironment
+			var condition = " '$(Configuration)' == '' ";
+			_engine.EvaluateCondition(condition, new BuildEnvironment()).Should().BeTrue();
+			_engine.EvaluateCondition(condition, new BuildEnvironment
 				{
 					Properties =
 						{
@@ -84,8 +84,8 @@ namespace Build.Test.ExpressionEngine
 		{
 			var propertyGroup = new PropertyGroup(new List<Property>
 				{
-					new Property(Properties.Configuration, "Debug", new Condition(" '$(Configuration)' == '' ")),
-					new Property(Properties.Platform, "AnyCPU", new Condition(" '$(Platform)' == '' "))
+					new Property(Properties.Configuration, "Debug", " '$(Configuration)' == '' "),
+					new Property(Properties.Platform, "AnyCPU", " '$(Platform)' == '' ")
 				});
 			var environment = new BuildEnvironment();
 			_engine.Evaluate(propertyGroup, environment);
@@ -96,11 +96,11 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestIsTrue1()
 		{
-			_engine.IsTrue(new Condition("true == true"), new BuildEnvironment()).Should().BeTrue();
-			_engine.IsTrue(new Condition("'true' == 'true'"), new BuildEnvironment()).Should().BeTrue();
+			_engine.EvaluateCondition("true == true", new BuildEnvironment()).Should().BeTrue();
+			_engine.EvaluateCondition("'true' == 'true'", new BuildEnvironment()).Should().BeTrue();
 
-			_engine.IsTrue(new Condition("false == true"), new BuildEnvironment()).Should().BeFalse();
-			_engine.IsTrue(new Condition("'false' == 'true'"), new BuildEnvironment()).Should().BeFalse();
+			_engine.EvaluateCondition("false == true", new BuildEnvironment()).Should().BeFalse();
+			_engine.EvaluateCondition("'false' == 'true'", new BuildEnvironment()).Should().BeFalse();
 		}
 
 		[Test]
@@ -108,12 +108,12 @@ namespace Build.Test.ExpressionEngine
 		{
 			var environment = new BuildEnvironment();
 			environment.Properties["Foo"] = "true";
-			_engine.IsTrue(new Condition("$(Foo) == true"), environment).Should().BeTrue();
-			_engine.IsTrue(new Condition("'$(Foo)' == 'true'"), environment).Should().BeTrue();
+			_engine.EvaluateCondition("$(Foo) == true", environment).Should().BeTrue();
+			_engine.EvaluateCondition("'$(Foo)' == 'true'", environment).Should().BeTrue();
 
 			environment.Properties["Foo"] = "FOO";
-			_engine.IsTrue(new Condition("$(Foo) == 'true"), environment).Should().BeFalse();
-			_engine.IsTrue(new Condition("'$(Foo)' == 'true'"), environment).Should().BeFalse();
+			_engine.EvaluateCondition("$(Foo) == 'true", environment).Should().BeFalse();
+			_engine.EvaluateCondition("'$(Foo)' == 'true'", environment).Should().BeFalse();
 		}
 
 		[Test]
@@ -121,12 +121,12 @@ namespace Build.Test.ExpressionEngine
 		{
 			var environment = new BuildEnvironment();
 			environment.Properties["Foo"] = "42";
-			_engine.IsTrue(new Condition("$(Foo) == 42"), environment).Should().BeTrue();
-			_engine.IsTrue(new Condition("'$(Foo)' == '42'"), environment).Should().BeTrue();
+			_engine.EvaluateCondition("$(Foo) == 42", environment).Should().BeTrue();
+			_engine.EvaluateCondition("'$(Foo)' == '42'", environment).Should().BeTrue();
 
 			environment.Properties["Foo"] = "9001";
-			_engine.IsTrue(new Condition("$(Foo) == 42"), environment).Should().BeFalse();
-			_engine.IsTrue(new Condition("'$(Foo)' == '42'"), environment).Should().BeFalse();
+			_engine.EvaluateCondition("$(Foo) == 42", environment).Should().BeFalse();
+			_engine.EvaluateCondition("'$(Foo)' == '42'", environment).Should().BeFalse();
 		}
 
 		[Test]
@@ -134,13 +134,13 @@ namespace Build.Test.ExpressionEngine
 		{
 			var environment = new BuildEnvironment();
 			environment.Properties["Foo"] = "42";
-			_engine.IsTrue(new Condition("$(Foo) == 42 OR true"), environment).Should().BeTrue();
+			_engine.EvaluateCondition("$(Foo) == 42 OR true", environment).Should().BeTrue();
 
 			environment.Properties["Foo"] = "9001";
-			_engine.IsTrue(new Condition("$(Foo) == 42 OR true"), environment).Should().BeTrue();
+			_engine.EvaluateCondition("$(Foo) == 42 OR true", environment).Should().BeTrue();
 
 			environment.Properties["Foo"] = "9001";
-			_engine.IsTrue(new Condition("$(Foo) == 42 OR false"), environment).Should().BeFalse();
+			_engine.EvaluateCondition("$(Foo) == 42 OR false", environment).Should().BeFalse();
 		}
 
 		[Test]
@@ -148,13 +148,13 @@ namespace Build.Test.ExpressionEngine
 		{
 			var environment = new BuildEnvironment();
 			environment.Properties["OutputType"] = "Library";
-			_engine.IsTrue(new Condition("$(OutputType) == 'Exe' OR $(OutputType) == 'Winexe'"), environment).Should().BeFalse();
+			_engine.EvaluateCondition("$(OutputType) == 'Exe' OR $(OutputType) == 'Winexe'", environment).Should().BeFalse();
 
 			environment.Properties["OutputType"] = "Exe";
-			_engine.IsTrue(new Condition("$(OutputType) == 'Exe' OR $(OutputType) == 'Winexe'"), environment).Should().BeTrue();
+			_engine.EvaluateCondition("$(OutputType) == 'Exe' OR $(OutputType) == 'Winexe'", environment).Should().BeTrue();
 
 			environment.Properties["OutputType"] = "Winexe";
-			_engine.IsTrue(new Condition("$(OutputType) == 'Exe' OR $(OutputType) == 'Winexe'"), environment).Should().BeTrue();
+			_engine.EvaluateCondition("$(OutputType) == 'Exe' OR $(OutputType) == 'Winexe'", environment).Should().BeTrue();
 		}
 
 		[Test]
@@ -234,6 +234,94 @@ namespace Build.Test.ExpressionEngine
 				Value = "$(Filename)$(Extension)"
 			}, environment);
 			environment.Properties["Foo"].Should().Be("AwesomeApp.exe");
+		}
+
+		#endregion
+
+		#region Conditions
+
+		[Test]
+		public void TestEvaluateCondition1()
+		{
+			_engine.EvaluateCondition("", new BuildEnvironment()).Should().BeTrue(
+				"Because MSBuild evaluates an empty condition to true");
+		}
+
+		[Test]
+		public void TestEvaluateCondition2()
+		{
+			_engine.EvaluateCondition("true", new BuildEnvironment()).Should().BeTrue();
+			_engine.EvaluateCondition("TRUE", new BuildEnvironment()).Should().BeTrue();
+			_engine.EvaluateCondition("TrUe", new BuildEnvironment()).Should().BeTrue();
+			_engine.EvaluateCondition("tRuE", new BuildEnvironment()).Should().BeTrue();
+
+			_engine.EvaluateCondition("false", new BuildEnvironment()).Should().BeFalse();
+			_engine.EvaluateCondition("FALSE", new BuildEnvironment()).Should().BeFalse();
+			_engine.EvaluateCondition("FaLsE", new BuildEnvironment()).Should().BeFalse();
+			_engine.EvaluateCondition("fAlSe", new BuildEnvironment()).Should().BeFalse();
+		}
+
+		[Test]
+		public void TestEvaluateCondition3()
+		{
+			var environment = new BuildEnvironment {Properties = {{"Foo", "true"}}};
+			_engine.EvaluateCondition("$(Foo)", environment).Should().BeTrue();
+			environment.Properties["Foo"] = "false";
+			_engine.EvaluateCondition("$(Foo)", environment).Should().BeFalse();
+		}
+
+		[Test]
+		public void TestEvaluateCondition4()
+		{
+			new Action(() => _engine.EvaluateCondition("$(Foo)", new BuildEnvironment()))
+				.ShouldThrow<EvaluationException>()
+				.WithMessage("Specified condition \"$(Foo)\" evaluates to \"\" instead of a boolean.");
+		}
+
+		[Test]
+		public void TestEvaluateCondition5()
+		{
+			_engine.EvaluateCondition("42 > 10", new BuildEnvironment()).Should().BeTrue();
+			_engine.EvaluateCondition("42 > 42", new BuildEnvironment()).Should().BeFalse();
+			_engine.EvaluateCondition("10 > 42", new BuildEnvironment()).Should().BeFalse();
+
+			_engine.EvaluateCondition("42 >= 10", new BuildEnvironment()).Should().BeTrue();
+			_engine.EvaluateCondition("42 >= 42", new BuildEnvironment()).Should().BeTrue();
+			_engine.EvaluateCondition("10 >= 42", new BuildEnvironment()).Should().BeFalse();
+
+			_engine.EvaluateCondition("42 < 10", new BuildEnvironment()).Should().BeFalse();
+			_engine.EvaluateCondition("42 < 42", new BuildEnvironment()).Should().BeFalse();
+			_engine.EvaluateCondition("10 < 42", new BuildEnvironment()).Should().BeTrue();
+
+			_engine.EvaluateCondition("42 <= 10", new BuildEnvironment()).Should().BeFalse();
+			_engine.EvaluateCondition("42 <= 42", new BuildEnvironment()).Should().BeTrue();
+			_engine.EvaluateCondition("10 <= 42", new BuildEnvironment()).Should().BeTrue();
+		}
+
+		[Test]
+		public void TestEvaluateCondition6()
+		{
+			new Action(() => _engine.EvaluateCondition("42 > true", new BuildEnvironment()))
+				.ShouldThrow<EvaluationException>()
+				.WithMessage("A numeric comparison was attempted on \"true\" that evaluates to \"true\" instead of a number.");
+		}
+
+		[Test]
+		public void TestEvaluateCondition7()
+		{
+			new Action(() => _engine.EvaluateCondition("$(Foo) >= 3.14159", new BuildEnvironment()))
+				.ShouldThrow<EvaluationException>()
+				.WithMessage("A numeric comparison was attempted on \"$(Foo)\" that evaluates to \"\" instead of a number.");
+		}
+
+		[Test]
+		public void TestEvaluateCondition8()
+		{
+			var environment = new BuildEnvironment();
+			environment.Properties["Foo"] = "2.7";
+			_engine.EvaluateCondition("$(Foo) >= 3.14159", environment).Should().BeFalse();
+			environment.Properties["Foo"] = "3.2";
+			_engine.EvaluateCondition("$(Foo) >= 3.14159", environment).Should().BeTrue();
 		}
 
 		#endregion

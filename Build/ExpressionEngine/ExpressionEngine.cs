@@ -99,7 +99,7 @@ namespace Build.ExpressionEngine
 		/// <returns></returns>
 		public void Evaluate(IPropertyGroup group, BuildEnvironment environment)
 		{
-			if (group.Condition != null && !IsTrue(group.Condition, environment))
+			if (group.Condition != null && !EvaluateCondition(group.Condition, environment))
 				return;
 
 			foreach (var property in group)
@@ -119,12 +119,12 @@ namespace Build.ExpressionEngine
 			if (property == null)
 				return;
 
-			if (property.Condition == null || IsTrue(property.Condition, environment))
-			{
-				var value = property.Value;
-				var expanded = Expand(value, environment);
-				environment.Properties.Add(property.Name, expanded);
-			}
+			if (property.Condition != null && !EvaluateCondition(property.Condition, environment))
+				return;
+
+			var value = property.Value;
+			var expanded = Expand(value, environment);
+			environment.Properties.Add(property.Name, expanded);
 		}
 
 		public IEnumerable<ItemGroup> Evaluate(IEnumerable<ItemGroup> groups, BuildEnvironment environment)
@@ -145,7 +145,7 @@ namespace Build.ExpressionEngine
 
 		public ItemGroup Evaluate(ItemGroup group, BuildEnvironment environment)
 		{
-			if (group.Condition != null && !IsTrue(group.Condition, environment))
+			if (group.Condition != null && !EvaluateCondition(group.Condition, environment))
 				return new ItemGroup();
 
 			var evaluated = new List<ProjectItem>();
@@ -169,7 +169,7 @@ namespace Build.ExpressionEngine
 		/// </remarks>
 		public IEnumerable<ProjectItem> Evaluate(ProjectItem item, BuildEnvironment environment)
 		{
-			if (item.Condition != null && !IsTrue(item.Condition, environment))
+			if (item.Condition != null && !EvaluateCondition(item.Condition, environment))
 				return Enumerable.Empty<ProjectItem>();
 
 			var expandedInclude = Expand(item.Include, environment);
@@ -235,17 +235,18 @@ namespace Build.ExpressionEngine
 		}
 
 		/// <summary>
-		///     Evaluates the given condition using the currently available variables.
+		/// 
 		/// </summary>
-		/// <param name="condition"></param>
+		/// <param name="expression"></param>
 		/// <param name="environment"></param>
 		/// <returns></returns>
 		[Pure]
-		public bool IsTrue(Condition condition, BuildEnvironment environment)
+		public ProjectItem[] EvaluateItemList(string expression, BuildEnvironment environment)
 		{
-			IExpression expression = _parser.ParseExpression(condition.Expression);
-			object result = expression.Evaluate(_fileSystem, environment);
-			return Expression.IsTrue(result);
+			var exp = _parser.ParseItemList(expression);
+			var files = new List<ProjectItem>();
+			exp.ToItemList(_fileSystem, environment, files);
+			return files.ToArray();
 		}
 
 		/// <summary>
@@ -255,12 +256,14 @@ namespace Build.ExpressionEngine
 		/// <param name="environment"></param>
 		/// <returns></returns>
 		[Pure]
-		public ProjectItem[] EvaluateItemList(string expression, BuildEnvironment environment)
+		public bool EvaluateCondition(string expression, BuildEnvironment environment)
 		{
-			var exp = _parser.ParseItemListExpression(expression);
-			var files = new List<ProjectItem>();
-			exp.ToItemList(_fileSystem, environment, files);
-			return files.ToArray();
+			var expr = _parser.ParseCondition(expression);
+			if (expr == null) //< empty expression given, this evaluates to true as per MSBuild implementation...
+				return true;
+
+			var value = expr.Evaluate(_fileSystem, environment);
+			return Expression.CastToBoolean(expr, value);
 		}
 	}
 }

@@ -10,7 +10,7 @@ namespace Build.DomainModel.MSBuild
 	{
 		private readonly List<ProjectItem> _items;
 
-		public ItemGroup(IEnumerable<ProjectItem> items, Condition condition = null)
+		public ItemGroup(IEnumerable<ProjectItem> items, string condition = null)
 			: base(condition)
 		{
 			if (items == null)
@@ -19,7 +19,7 @@ namespace Build.DomainModel.MSBuild
 			_items = new List<ProjectItem>(items);
 		}
 
-		public ItemGroup(Condition condition = null)
+		public ItemGroup(string condition = null)
 			: base(condition)
 		{
 			_items = new List<ProjectItem>();

@@ -36,7 +36,7 @@ namespace Build.DomainModel.MSBuild
 			return GetEnumerator();
 		}
 
-		public Condition Condition
+		public string Condition
 		{
 			get { return null; }
 		}

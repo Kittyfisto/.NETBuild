@@ -20,14 +20,14 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestEvaluate1()
 		{
-			new BinaryExpression(new Literal("Foo"),
+			new BinaryExpression(new StringLiteral("Foo"),
 			                     BinaryOperation.Equals,
-			                     new Literal("Foo"))
+			                     new StringLiteral("Foo"))
 				.Evaluate(_fs, null).Should().Be(true);
 
-			new BinaryExpression(new Literal("Foo"),
+			new BinaryExpression(new StringLiteral("Foo"),
 								 BinaryOperation.Equals,
-								 new Literal("Bar"))
+								 new StringLiteral("Bar"))
 				.Evaluate(_fs, null).Should().Be(false);
 		}
 
@@ -36,7 +36,7 @@ namespace Build.Test.ExpressionEngine
 		{
 			new BinaryExpression(new VariableReference("Foo"),
 			                     BinaryOperation.Equals,
-			                     new Literal("Hello World"))
+			                     new StringLiteral("Hello World"))
 				.Evaluate(_fs, new BuildEnvironment
 					{
 						Properties =
@@ -49,26 +49,26 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestEvaluate3()
 		{
-			new BinaryExpression(new Literal("true"), BinaryOperation.And, new Literal("true"))
+			new BinaryExpression(new StringLiteral("true"), BinaryOperation.And, new StringLiteral("true"))
 				.Evaluate(_fs, new BuildEnvironment()).Should().Be(true);
-			new BinaryExpression(new Literal("true"), BinaryOperation.And, new Literal("false"))
+			new BinaryExpression(new StringLiteral("true"), BinaryOperation.And, new StringLiteral("false"))
 				.Evaluate(_fs, new BuildEnvironment()).Should().Be(false);
-			new BinaryExpression(new Literal("false"), BinaryOperation.And, new Literal("true"))
+			new BinaryExpression(new StringLiteral("false"), BinaryOperation.And, new StringLiteral("true"))
 				.Evaluate(_fs, new BuildEnvironment()).Should().Be(false);
-			new BinaryExpression(new Literal("false"), BinaryOperation.And, new Literal("false"))
+			new BinaryExpression(new StringLiteral("false"), BinaryOperation.And, new StringLiteral("false"))
 				.Evaluate(_fs, new BuildEnvironment()).Should().Be(false);
 		}
 
 		[Test]
 		public void TestEvaluate4()
 		{
-			new BinaryExpression(new Literal("true"), BinaryOperation.Or, new Literal("true"))
+			new BinaryExpression(new StringLiteral("true"), BinaryOperation.Or, new StringLiteral("true"))
 				.Evaluate(_fs, new BuildEnvironment()).Should().Be(true);
-			new BinaryExpression(new Literal("true"), BinaryOperation.Or, new Literal("false"))
+			new BinaryExpression(new StringLiteral("true"), BinaryOperation.Or, new StringLiteral("false"))
 				.Evaluate(_fs, new BuildEnvironment()).Should().Be(true);
-			new BinaryExpression(new Literal("false"), BinaryOperation.Or, new Literal("true"))
+			new BinaryExpression(new StringLiteral("false"), BinaryOperation.Or, new StringLiteral("true"))
 				.Evaluate(_fs, new BuildEnvironment()).Should().Be(true);
-			new BinaryExpression(new Literal("false"), BinaryOperation.Or, new Literal("false"))
+			new BinaryExpression(new StringLiteral("false"), BinaryOperation.Or, new StringLiteral("false"))
 				.Evaluate(_fs, new BuildEnvironment()).Should().Be(false);
 		}
 	}

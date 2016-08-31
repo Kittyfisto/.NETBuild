@@ -5,12 +5,14 @@ using Build.DomainModel.MSBuild;
 
 namespace Build.ExpressionEngine
 {
-	public sealed class Literal
+	public sealed class StringLiteral
 		: IExpression
 	{
 		public readonly string Value;
 
-		public Literal(string value)
+		public static readonly StringLiteral Empty = new StringLiteral(string.Empty);
+
+		public StringLiteral(string value)
 		{
 			Value = value;
 		}
@@ -26,11 +28,6 @@ namespace Build.ExpressionEngine
 			return Value;
 		}
 
-		public bool IsTrue(IFileSystem fileSystem, BuildEnvironment environment)
-		{
-			return Expression.IsTrue(Value);
-		}
-
 		public string ToString(IFileSystem fileSystem, BuildEnvironment environment)
 		{
 			return Value;
@@ -42,7 +39,7 @@ namespace Build.ExpressionEngine
 			items.Add(item);
 		}
 
-		private bool Equals(Literal other)
+		private bool Equals(StringLiteral other)
 		{
 			return string.Equals(Value, other.Value);
 		}
@@ -51,7 +48,7 @@ namespace Build.ExpressionEngine
 		{
 			if (ReferenceEquals(null, obj)) return false;
 			if (ReferenceEquals(this, obj)) return true;
-			return obj is Literal && Equals((Literal) obj);
+			return obj is StringLiteral && Equals((StringLiteral) obj);
 		}
 
 		public override int GetHashCode()

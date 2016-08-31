@@ -117,7 +117,7 @@ namespace Build.TaskEngine
 
 			if (target.Condition != null)
 			{
-				if (!_expressionEngine.IsTrue(target.Condition, _environment))
+				if (!_expressionEngine.EvaluateCondition(target.Condition, _environment))
 				{
 					_logger.WriteLine(Verbosity.Diagnostic, "  Skipping target \"{0}\" because {1} does not evaluate to true",
 					                  target.Name,
@@ -154,10 +154,10 @@ namespace Build.TaskEngine
 			if (task == null)
 				throw new ArgumentNullException("task");
 
-			Condition condition = task.Condition;
+			var condition = task.Condition;
 			if (condition != null)
 			{
-				if (!_expressionEngine.IsTrue(condition, _environment))
+				if (!_expressionEngine.EvaluateCondition(condition, _environment))
 				{
 					_logger.WriteLine(Verbosity.Diagnostic, "  Skipping task \"{0}\" because {1} does not evaluate to true",
 					                  task.GetType().Name,

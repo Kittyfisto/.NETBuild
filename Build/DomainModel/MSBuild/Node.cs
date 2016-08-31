@@ -3,14 +3,14 @@
 	public abstract class Node
 		: INode
 	{
-		private Condition _condition;
+		private string _condition;
 
-		protected Node(Condition condition = null)
+		protected Node(string condition = null)
 		{
 			_condition = condition;
 		}
 
-		public Condition Condition
+		public string Condition
 		{
 			get { return _condition; }
 			set { _condition = value; }

@@ -89,7 +89,7 @@ namespace Build.Parser
 						break;
 
 					case "Condition":
-						target.Condition = new Condition(reader.Value);
+						target.Condition = reader.Value;
 						break;
 
 					case "DependsOnTargets":
@@ -164,7 +164,7 @@ namespace Build.Parser
 				switch (reader.Name)
 				{
 					case "Condition":
-						task.Condition = new Condition(reader.Value);
+						task.Condition = reader.Value;
 						break;
 
 					case "AllowUnsafeBlocks":
@@ -245,7 +245,7 @@ namespace Build.Parser
 				switch (reader.Name)
 				{
 					case "Condition":
-						task.Condition = new Condition(reader.Value);
+						task.Condition = reader.Value;
 						break;
 
 					case "SourceFiles":

@@ -15,7 +15,7 @@ namespace Build.DomainModel.MSBuild
 		private readonly List<Property> _properties;
 		private readonly Dictionary<string, Property> _propertiesByName;
 
-		public PropertyGroup(List<Property> properties, Condition condition = null)
+		public PropertyGroup(List<Property> properties, string condition = null)
 			: base(condition)
 		{
 			_properties = properties;
@@ -23,7 +23,7 @@ namespace Build.DomainModel.MSBuild
 			AddMany(properties);
 		}
 
-		public PropertyGroup(Condition condition = null)
+		public PropertyGroup(string condition = null)
 			: base(condition)
 		{
 			_properties = new List<Property>();

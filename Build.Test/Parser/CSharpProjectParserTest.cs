@@ -33,8 +33,8 @@ namespace Build.Test.Parser
 			group.Should().NotBeNull();
 			group.Condition.Should().BeNull();
 			group.Count.Should().Be(9);
-			group[0].Should().Be(new Property(Properties.Configuration, "Debug", new Condition(" '$(Configuration)' == '' ")));
-			group[1].Should().Be(new Property(Properties.Platform, "AnyCPU", new Condition(" '$(Platform)' == '' ")));
+			group[0].Should().Be(new Property(Properties.Configuration, "Debug", " '$(Configuration)' == '' "));
+			group[1].Should().Be(new Property(Properties.Platform, "AnyCPU", " '$(Platform)' == '' "));
 			group[2].Should().Be(new Property(Properties.ProjectGuid, "{34B3464E-CBE5-4410-9052-3AB2E720BACF}"));
 			group[3].Should().Be(new Property(Properties.OutputType, "Library"));
 			group[4].Should().Be(new Property(Properties.AppDesignerFolder, "Properties"));
@@ -45,7 +45,7 @@ namespace Build.Test.Parser
 
 			group = project.Properties[1];
 			group.Should().NotBeNull();
-			group.Condition.Should().Be(new Condition(" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "));
+			group.Condition.Should().Be(" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ");
 			group.Count.Should().Be(7);
 			group[0].Should().Be(new Property(Properties.DebugSymbols, "true"));
 			group[1].Should().Be(new Property(Properties.DebugType, "full"));
@@ -57,7 +57,7 @@ namespace Build.Test.Parser
 
 			group = project.Properties[2];
 			group.Should().NotBeNull();
-			group.Condition.Should().Be(new Condition(" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "));
+			group.Condition.Should().Be(" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ");
 			group.Count.Should().Be(6);
 			group[0].Should().Be(new Property(Properties.DebugType, "pdbonly"));
 			group[1].Should().Be(new Property(Properties.Optimize, "true"));

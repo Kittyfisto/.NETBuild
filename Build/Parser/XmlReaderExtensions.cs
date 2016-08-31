@@ -1,5 +1,4 @@
 ﻿using System.Xml;
-using Build.DomainModel.MSBuild;
 
 namespace Build.Parser
 {
@@ -7,15 +6,14 @@ namespace Build.Parser
 	{
 		public static string ReadRequiredAttribute(this XmlReader reader, string attributeName)
 		{
-			var name = reader.GetAttribute("Name");
+			string name = reader.GetAttribute("Name");
 			return name;
 		}
 
-		public static Condition TryReadCondition(this XmlReader reader)
+		public static string TryReadCondition(this XmlReader reader)
 		{
-			var conditionValue = reader.GetAttribute("Condition");
-			Condition condition = conditionValue != null ? new Condition(conditionValue) : null;
-			return condition;
+			string conditionValue = reader.GetAttribute("Condition");
+			return conditionValue;
 		}
 	}
 }

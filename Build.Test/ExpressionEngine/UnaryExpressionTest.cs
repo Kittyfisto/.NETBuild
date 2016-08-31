@@ -21,9 +21,7 @@ namespace Build.Test.ExpressionEngine
 		public void TestEvaluate1()
 		{
 			var env = new BuildEnvironment();
-			new UnaryExpression(UnaryOperation.Not, new Literal("False")).Evaluate(_fs, env).Should().Be(true);
-			new UnaryExpression(UnaryOperation.Not, new Literal(null)).Evaluate(_fs, env).Should().Be(true);
-			new UnaryExpression(UnaryOperation.Not, new Literal("SomeValue")).Evaluate(_fs, env).Should().Be(true);
+			new UnaryExpression(UnaryOperation.Not, new StringLiteral("False")).Evaluate(_fs, env).Should().Be(true);
 		}
 
 		[Test]
@@ -31,10 +29,10 @@ namespace Build.Test.ExpressionEngine
 		{
 			var env = new BuildEnvironment();
 			new UnaryExpression(UnaryOperation.Not, new BinaryExpression(
-				                                        new Literal("foo"), BinaryOperation.Equals, new Literal("foo")))
+				                                        new StringLiteral("foo"), BinaryOperation.Equals, new StringLiteral("foo")))
 				.Evaluate(_fs, env).Should().Be(false, "because !(foo == foo) is false");
 			new UnaryExpression(UnaryOperation.Not, new BinaryExpression(
-														new Literal("foo"), BinaryOperation.Equals, new Literal("bar")))
+														new StringLiteral("foo"), BinaryOperation.Equals, new StringLiteral("bar")))
 				.Evaluate(_fs, env).Should().Be(true, "because !(foo == bar) is true");
 		}
 	}

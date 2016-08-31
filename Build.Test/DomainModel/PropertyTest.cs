@@ -26,11 +26,11 @@ namespace Build.Test.DomainModel
 		[Test]
 		public void TestEquality3()
 		{
-			var property = new Property("Foo", "Bar", new Condition(""));
+			var property = new Property("Foo", "Bar", "");
 			property.Equals(new Property("Foo", "Bar")).Should().BeFalse();
 
-			property = new Property("Foo", "Bar", new Condition(""));
-			property.Equals(new Property("Foo", "Bar", new Condition(""))).Should().BeTrue();
+			property = new Property("Foo", "Bar", "");
+			property.Equals(new Property("Foo", "Bar", "")).Should().BeTrue();
 		}
 	}
 }

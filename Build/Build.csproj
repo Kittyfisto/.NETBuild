@@ -64,7 +64,9 @@
     <Compile Include="BuildEngine\Tasks\Copy.cs" />
     <Compile Include="BuildEngine\Tasks\CopyFileTask.cs" />
     <Compile Include="DomainModel\MSBuild\Csc.cs" />
+    <Compile Include="EvaluationException.cs" />
     <Compile Include="ExpressionEngine\Expression.cs" />
+    <Compile Include="ExpressionEngine\ExpressionOptimizer.cs" />
     <Compile Include="ExpressionEngine\ExpressionParser.cs" />
     <Compile Include="ExpressionEngine\ItemListExpression.cs" />
     <Compile Include="ExpressionEngine\ItemListReference.cs" />
@@ -90,7 +92,7 @@
     <Compile Include="ExpressionEngine\BinaryOperation.cs" />
     <Compile Include="ExpressionEngine\FunctionExpression.cs" />
     <Compile Include="ExpressionEngine\FunctionOperation.cs" />
-    <Compile Include="ExpressionEngine\Literal.cs" />
+    <Compile Include="ExpressionEngine\StringLiteral.cs" />
     <Compile Include="ExpressionEngine\ExpressionEngine.cs" />
     <Compile Include="ExpressionEngine\IExpression.cs" />
     <Compile Include="ExpressionEngine\ParseException.cs" />
@@ -117,7 +119,6 @@
     <Compile Include="Parser\SolutionParser.cs" />
     <Compile Include="Watchdog\SolutionStore.cs" />
     <Compile Include="Parser\XmlReaderExtensions.cs" />
-    <Compile Include="DomainModel\MSBuild\Condition.cs" />
     <Compile Include="DomainModel\MSBuild\Project.cs" />
     <Compile Include="DomainModel\MSBuild\IItemGroup.cs" />
     <Compile Include="DomainModel\MSBuild\IMetadataGroup.cs" />

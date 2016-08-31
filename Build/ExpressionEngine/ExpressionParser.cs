@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Globalization;
 
 namespace Build.ExpressionEngine
@@ -13,12 +14,17 @@ namespace Build.ExpressionEngine
 			_tokenizer = new Tokenizer();
 		}
 
-		public IExpression ParseConditionExpression(string expression)
+		[Pure]
+		public IExpression ParseCondition(string expression)
 		{
-			throw new NotImplementedException();
+			List<Token> tokens = _tokenizer.Tokenize(expression);
+			var expr =  Parse(tokens);
+			var optimized = ExpressionOptimizer.Run(expr);
+			return optimized;
 		}
 
-		public IExpression ParseItemListExpression(string expression)
+		[Pure]
+		public IExpression ParseItemList(string expression)
 		{
 			List<Token> tokens = _tokenizer.Tokenize(expression);
 			var stack = new List<TokenOrExpression>();
@@ -39,11 +45,14 @@ namespace Build.ExpressionEngine
 
 			} while (stack.Count > 1 && successfullyParsed);
 
-			if (stack.Count != 1 || stack[0].Expression == null)
+			if (stack.Count == 0) //< Empty input was given
+				return new ItemListExpression();
+
+			if (stack.Count > 1 || stack[0].Expression == null)
 				throw new ParseException();
 
 			var itemList = stack[0].Expression;
-			var optimized = OptimizeExpressionTree(itemList);
+			var optimized = ExpressionOptimizer.Run(itemList);
 			return optimized;
 		}
 
@@ -74,103 +83,12 @@ namespace Build.ExpressionEngine
 		public IExpression ParseExpression(string expression)
 		{
 			List<Token> tokens = _tokenizer.Tokenize(expression);
-			return Parse(tokens);
+			var expr = Parse(tokens);
+			var optimized = ExpressionOptimizer.Run(expr);
+			return optimized;
 		}
 
 		#region Optimization
-
-		private IExpression OptimizeExpressionTree(IExpression expression)
-		{
-			bool optimizedThisRound;
-			do
-			{
-				optimizedThisRound = false;
-				IExpression optimized;
-				if (FlattenItemListExpression(expression, out optimized))
-				{
-					expression = optimized;
-					optimizedThisRound = true;
-				}
-				if (FlattenConcatenationExpression(expression, out optimized))
-				{
-					expression = optimized;
-					optimizedThisRound = true;
-				}
-			}
-			while (optimizedThisRound);
-
-			return expression;
-		}
-
-		private bool FlattenConcatenationExpression(IExpression expression, out IExpression optimized)
-		{
-			optimized = null;
-
-			var concatenation = expression as ConcatExpression;
-			if (concatenation == null)
-				return false;
-
-			var arguments = new List<IExpression>();
-			bool optimizedAnything = false;
-			foreach (var item in concatenation.Arguments)
-			{
-				var optimizedItem = OptimizeExpressionTree(item);
-				if (!ReferenceEquals(optimizedItem, item))
-					optimizedAnything = true;
-
-				var childConcatenation = optimizedItem as ConcatExpression;
-				if (childConcatenation != null)
-				{
-					arguments.AddRange(childConcatenation.Arguments);
-					optimizedAnything = true;
-				}
-				else
-				{
-					arguments.Add(optimizedItem);
-				}
-			}
-
-			if (!optimizedAnything)
-				return false;
-
-			optimized = new ConcatExpression(arguments);
-			return true;
-		}
-
-		private bool FlattenItemListExpression(IExpression expression, out IExpression optimized)
-		{
-			optimized = null;
-
-			var itemList = expression as ItemListExpression;
-			if (itemList == null)
-				return false;
-
-			var arguments = new List<IExpression>();
-			bool optimizedAnything = false;
-			foreach (var argument in itemList.Arguments)
-			{
-				var optimizedItem = OptimizeExpressionTree(argument);
-				if (!ReferenceEquals(optimizedItem, argument))
-					optimizedAnything = true;
-
-				var childList = optimizedItem as ItemListExpression;
-				if (childList != null)
-				{
-					arguments.AddRange(childList.Arguments);
-					optimizedAnything = true;
-				}
-				else
-				{
-					arguments.Add(optimizedItem);
-				}
-			}
-
-			if (!optimizedAnything)
-				return false;
-
-			optimized = new ItemListExpression(arguments);
-			return true;
-		}
 
 		#endregion
 
@@ -338,6 +256,9 @@ namespace Build.ExpressionEngine
 				}
 			}
 
+			if (stack.Count == 0)
+				return null;
+
 			if (!TryParseLeftToRight(stack))
 				throw new ParseException();
 
@@ -403,7 +324,7 @@ namespace Build.ExpressionEngine
 
 				if (tokens[0].Token.Type == TokenType.Literal)
 				{
-					tokens[0] = new TokenOrExpression(new Literal(tokens[0].Token.Value));
+					tokens[0] = new TokenOrExpression(new StringLiteral(tokens[0].Token.Value));
 					return true;
 				}
 			}
@@ -415,7 +336,7 @@ namespace Build.ExpressionEngine
 		{
 			Func<TokenOrExpression, bool> isLiteralOrVariable = (pair) =>
 				{
-					if (pair.Expression is Literal)
+					if (pair.Expression is StringLiteral)
 						return true;
 					if (pair.Expression is VariableReference)
 						return true;
@@ -457,7 +378,7 @@ namespace Build.ExpressionEngine
 				var expression = tokens[0].Expression;
 				if (expression is ConcatExpression)
 					return true;
-				if (expression is Literal)
+				if (expression is StringLiteral)
 					return true;
 				if (expression is VariableReference)
 					return true;
@@ -475,12 +396,11 @@ namespace Build.ExpressionEngine
 		private bool TryParseLiteral(List<TokenOrExpression> tokens)
 		{
 			if (tokens.Count >= 1 &&
-				tokens[0].Token.Type == TokenType.Literal ||
-				tokens[0].Token.Type == TokenType.Whitespace)
+				(tokens[0].Token.Type == TokenType.Literal || tokens[0].Token.Type == TokenType.Whitespace))
 			{
 				var value = tokens[0].Token.Value;
 				tokens[0] = new TokenOrExpression(
-					new Literal(value));
+					new StringLiteral(value));
 				return true;
 			}
 
@@ -610,50 +530,9 @@ namespace Build.ExpressionEngine
 				IExpression leftHandSide = Parse(lhs);
 				IExpression rightHandSide = tokens[0].Expression;
 
-				if (IsNumeric(operation))
-				{
-					if (!CouldEvaluateToNumber(leftHandSide))
-						throw new ParseException(string.Format("Expected literal or variable left of {0}, but found \"{1}\"", Tokenizer.ToString(op), leftHandSide));
-					if (!CouldEvaluateToNumber(rightHandSide))
-						throw new ParseException(string.Format("Expected literal or variable right of {0}, but found \"{1}\"", Tokenizer.ToString(op), rightHandSide));
-				}
-
 				var expression = new BinaryExpression(leftHandSide, operation, rightHandSide);
 				tokens.RemoveAt(0);
 				tokens.Insert(0, new TokenOrExpression(expression));
-				return true;
-			}
-
-			return false;
-		}
-
-		private bool IsNumeric(BinaryOperation binaryOperation)
-		{
-			switch (binaryOperation)
-			{
-				case BinaryOperation.GreaterOrEquals:
-				case BinaryOperation.GreaterThan:
-				case BinaryOperation.LessOrEquals:
-				case BinaryOperation.LessThan:
-					return true;
-
-				default:
-					return false;
-			}
-		}
-
-		private bool CouldEvaluateToNumber(IExpression expression)
-		{
-			var literal = expression as Literal;
-			if (literal != null)
-			{
-				int unused;
-				if (int.TryParse(literal.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out unused))
-					return true;
-			}
-			var variable = expression as VariableReference;
-			if (variable != null)
-			{
 				return true;
 			}
 
@@ -701,7 +580,7 @@ namespace Build.ExpressionEngine
 			switch (token.Type)
 			{
 				case TokenType.Literal:
-					return new Literal(token.Value);
+					return new StringLiteral(token.Value);
 
 				default:
 					throw new ParseException(string.Format("Expected token or literal but found: {0}", token));

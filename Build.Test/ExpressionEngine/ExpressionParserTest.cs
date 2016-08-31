@@ -16,10 +16,12 @@ namespace Build.Test.ExpressionEngine
 
 		private ExpressionParser _parser;
 
+		#region Expression
+
 		[Test]
 		public void TestParse1()
 		{
-			_parser.ParseExpression("foo").Should().Be(new Literal("foo"));
+			_parser.ParseExpression("foo").Should().Be(new StringLiteral("foo"));
 		}
 
 		[Test]
@@ -31,7 +33,7 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestParse3()
 		{
-			_parser.ParseExpression("!False").Should().Be(new UnaryExpression(UnaryOperation.Not, new Literal("False")));
+			_parser.ParseExpression("!False").Should().Be(new UnaryExpression(UnaryOperation.Not, new StringLiteral("False")));
 		}
 
 		[Test]
@@ -40,9 +42,9 @@ namespace Build.Test.ExpressionEngine
 			_parser.ParseExpression("'foo'=='bar'")
 			       .Should()
 			       .Be(new BinaryExpression(
-				           new ConcatExpression(new Literal("foo")),
+				           new StringLiteral("foo"),
 				           BinaryOperation.Equals,
-				           new ConcatExpression(new Literal("bar"))));
+				           new StringLiteral("bar")));
 		}
 
 		[Test]
@@ -51,9 +53,9 @@ namespace Build.Test.ExpressionEngine
 			_parser.ParseExpression("'foo' == 'bar'")
 			       .Should()
 			       .Be(new BinaryExpression(
-				           new ConcatExpression(new Literal("foo")),
+				           new StringLiteral("foo"),
 				           BinaryOperation.Equals,
-				           new ConcatExpression(new Literal("bar"))));
+				           new StringLiteral("bar")));
 		}
 
 		[Test]
@@ -61,7 +63,7 @@ namespace Build.Test.ExpressionEngine
 		{
 			_parser.ParseExpression("$(Configuration) == Debug")
 			       .Should()
-			       .Be(new BinaryExpression(new VariableReference("Configuration"), BinaryOperation.Equals, new Literal("Debug")));
+			       .Be(new BinaryExpression(new VariableReference("Configuration"), BinaryOperation.Equals, new StringLiteral("Debug")));
 		}
 
 		[Test]
@@ -70,38 +72,38 @@ namespace Build.Test.ExpressionEngine
 			_parser.ParseExpression("$(Configuration) == Debug|Foo")
 			       .Should()
 			       .Be(new BinaryExpression(new VariableReference("Configuration"), BinaryOperation.Equals,
-			                                new Literal("Debug|Foo")));
+			                                new StringLiteral("Debug|Foo")));
 		}
 
 		[Test]
 		public void TestParse8()
 		{
-			_parser.ParseExpression(" 'Debug' ").Should().Be(new ConcatExpression(new Literal("Debug")));
+			_parser.ParseExpression(" 'Debug' ").Should().Be(new StringLiteral("Debug"));
 		}
 
 		[Test]
 		public void TestParse9()
 		{
 			_parser.ParseExpression(" 'Debug|AnyCPU' ")
-			       .Should().Be(new ConcatExpression(new Literal("Debug|AnyCPU")));
+			       .Should().Be(new StringLiteral("Debug|AnyCPU"));
 		}
 
 		[Test]
 		public void TestParse10()
 		{
 			_parser.ParseExpression(" '$(Configuration)' == '' ").Should().Be(new BinaryExpression(
-																		new ConcatExpression(new VariableReference("Configuration")),
+																		new VariableReference("Configuration"),
 																		BinaryOperation.Equals,
-																		new ConcatExpression()));
+																		new StringLiteral("")));
 		}
 
 		[Test]
 		public void TestParse11()
 		{
 			_parser.ParseExpression(" '$(Platform)' != '' ").Should().Be(new BinaryExpression(
-																   new ConcatExpression(new VariableReference("Platform")),
+																   new VariableReference("Platform"),
 																   BinaryOperation.EqualsNot,
-																   new ConcatExpression()));
+																   new StringLiteral("")));
 		}
 
 		[Test]
@@ -109,7 +111,7 @@ namespace Build.Test.ExpressionEngine
 		{
 			_parser.ParseExpression("'$(Configuration)|$(Platform)'").Should().Be(new ConcatExpression(
 				                                                            new VariableReference("Configuration"),
-				                                                            new Literal("|"),
+				                                                            new StringLiteral("|"),
 				                                                            new VariableReference("Platform")));
 		}
 
@@ -118,9 +120,9 @@ namespace Build.Test.ExpressionEngine
 		{
 			_parser.ParseExpression("'$(Configuration)' == 'Debug' AND '$(Platform)' == 'AnyCPU'").
 			        Should().Be(new BinaryExpression(
-				                    new BinaryExpression(new ConcatExpression(new VariableReference("Configuration")), BinaryOperation.Equals, new ConcatExpression(new Literal("Debug"))),
+				                    new BinaryExpression(new VariableReference("Configuration"), BinaryOperation.Equals, new StringLiteral("Debug")),
 				                    BinaryOperation.And,
-				                    new BinaryExpression(new ConcatExpression(new VariableReference("Platform")), BinaryOperation.Equals, new ConcatExpression(new Literal("AnyCPU")))));
+				                    new BinaryExpression(new VariableReference("Platform"), BinaryOperation.Equals, new StringLiteral("AnyCPU"))));
 		}
 
 		[Test]
@@ -128,9 +130,9 @@ namespace Build.Test.ExpressionEngine
 		{
 			_parser.ParseExpression("$(Configuration) == 'Debug' AND $(Platform) == 'AnyCPU'").
 					Should().Be(new BinaryExpression(
-									new BinaryExpression(new VariableReference("Configuration"), BinaryOperation.Equals, new ConcatExpression(new Literal("Debug"))),
+									new BinaryExpression(new VariableReference("Configuration"), BinaryOperation.Equals, new StringLiteral("Debug")),
 									BinaryOperation.And,
-									new BinaryExpression(new VariableReference("Platform"), BinaryOperation.Equals, new ConcatExpression(new Literal("AnyCPU")))));
+									new BinaryExpression(new VariableReference("Platform"), BinaryOperation.Equals, new StringLiteral("AnyCPU"))));
 		}
 
 		[Test]
@@ -138,9 +140,9 @@ namespace Build.Test.ExpressionEngine
 		{
 			_parser.ParseExpression("$(Configuration) == 'Debug' OR $(Platform) == 'AnyCPU'").
 					Should().Be(new BinaryExpression(
-									new BinaryExpression(new VariableReference("Configuration"), BinaryOperation.Equals, new ConcatExpression(new Literal("Debug"))),
+									new BinaryExpression(new VariableReference("Configuration"), BinaryOperation.Equals, new StringLiteral("Debug")),
 									BinaryOperation.Or,
-									new BinaryExpression(new VariableReference("Platform"), BinaryOperation.Equals, new ConcatExpression(new Literal("AnyCPU")))));
+									new BinaryExpression(new VariableReference("Platform"), BinaryOperation.Equals, new StringLiteral("AnyCPU"))));
 		}
 
 		[Test]
@@ -148,9 +150,9 @@ namespace Build.Test.ExpressionEngine
 		{
 			_parser.ParseExpression("'$(Configuration)' == 'Debug' OR '$(Platform)' == 'AnyCPU'").
 					Should().Be(new BinaryExpression(
-									new BinaryExpression(new ConcatExpression(new VariableReference("Configuration")), BinaryOperation.Equals, new ConcatExpression(new Literal("Debug"))),
+									new BinaryExpression(new VariableReference("Configuration"), BinaryOperation.Equals, new StringLiteral("Debug")),
 									BinaryOperation.Or,
-									new BinaryExpression(new ConcatExpression(new VariableReference("Platform")), BinaryOperation.Equals, new ConcatExpression(new Literal("AnyCPU")))));
+									new BinaryExpression(new VariableReference("Platform"), BinaryOperation.Equals, new StringLiteral("AnyCPU"))));
 		}
 
 		[Test]
@@ -158,59 +160,67 @@ namespace Build.Test.ExpressionEngine
 		{
 			_parser.ParseExpression("Exists('App.config')").
 			        Should().Be(new FunctionExpression(FunctionOperation.Exists,
-			                                           new ConcatExpression(new Literal("App.config"))));
+			                                           new StringLiteral("App.config")));
 		}
 
 		[Test]
 		public void TestParse18()
 		{
 			_parser.ParseExpression("true != $(Foobar)").
-					Should().Be(new BinaryExpression(new Literal("true"), BinaryOperation.EqualsNot, new VariableReference("Foobar")));
+					Should().Be(new BinaryExpression(new StringLiteral("true"), BinaryOperation.EqualsNot, new VariableReference("Foobar")));
 		}
 
 		[Test]
 		public void TestParse19()
 		{
 			_parser.ParseExpression("42 > $(Foobar)").
-					Should().Be(new BinaryExpression(new Literal("42"), BinaryOperation.GreaterThan, new VariableReference("Foobar")));
+					Should().Be(new BinaryExpression(new StringLiteral("42"), BinaryOperation.GreaterThan, new VariableReference("Foobar")));
 			_parser.ParseExpression("42 < $(Foobar)").
-					Should().Be(new BinaryExpression(new Literal("42"), BinaryOperation.LessThan, new VariableReference("Foobar")));
+					Should().Be(new BinaryExpression(new StringLiteral("42"), BinaryOperation.LessThan, new VariableReference("Foobar")));
 			_parser.ParseExpression("42 >= $(Foobar)").
-					Should().Be(new BinaryExpression(new Literal("42"), BinaryOperation.GreaterOrEquals, new VariableReference("Foobar")));
+					Should().Be(new BinaryExpression(new StringLiteral("42"), BinaryOperation.GreaterOrEquals, new VariableReference("Foobar")));
 			_parser.ParseExpression("42 <= $(Foobar)").
-					Should().Be(new BinaryExpression(new Literal("42"), BinaryOperation.LessOrEquals, new VariableReference("Foobar")));
+					Should().Be(new BinaryExpression(new StringLiteral("42"), BinaryOperation.LessOrEquals, new VariableReference("Foobar")));
 		}
 
 		[Test]
 		public void TestParse20()
 		{
-			new Action(() => _parser.ParseExpression("Exists('foo.txt') > 42"))
-				.ShouldThrow<ParseException>()
-				.WithMessage("Expected literal or variable left of >, but found \"Exists('foo.txt')\"");
+			_parser.ParseExpression("Exists('foo.txt') > 42").Should().Be(
+				new BinaryExpression(new FunctionExpression(FunctionOperation.Exists, new StringLiteral("foo.txt")),
+				                     BinaryOperation.GreaterThan,
+				                     new StringLiteral("42"))
+				);
 		}
 
 		[Test]
 		public void TestParse21()
 		{
-			new Action(() => _parser.ParseExpression("42 > false"))
-				.ShouldThrow<ParseException>()
-				.WithMessage("Expected literal or variable right of >, but found \"false\"");
+			_parser.ParseExpression("42 > false").Should().Be(
+				new BinaryExpression(new StringLiteral("42"),
+				                     BinaryOperation.GreaterThan,
+				                     new StringLiteral("false"))
+				);
 		}
 
 		[Test]
 		public void TestParse22()
 		{
-			new Action(() => _parser.ParseExpression("true >= 42"))
-				.ShouldThrow<ParseException>()
-				.WithMessage("Expected literal or variable left of >=, but found \"true\"");
+			_parser.ParseExpression("true >= 42").Should().Be(
+				new BinaryExpression(new StringLiteral("true"),
+				                     BinaryOperation.GreaterOrEquals,
+				                     new StringLiteral("42"))
+				);
 		}
 
 		[Test]
 		public void TestParse23()
 		{
-			new Action(() => _parser.ParseExpression("42 <= true"))
-				.ShouldThrow<ParseException>()
-				.WithMessage("Expected literal or variable right of <=, but found \"true\"");
+			_parser.ParseExpression("42 <= true").Should().Be(
+				new BinaryExpression(new StringLiteral("42"),
+				                     BinaryOperation.LessOrEquals,
+				                     new StringLiteral("true"))
+				);
 		}
 
 		[Test]
@@ -219,12 +229,11 @@ namespace Build.Test.ExpressionEngine
 			_parser.ParseExpression(" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ")
 				   .Should().Be(new BinaryExpression(
 									new ConcatExpression(new VariableReference("Configuration"),
-														 new Literal("|"),
+														 new StringLiteral("|"),
 														 new VariableReference("Platform")
 										),
 									BinaryOperation.Equals,
-									new ConcatExpression(
-										new Literal("Debug|AnyCPU"))));
+										new StringLiteral("Debug|AnyCPU")));
 		}
 
 		[Test]
@@ -233,42 +242,134 @@ namespace Build.Test.ExpressionEngine
 			_parser.ParseExpression("@(Content)").Should().Be(new ItemListReference("Content"));
 		}
 
+		#endregion
+
+		#region Condition
+
+		[Test]
+		public void TestParseCondition1()
+		{
+			_parser.ParseCondition("").Should().BeNull();
+		}
+
+		[Test]
+		public void TestParseCondition2()
+		{
+			_parser.ParseCondition("$(Foo)").Should().Be(new VariableReference("Foo"));
+		}
+
+		[Test]
+		public void TestParseCondition3()
+		{
+			_parser.ParseCondition("$(Foo) > 42").Should().Be(
+				new BinaryExpression(new VariableReference("Foo"),
+				                     BinaryOperation.GreaterThan,
+				                     new StringLiteral("42"))
+				);
+		}
+
+		#endregion
+
 		#region ItemLists
 
 		[Test]
 		public void TestParseItemList1()
 		{
-			_parser.ParseItemListExpression("Foo").Should().Be(new Literal("Foo"));
-			_parser.ParseItemListExpression("Foo.exe").Should().Be(new Literal("Foo.exe"));
+			_parser.ParseItemList("Foo").Should().Be(new StringLiteral("Foo"));
+			_parser.ParseItemList("Foo.exe").Should().Be(new StringLiteral("Foo.exe"));
 		}
 
 		[Test]
 		public void TestParseItemList2()
 		{
-			_parser.ParseItemListExpression("Foo;Bar").Should().Be(new ItemListExpression(
-				new Literal("Foo"), new Literal("Bar")
+			_parser.ParseItemList("Foo;Bar").Should().Be(new ItemListExpression(
+				new StringLiteral("Foo"), new StringLiteral("Bar")
 				));
 		}
 
 		[Test]
 		public void TestParseItemList3()
 		{
-			_parser.ParseItemListExpression("Foo;Bar;data.xml").Should().Be(new ItemListExpression(
-				new Literal("Foo"), new Literal("Bar"), new Literal("data.xml")
+			_parser.ParseItemList("Foo;Bar;data.xml").Should().Be(new ItemListExpression(
+				new StringLiteral("Foo"), new StringLiteral("Bar"), new StringLiteral("data.xml")
 				));
 		}
 
 		[Test]
 		public void TestParseItemList4()
 		{
-			_parser.ParseItemListExpression("$(OutputPath)\\$(OutputAssemblyName).config")
+			_parser.ParseItemList("$(OutputPath)")
+			       .Should().Be(new VariableReference("OutputPath"));
+		}
+
+		[Test]
+		public void TestParseItemList5()
+		{
+			_parser.ParseItemList("$(OutputPath)$(Extension)")
+			       .Should().Be(
+				       new ConcatExpression(new VariableReference("OutputPath"),
+				                            new VariableReference("Extension")));
+		}
+
+		[Test]
+		public void TestParseItemList6()
+		{
+			_parser.ParseItemList("$(File1);$(File2)")
+			       .Should().Be(
+				       new ItemListExpression(
+					       new VariableReference("File1"),
+					       new VariableReference("File2")
+					       ));
+		}
+
+		[Test]
+		public void TestParseItemList7()
+		{
+			_parser.ParseItemList("$(File1);data.xml")
+			       .Should().Be(
+				       new ItemListExpression(
+					       new VariableReference("File1"),
+					       new StringLiteral("data.xml")
+					       ));
+		}
+
+		[Test]
+		public void TestParseItemList8()
+		{
+			_parser.ParseItemList("$(OutputPath)\\$(OutputAssemblyName).config")
 			       .Should().Be(new ConcatExpression(
 				                    new VariableReference("OutputPath"),
-				                    new Literal("\\"),
+				                    new StringLiteral("\\"),
 				                    new VariableReference("OutputAssemblyName"),
-				                    new Literal(".config")
+				                    new StringLiteral(".config")
 				                    )
 				);
+		}
+
+		[Test]
+		public void TestParseItemList9()
+		{
+			_parser.ParseItemList("@(Compile)")
+			       .Should().Be(
+				       new ItemListReference("Compile"));
+		}
+
+		[Test]
+		public void TestParseItemList10()
+		{
+			_parser.ParseItemList("@(Compile);Foo.xsd")
+			       .Should().Be(
+				       new ItemListExpression(
+					       new ItemListReference("Compile"),
+					       new StringLiteral("Foo.xsd")
+					       ));
+		}
+
+		[Test]
+		public void TestParseItemList11()
+		{
+			_parser.ParseItemList("")
+			       .Should().Be(new ItemListExpression());
 		}
 
 		#endregion

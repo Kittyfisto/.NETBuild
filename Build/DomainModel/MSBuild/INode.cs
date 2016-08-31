@@ -6,6 +6,6 @@
 		///     The condition that is to be evaluated in order to find out if this node
 		///     applies, or not.
 		/// </summary>
-		Condition Condition { get; }
+		string Condition { get; }
 	}
 }

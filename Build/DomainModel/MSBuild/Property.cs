@@ -14,7 +14,7 @@ namespace Build.DomainModel.MSBuild
 			
 		}
 
-		public Property(string name, string value, Condition condition = null)
+		public Property(string name, string value, string condition = null)
 			: base(condition)
 		{
 			if (name == null)
