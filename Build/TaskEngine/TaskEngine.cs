@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 using Node = Build.DomainModel.MSBuild.Node;
@@ -19,7 +18,7 @@ namespace Build.TaskEngine
 		private readonly ILogger _logger;
 		private readonly Project _project;
 		private readonly string _target;
-		private readonly Dictionary<Type, Action<Node>> _tasks;
+		private readonly Dictionary<Type, ITaskRunner> _taskRunners;
 
 		public TaskEngine(ExpressionEngine.ExpressionEngine expressionEngine,
 		                  IFileSystem fileSystem,
@@ -46,15 +45,15 @@ namespace Build.TaskEngine
 			_environment = environment;
 			_logger = logger;
 
-			_tasks = new Dictionary<Type, Action<Node>>
+			_taskRunners = new Dictionary<Type, ITaskRunner>
 				{
-					{typeof (PropertyGroup), x => Run((PropertyGroup) x)},
-					{typeof (Message), x => Run((Message) x)},
-					{typeof (Warning), x => Run((Warning) x)},
-					{typeof (Error), x => Run((Error) x)},
-					{typeof (Copy), x => Run((Copy) x)},
-					{typeof (Delete), x => Run((Delete) x)},
-					{typeof (Csc), x => Run((Csc) x)}
+					{typeof (PropertyGroup), new PropertyGroupTask(_expressionEngine, _logger, _environment)},
+					{typeof (Message), new MessageTask(_expressionEngine, _logger, _environment)},
+					{typeof (Warning), new WarningTask(_expressionEngine, _logger, _environment)},
+					{typeof (Error), new MessageTask(_expressionEngine, _logger, _environment)},
+					{typeof (Copy), new CopyTask(_expressionEngine, _fileSystem, _logger, _environment)},
+					{typeof (Delete), new DeleteTask(_expressionEngine, _fileSystem, _logger, _environment)},
+					{typeof (Csc), new CscTask(_expressionEngine, _fileSystem, _logger, _environment)}
 				};
 		}
 
@@ -166,73 +165,13 @@ namespace Build.TaskEngine
 				}
 			}
 
-			Action<Node> method;
-			if (!_tasks.TryGetValue(task.GetType(), out method))
+			ITaskRunner taskRunner;
+			if (!_taskRunners.TryGetValue(task.GetType(), out taskRunner))
 			{
 				throw new BuildException(string.Format("Unknown task: {0}", task.GetType()));
 			}
 
-			method(task);
-		}
-
-		private static Verbosity ImportanceToVerbosity(Importance importance)
-		{
-			switch (importance)
-			{
-				case Importance.High:
-					return Verbosity.Quiet;
-
-				case Importance.Normal:
-					return Verbosity.Normal;
-
-				case Importance.Low:
-					return Verbosity.Detailed;
-
-				default:
-					throw new InvalidEnumArgumentException("importance", (int) importance, typeof (Importance));
-			}
-		}
-
-		private void Run(PropertyGroup group)
-		{
-			_expressionEngine.Evaluate(group, _environment);
-		}
-
-		private void Run(Message message)
-		{
-			Verbosity verbosity = ImportanceToVerbosity(message.Importance);
-			_logger.WriteLine(verbosity, "  {0}", message.Text);
-		}
-
-		private void Run(Warning warning)
-		{
-			_logger.WriteWarning(warning.Text);
-		}
-
-		private void Run(Error error)
-		{
-			_logger.WriteError(error.Text);
-		}
-
-		private void Run(Copy copy)
-		{
-			var sourceFiles = _expressionEngine.EvaluateItemList(copy.SourceFiles, _environment);
-			var destinationFiles = _expressionEngine.EvaluateItemList(copy.DestinationFiles, _environment);
-
-			CopyTask.Run(_fileSystem,
-			             _environment,
-			             sourceFiles,
-			             destinationFiles,
-			             _logger);
-		}
-
-		private void Run(Delete delete)
-		{
-			delete.Files = _expressionEngine.EvaluateConcatenation(delete.Files, _environment);
-		}
-
-		private void Run(Csc csc)
-		{
+			taskRunner.Run(task);
 		}
 	}
 }

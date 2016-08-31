@@ -1,5 +1,4 @@
-﻿using System;
-using Build.ExpressionEngine;
+﻿using Build.ExpressionEngine;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -221,6 +220,13 @@ namespace Build.Test.ExpressionEngine
 				                     BinaryOperation.LessOrEquals,
 				                     new StringLiteral("true"))
 				);
+		}
+
+		[Test]
+		public void TestParse24()
+		{
+			_parser.ParseExpression("Hello World!").Should().Be(
+				new StringLiteral("Hello World!"));
 		}
 
 		[Test]

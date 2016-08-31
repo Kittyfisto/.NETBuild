@@ -43,9 +43,14 @@ namespace Build
 			}
 		}
 
-		public void Copy(string sourceFileName, string destFileName)
+		public void CopyFile(string sourceFileName, string destFileName)
 		{
 			File.Copy(sourceFileName, destFileName);
+		}
+
+		public void DeleteFile(string absoluteFile)
+		{
+			File.Delete(absoluteFile);
 		}
 	}
 }

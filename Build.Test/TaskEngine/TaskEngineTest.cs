@@ -25,7 +25,7 @@ namespace Build.Test.TaskEngine
 		{
 			_fileSystem = new Mock<IFileSystem>();
 			_copies = new List<KeyValuePair<string, string>>();
-			_fileSystem.Setup(x => x.Copy(It.IsAny<string>(), It.IsAny<string>()))
+			_fileSystem.Setup(x => x.CopyFile(It.IsAny<string>(), It.IsAny<string>()))
 					   .Callback(
 						   (string source, string destination) => _copies.Add(new KeyValuePair<string, string>(source, destination)));
 

@@ -75,6 +75,12 @@
     <Compile Include="IFilesystem.cs" />
     <Compile Include="ListExtensions.cs" />
     <Compile Include="TaskEngine\CopyTask.cs" />
+    <Compile Include="TaskEngine\CscTask.cs" />
+    <Compile Include="TaskEngine\DeleteTask.cs" />
+    <Compile Include="TaskEngine\ErrorTask.cs" />
+    <Compile Include="TaskEngine\ITaskRunner.cs" />
+    <Compile Include="TaskEngine\MessageTask.cs" />
+    <Compile Include="TaskEngine\PropertyGroupTask.cs" />
     <Compile Include="TaskEngine\TaskEngine.cs" />
     <Compile Include="DomainModel\MSBuild\Copy.cs" />
     <Compile Include="DomainModel\MSBuild\Delete.cs" />
@@ -85,6 +91,7 @@
     <Compile Include="DomainModel\MSBuild\Task.cs" />
     <Compile Include="DomainModel\MSBuild\TaskItem.cs" />
     <Compile Include="DomainModel\MSBuild\Warning.cs" />
+    <Compile Include="TaskEngine\WarningTask.cs" />
     <Compile Include="Verbosity.cs" />
     <Compile Include="DomainModel\MSBuild\Target.cs" />
     <Compile Include="DomainModel\MSBuild\Targets.cs" />

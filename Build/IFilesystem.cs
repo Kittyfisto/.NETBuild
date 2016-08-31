@@ -23,6 +23,14 @@ namespace Build
 		/// <param name="destFileName"></param>
 		/// <exception cref="UnauthorizedAccessException"></exception>
 		/// <exception cref="IOException"></exception>
-		void Copy(string sourceFileName, string destFileName);
+		void CopyFile(string sourceFileName, string destFileName);
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="absoluteFile"></param>
+		/// <exception cref="UnauthorizedAccessException"></exception>
+		/// <exception cref="IOException"></exception>
+		void DeleteFile(string absoluteFile);
 	}
 }
