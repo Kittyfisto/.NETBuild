@@ -52,7 +52,7 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestEvaluate2()
 		{
-			var condition = " '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ";
+			const string condition = " '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ";
 			var environment = new BuildEnvironment
 				{
 					Properties =
@@ -183,6 +183,18 @@ namespace Build.Test.ExpressionEngine
 						                              }
 				                              })
 			       .Should().Be("Foo.exe.config");
+		}
+
+		[Test]
+		[Description("Verifies that item lists are evaluated to the item's full path")]
+		public void TestEvaluateConcatenation3()
+		{
+			var environment = new BuildEnvironment();
+			var item = new ProjectItem {Type = "Content", Include = "foo.cs"};
+			item[Metadatas.FullPath] = @"C:\snapshots\.NETBuild\foo.cs";
+			environment.Items.Add(item);
+			_engine.EvaluateConcatenation("@(Content)", environment)
+			       .Should().Be(@"C:\snapshots\.NETBuild\foo.cs");
 		}
 
 		#region Property Evaluation

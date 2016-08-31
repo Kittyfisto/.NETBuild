@@ -24,8 +24,18 @@
     </PropertyGroup>
   </Target>
 
+  <Target Name="ResolveReferences">
+    
+  </Target>
+  
   <Target Name="CoreBuild"
-          DependsOnTargets="DetermineOutputPaths">
+          DependsOnTargets="DetermineOutputPaths;ResolveReferences">
+
+    <!-- Prefer32Bit was introduced in .NET 4.5. Set it to false if we are targeting 4.0 -->
+    <PropertyGroup Condition="'$(TargetFrameworkVersion)' == 'v4.0'">
+      <Prefer32Bit>false</Prefer32Bit>
+    </PropertyGroup>
+
     <Csc
       AllowUnsafeBlocks="$(AllowUnsafeBlocks)"
       Prefer32Bit="$(Prefer32Bit)"

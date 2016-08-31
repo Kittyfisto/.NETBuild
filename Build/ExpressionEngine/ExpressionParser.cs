@@ -74,6 +74,8 @@ namespace Build.ExpressionEngine
 					successfullyParsed = true;
 				if (TryParseVariableReference(stack))
 					successfullyParsed = true;
+				if (TryParseItemListReference(stack))
+					successfullyParsed = true;
 				if (TryParseConcatenation(stack, consumeItemListSeparator: true))
 					successfullyParsed = true;
 			} while (stack.Count > 1 && successfullyParsed);

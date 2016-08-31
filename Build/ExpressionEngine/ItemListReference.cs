@@ -31,12 +31,7 @@ namespace Build.ExpressionEngine
 
 		public object Evaluate(IFileSystem fileSystem, BuildEnvironment environment)
 		{
-			throw new NotImplementedException();
-		}
-
-		public bool IsTrue(IFileSystem fileSystem, BuildEnvironment environment)
-		{
-			throw new NotImplementedException();
+			return ToString(fileSystem, environment);
 		}
 
 		public string ToString(IFileSystem fileSystem, BuildEnvironment environment)
@@ -44,11 +39,13 @@ namespace Build.ExpressionEngine
 			var items = new List<ProjectItem>();
 			ToItemList(fileSystem, environment, items);
 			var builder = new StringBuilder();
-			for(int i = 0; i < items.Count; ++i)
+			for (int i = 0; i < items.Count; ++i)
 			{
-				builder.Append(items[i].Include);
+				var item = items[i];
+				var fullpath = item[Metadatas.FullPath];
+				builder.Append(fullpath);
 				if (i < items.Count - 1)
-					builder.Append(';');
+					builder.Append(Tokenizer.ItemListSeparator);
 			}
 			return builder.ToString();
 		}

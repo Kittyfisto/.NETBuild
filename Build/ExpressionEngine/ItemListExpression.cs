@@ -68,11 +68,6 @@ namespace Build.ExpressionEngine
 			throw new NotImplementedException();
 		}
 
-		public bool IsTrue(IFileSystem fileSystem, BuildEnvironment environment)
-		{
-			throw new NotImplementedException();
-		}
-
 		public string ToString(IFileSystem fileSystem, BuildEnvironment environment)
 		{
 			throw new NotImplementedException();

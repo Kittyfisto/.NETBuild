@@ -147,7 +147,7 @@ namespace Build.Test.Parser
 		{
 			var path = @"Microsoft\Common.props";
 			var project = _parser.Parse(path);
-			project.Targets.Count.Should().Be(6);
+			project.Targets.Count.Should().Be(7);
 			var target = project.Targets[0];
 			target.Should().NotBeNull();
 			target.Name.Should().Be("DetermineOutputFileExtension");

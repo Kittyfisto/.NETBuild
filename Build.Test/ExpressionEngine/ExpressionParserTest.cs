@@ -335,6 +335,14 @@ namespace Build.Test.ExpressionEngine
 					));
 		}
 
+		[Test]
+		public void TestParseConcatenation11()
+		{
+			_parser.ParseConcatenation("@(Content)").Should().Be(
+				new ItemListReference("Content")
+				);
+		}
+
 		#endregion
 
 		#region Condition

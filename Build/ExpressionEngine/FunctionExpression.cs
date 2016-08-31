@@ -58,11 +58,6 @@ namespace Build.ExpressionEngine
 
 		public object Evaluate(IFileSystem fileSystem, BuildEnvironment environment)
 		{
-			return IsTrue(fileSystem, environment);
-		}
-
-		public bool IsTrue(IFileSystem fileSystem, BuildEnvironment environment)
-		{
 			var value = Parameter.ToString(fileSystem, environment);
 			switch (Operation)
 			{
