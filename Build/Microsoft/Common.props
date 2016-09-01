@@ -1,20 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Project DefaultTargets="Build">
-  <Target Name="DetermineOutputFileExtension">
+  <Target Name="SetupBuildEnvironment">
+
     <PropertyGroup Condition="$(OutputType) == 'Library'">
       <OutputFileExtension>.dll</OutputFileExtension>
     </PropertyGroup>
+
     <PropertyGroup Condition="$(OutputType) == 'Exe' OR $(OutputType) == 'Winexe'">
       <OutputFileExtension>.exe</OutputFileExtension>
     </PropertyGroup>
-  </Target>
 
-  <Target Name="DetermineOutputPaths"
-          DependsOnTargets="DetermineOutputFileExtension">
     <PropertyGroup>
       <OutputAssemblyName>$(AssemblyName)$(OutputFileExtension)</OutputAssemblyName>
       <OutputPdbName>$(AssemblyName).pdb</OutputPdbName>
-      
+
       <IntermediatePath>bin\$(Configuration)</IntermediatePath>
       <IntermediateAssembly>$(IntermediatePath)\$(OutputAssemblyName)</IntermediateAssembly>
       <IntermediatePdb>$(IntermediatePath)\$(OutputPdbName)</IntermediatePdb>
@@ -24,18 +23,43 @@
     </PropertyGroup>
   </Target>
 
+  <Target Name="PreBuildEvent">
+    <Exec WorkingDirectory="$(OutDir)" Command="$(PreBuildEvent)" />
+  </Target>
+
+  <Target Name="PostBuildEvent">
+    <Exec WorkingDirectory="$(OutDir)" Command="$(PostBuildEvent)" />
+  </Target>
+
+  <!-- Extension point for users -->
+  <Target Name="BeforeBuild">
+    
+  </Target>
+
   <Target Name="ResolveReferences">
     
   </Target>
   
   <Target Name="CoreBuild"
-          DependsOnTargets="DetermineOutputPaths;ResolveReferences">
+          DependsOnTargets="DetermineOutputPaths;ResolveReferences;BeforeBuild;PreBuildEvent">
 
-    <!-- Prefer32Bit was introduced in .NET 4.5. Set it to false if we are targeting 4.0 -->
-    <PropertyGroup Condition="'$(TargetFrameworkVersion)' == 'v4.0'">
-      <Prefer32Bit>false</Prefer32Bit>
+    <PropertyGroup>
+      <AllowUnsafeBlocks Condition="'$(AllowUnsafeBlocks)' == ''">false</AllowUnsafeBlocks>
+      <DebugSymbols Condition="'$(DebugSymbols)' == ''">true</DebugSymbols>
+      <Optimize Condition="'$(Optimize)' == ''">true</Optimize>
+      <NoLogo Condition="'$(NoLogo)' == ''">true</NoLogo>
+      <PlatformTarget Condition="'$(platformTarget)' == ''">AnyCPU</PlatformTarget>
+      <ErrorEndLocation Condition="'$(ErrorEndLocation)' == ''">true</ErrorEndLocation>
+      <HighEntropyVA Condition="'$(HighEntropyVA)' == ''">true</HighEntropyVA>
+      
+      <!-- Prefer32Bit was introduced in .NET 4.5. Set it to false if we are targeting 4.0 -->
+      <Prefer32Bit Condition="'$(TargetFrameworkVersion)' == 'v4.0'">false</Prefer32Bit>
     </PropertyGroup>
 
+    <PropertyGroup>
+      <Prefer32Bit Condition="'$(Prefer32Bit)' == ''">true</Prefer32Bit>
+    </PropertyGroup>
+    
     <Csc
       AllowUnsafeBlocks="$(AllowUnsafeBlocks)"
       Prefer32Bit="$(Prefer32Bit)"
@@ -57,30 +81,50 @@
       Optimize="$(Optimize)"
       OutputAssembly="$(IntermediateAssembly)"
       PdbFile="$(IntermediatePdb)"
+      Platform="$(PlatformTarget)"
+      TargetType="$(OutputType)"
+      TreatWarningsAsErrors="$(TreatWarningsAsErrors)"
+      Utf8Output="$(Utf8Output)"
+      WarningLevel="$(WarningLevel)"
+      WarningsAsErrors="$(WarningsAsErrors)"
+      Win32Icon="$(ApplicationIcon)"
       />
   </Target>
 
   <Target Name="CopyAppConfigFile"
-          DependsOnTargets="CoreBuild"
           Condition="Exists('app.config')"
           Inputs="app.config"
           Output="$(OutputPath)\$(OutputFileName).config"
+          DependsOnTargets="SetupBuildEnvironment"
           >
     <Copy SourceFiles="app.config"
           DestinationFiles="$(OutputPath)\$(OutputAssemblyName).config" />
   </Target>
 
-  <Target Name="CopyFilesToOutputDirectory"
-          DependsOnTargets="CoreBuild">
-
+  <Target Name="CopyFilesToOutputDirectory">
     <Copy SourceFiles="$(IntermediateAssembly)" DestinationFiles="$(OutputAssembly)" />
     <Message Importance="Normal" Text="Build -> $(MSBuildProjectDirectory)\$(OutputFilePath)" />
     <Copy SourceFiles="$(IntermediatePdb)" DestinationFiles="$(OutputPdb)"
           Condition="Exists($(IntermediatePdb))" />
   </Target>
 
+  <!-- The total order of targets that are executed in order to build one project -->
+  <PropertyGroup>
+    <BuildDependsOn>
+      SetupBuildEnvironment;
+      BeforeBuild;
+      PreBuildEvent;
+      ResolveReferences;
+      CoreBuild;
+      CopyAppConfigFile;
+      CopyFilesToOutputDirectory;
+      PostBuildEvent;
+      AfterBuild;
+    </BuildDependsOn>
+  </PropertyGroup>
+
   <Target Name="Build"
-          DependsOnTargets="CopyFilesToOutputDirectory;CopyAppConfigFile">
+          DependsOnTargets="$(BuildDependsOn)">
     <Message Importance="High" Text="Build Succeeded." />
   </Target>
 

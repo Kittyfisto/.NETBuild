@@ -64,6 +64,7 @@
     <Compile Include="BuildEngine\Tasks\Copy.cs" />
     <Compile Include="BuildEngine\Tasks\CopyFileTask.cs" />
     <Compile Include="DomainModel\MSBuild\Csc.cs" />
+    <Compile Include="DomainModel\MSBuild\Exec.cs" />
     <Compile Include="EvaluationException.cs" />
     <Compile Include="ExpressionEngine\Expression.cs" />
     <Compile Include="ExpressionEngine\ExpressionOptimizer.cs" />
@@ -78,9 +79,11 @@
     <Compile Include="TaskEngine\CscTask.cs" />
     <Compile Include="TaskEngine\DeleteTask.cs" />
     <Compile Include="TaskEngine\ErrorTask.cs" />
+    <Compile Include="TaskEngine\ExecTask.cs" />
     <Compile Include="TaskEngine\ITaskRunner.cs" />
     <Compile Include="TaskEngine\MessageTask.cs" />
     <Compile Include="TaskEngine\PropertyGroupTask.cs" />
+    <Compile Include="TaskEngine\TargetStack.cs" />
     <Compile Include="TaskEngine\TaskEngine.cs" />
     <Compile Include="DomainModel\MSBuild\Copy.cs" />
     <Compile Include="DomainModel\MSBuild\Delete.cs" />
@@ -153,9 +156,14 @@
   <ItemGroup>
     <None Include="Microsoft\Common.props">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

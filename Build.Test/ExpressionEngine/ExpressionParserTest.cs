@@ -343,6 +343,12 @@ namespace Build.Test.ExpressionEngine
 				);
 		}
 
+		[Test]
+		public void TestParseConcatenation12()
+		{
+			_parser.ParseConcatenation(null).Should().Be(StringLiteral.Empty);
+		}
+
 		#endregion
 
 		#region Condition

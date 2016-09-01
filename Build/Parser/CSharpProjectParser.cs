@@ -144,6 +144,10 @@ namespace Build.Parser
 							target.Children.Add(ReadCsc(innerReader));
 							break;
 
+						case "Exec":
+							target.Children.Add(ReadExec(innerReader));
+							break;
+
 						default:
 							throw new ParseException(string.Format("Unsupported node: '{0}'", innerReader.Name));
 					}
@@ -153,6 +157,38 @@ namespace Build.Parser
 			}
 
 			return target;
+		}
+
+		private static Node ReadExec(XmlReader reader)
+		{
+			var task = new Exec();
+			for (int i = 0; i < reader.AttributeCount; ++i)
+			{
+				reader.MoveToAttribute(i);
+				switch (reader.Name)
+				{
+					case "Condition":
+						task.Condition = reader.Value;
+						break;
+					case "Command":
+						task.Command = reader.Value;
+						break;
+					case "IgnoreExitCode":
+						task.IgnoreExitCode = reader.Value;
+						break;
+					case "IgnoreStandardErrorWarningFormat":
+						task.IgnoreStandardErrorWarningFormat = reader.Value;
+						break;
+					case "WorkingDirectory":
+						task.WorkingDirectory = reader.Value;
+						break;
+					default:
+						throw new ParseException(string.Format("Unknown attribute \"{0}\" on Exec element",
+															   reader.Name));
+				}
+			}
+
+			return task;
 		}
 
 		private static Node ReadCsc(XmlReader reader)
@@ -166,12 +202,8 @@ namespace Build.Parser
 					case "Condition":
 						task.Condition = reader.Value;
 						break;
-
 					case "AllowUnsafeBlocks":
 						task.AllowUnsafeBlocks = reader.Value;
-						break;
-					case "Prefer32Bit":
-						task.Prefer32Bit = reader.Value;
 						break;
 					case "BaseAddress":
 						task.BaseAddress = reader.Value;
@@ -226,6 +258,45 @@ namespace Build.Parser
 						break;
 					case "PdbFile":
 						task.PdbFile = reader.Value;
+						break;
+					case "Platform":
+						task.Platform = reader.Value;
+						break;
+					case "Prefer32Bit":
+						task.Prefer32Bit = reader.Value;
+						break;
+					case "PreferredUILang":
+						task.PreferredUILang = reader.Value;
+						break;
+					case "References":
+						task.References = reader.Value;
+						break;
+					case "TargetType":
+						task.TargetType = reader.Value;
+						break;
+					case "TreatWarningsAsErrors":
+						task.TreatWarningsAsErrors = reader.Value;
+						break;
+					case "Utf8Output":
+						task.Utf8Output = reader.Value;
+						break;
+					case "WarningLevel":
+						task.WarningLevel = reader.Value;
+						break;
+					case "WarningsAsErrors":
+						task.WarningsAsErrors = reader.Value;
+						break;
+					case "Win32Icon":
+						task.Win32Icon = reader.Value;
+						break;
+					case "Resources":
+						task.Resources = reader.Value;
+						break;
+					case "Sources":
+						task.Sources = reader.Value;
+						break;
+					case "SubsystemVersion":
+						task.SubsystemVersion = reader.Value;
 						break;
 					default:
 						throw new ParseException(string.Format("Unknown attribute \"{0}\" on Csc element",

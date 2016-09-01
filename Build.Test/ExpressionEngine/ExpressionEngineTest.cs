@@ -94,6 +94,12 @@ namespace Build.Test.ExpressionEngine
 		}
 
 		[Test]
+		public void TestEvaluateExpression()
+		{
+			_engine.EvaluateExpression(null, new BuildEnvironment()).Should().Be(string.Empty);
+		}
+
+		[Test]
 		public void TestIsTrue1()
 		{
 			_engine.EvaluateCondition("true == true", new BuildEnvironment()).Should().BeTrue();

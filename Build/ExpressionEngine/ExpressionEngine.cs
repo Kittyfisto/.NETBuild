@@ -210,6 +210,7 @@ namespace Build.ExpressionEngine
 			return value;
 		}
 
+		[Pure]
 		public string EvaluateExpression(string expression, BuildEnvironment environment)
 		{
 			var expr = _parser.ParseConcatenation(expression);
@@ -217,6 +218,7 @@ namespace Build.ExpressionEngine
 			return value != null ? value.ToString() : string.Empty;
 		}
 
+		[Pure]
 		public string EvaluateConcatenation(string expression, BuildEnvironment environment)
 		{
 			if (string.IsNullOrWhiteSpace(expression))
@@ -227,6 +229,7 @@ namespace Build.ExpressionEngine
 			return value != null ? value.ToString() : string.Empty;
 		}
 
+		[Pure]
 		public string Expand(string value, BuildEnvironment environment)
 		{
 			var evaluated = EvaluateConcatenation(value, environment);

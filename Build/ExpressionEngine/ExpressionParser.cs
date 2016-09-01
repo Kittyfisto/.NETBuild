@@ -57,6 +57,9 @@ namespace Build.ExpressionEngine
 
 		public IExpression ParseConcatenation(string expression)
 		{
+			if (string.IsNullOrEmpty(expression))
+				return StringLiteral.Empty;
+
 			// This is much simpler since we don't interpret general expressions
 			// in string concatenation: We only replace property values..
 			List<Token> tokens = _tokenizer.Tokenize(expression);

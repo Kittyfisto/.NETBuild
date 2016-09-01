@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
+using Build.ExpressionEngine;
 using Node = Build.DomainModel.MSBuild.Node;
 
 namespace Build.TaskEngine
@@ -19,6 +20,7 @@ namespace Build.TaskEngine
 		private readonly Project _project;
 		private readonly string _target;
 		private readonly Dictionary<Type, ITaskRunner> _taskRunners;
+		private readonly Dictionary<string, Target> _availableTargets;
 
 		public TaskEngine(ExpressionEngine.ExpressionEngine expressionEngine,
 		                  IFileSystem fileSystem,
@@ -45,6 +47,12 @@ namespace Build.TaskEngine
 			_environment = environment;
 			_logger = logger;
 
+			_availableTargets = new Dictionary<string, Target>(_project.Targets.Count);
+			foreach (var t in _project.Targets)
+			{
+				_availableTargets.Add(t.Name, t);
+			}
+
 			_taskRunners = new Dictionary<Type, ITaskRunner>
 				{
 					{typeof (PropertyGroup), new PropertyGroupTask(_expressionEngine, _logger, _environment)},
@@ -53,59 +61,65 @@ namespace Build.TaskEngine
 					{typeof (Error), new MessageTask(_expressionEngine, _logger, _environment)},
 					{typeof (Copy), new CopyTask(_expressionEngine, _fileSystem, _logger, _environment)},
 					{typeof (Delete), new DeleteTask(_expressionEngine, _fileSystem, _logger, _environment)},
-					{typeof (Csc), new CscTask(_expressionEngine, _fileSystem, _logger, _environment)}
+					{typeof (Csc), new CscTask(_expressionEngine, _fileSystem, _logger, _environment)},
+					{typeof(Exec), new ExecTask(_expressionEngine, _fileSystem, _logger, _environment)}
 				};
+		}
+
+		private List<Target> TryFindTargets(string expression)
+		{
+			var targetNames = _expressionEngine.EvaluateExpression(expression, _environment)
+											   .Split(new[] { Tokenizer.ItemListSeparator }, StringSplitOptions.RemoveEmptyEntries);
+			var targets = new List<Target>(targetNames.Length);
+			for (int i = 0; i < targetNames.Length; ++i)
+			{
+				var name = targetNames[i];
+				Target target;
+				if (!_availableTargets.TryGetValue(name, out target))
+				{
+					_logger.WriteWarning("No such target \"{0}\"", name);
+				}
+				else
+				{
+					targets.Add(target);
+				}
+			}
+			return targets;
 		}
 
 		public void Run()
 		{
-			//
-			// #1: Serialize list of targets that shall be executed.
-			//
-
-			var allTargets = new Dictionary<string, Target>();
-			foreach (Target target in _project.Targets)
+			var executedTargets = new HashSet<Target>();
+			var pendingTargets = new TargetStack();
+			var targets = TryFindTargets(_target);
+			targets.Reverse();
+			foreach (var pendingTarget in targets)
 			{
-				allTargets.Add(target.Name, target);
+				if (pendingTarget != null)
+					pendingTargets.Push(pendingTarget);
 			}
 
-			var targetOrder = new List<Target>();
-
-			var pendingTargets = new Stack<string>();
-			pendingTargets.Push(_target);
 			while (pendingTargets.Count > 0)
 			{
-				string targetName = pendingTargets.Pop();
-				Target target;
-				if (!allTargets.TryGetValue(targetName, out target))
+				var targetToBeExecuted = pendingTargets.Peek();
+				var dependingTargets = TryFindTargets(targetToBeExecuted.DependsOnTargets);
+				bool requirementsSatisfied = true;
+				foreach (var target in dependingTargets)
 				{
-					_logger.WriteWarning("No such target \"{0}\"", targetName);
-					continue;
-				}
-
-				targetOrder.Add(target);
-
-				string dependsOn = target.DependsOnTargets;
-				if (dependsOn != null)
-				{
-					string[] targets = dependsOn.Split(';');
-					foreach (string name in targets)
+					if (!executedTargets.Contains(target))
 					{
-						pendingTargets.Push(name);
+						pendingTargets.TryPush(target);
+						requirementsSatisfied = false;
+						break;
 					}
 				}
-			}
 
-			targetOrder.Reverse();
-
-
-			//
-			// #2: Execute targets one by one
-			//
-
-			foreach (Target target in targetOrder)
-			{
-				Run(target);
+				if (requirementsSatisfied)
+				{
+					pendingTargets.Pop();
+					Run(targetToBeExecuted);
+					executedTargets.Add(targetToBeExecuted);
+				}
 			}
 		}
 

@@ -147,11 +147,11 @@ namespace Build.Test.Parser
 		{
 			var path = @"Microsoft\Common.props";
 			var project = _parser.Parse(path);
-			project.Targets.Count.Should().Be(7);
+			project.Targets.Count.Should().Be(9);
 			var target = project.Targets[0];
 			target.Should().NotBeNull();
-			target.Name.Should().Be("DetermineOutputFileExtension");
-			target.Children.Count.Should().Be(2);
+			target.Name.Should().Be("SetupBuildEnvironment");
+			target.Children.Count.Should().Be(3);
 			target.Children[0].Should().BeOfType<PropertyGroup>();
 			var group = (PropertyGroup)target.Children[0];
 			group.Should().NotBeNull();
