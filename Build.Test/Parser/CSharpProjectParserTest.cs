@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 using Build.ExpressionEngine;
 using Build.Parser;
@@ -145,8 +146,8 @@ namespace Build.Test.Parser
 		[Test]
 		public void TestParse3()
 		{
-			var path = @"Microsoft\Common.props";
-			var project = _parser.Parse(path);
+			var stream = typeof(BuildEnvironment).Assembly.GetManifestResourceStream("Build.Microsoft.Common.props");
+			var project = _parser.Parse(stream, "Common.props");
 			project.Targets.Count.Should().Be(9);
 			var target = project.Targets[0];
 			target.Should().NotBeNull();

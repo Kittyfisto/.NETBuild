@@ -25,19 +25,42 @@ namespace Build.Parser
 		private CSharpProjectParser()
 		{}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="filePath"></param>
+		/// <returns></returns>
 		[Pure]
 		public Project Parse(string filePath)
 		{
 			using (var stream = File.OpenRead(filePath))
+			{
+				return Parse(stream, filePath);
+			}
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="stream"></param>
+		/// <param name="filePath"></param>
+		/// <returns></returns>
+		public Project Parse(Stream stream, string filePath)
+		{
+			if (stream == null)
+				throw new ArgumentNullException("stream");
+			if (filePath == null)
+				throw new ArgumentNullException("filePath");
+
 			using (var reader = XmlReader.Create(stream))
 			{
 				if (!reader.ReadToDescendant("Project"))
 					throw new NotImplementedException();
 
 				var project = new Project
-					{
-						Filename = filePath
-					};
+				{
+					Filename = filePath
+				};
 				ReadProject(reader.ReadSubtree(), project);
 				return project;
 			}

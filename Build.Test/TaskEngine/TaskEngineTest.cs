@@ -82,7 +82,8 @@ namespace Build.Test.TaskEngine
 		[Test]
 		public void TestCopyAppConfigFile()
 		{
-			var project = _parser.Parse(@"Microsoft\common.props");
+			var stream = typeof (BuildEnvironment).Assembly.GetManifestResourceStream("Build.Microsoft.Common.props");
+			var project = _parser.Parse(stream, "Common.props");
 			var environment = new BuildEnvironment
 				{
 					Properties =
