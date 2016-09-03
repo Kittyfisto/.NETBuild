@@ -12,12 +12,12 @@ namespace Build.Test.Parser
 	[TestFixture]
 	public sealed class CSharpProjectParserTest
 	{
-		private CSharpProjectParser _parser;
+		private ProjectParser _parser;
 
 		[SetUp]
 		public void SetUp()
 		{
-			_parser = CSharpProjectParser.Instance;
+			_parser = ProjectParser.Instance;
 		}
 
 		[Test]
@@ -148,7 +148,7 @@ namespace Build.Test.Parser
 		{
 			var stream = typeof(BuildEnvironment).Assembly.GetManifestResourceStream("Build.Microsoft.Common.props");
 			var project = _parser.Parse(stream, "Common.props");
-			project.Targets.Count.Should().Be(9);
+			project.Targets.Count.Should().Be(10);
 			var target = project.Targets[0];
 			target.Should().NotBeNull();
 			target.Name.Should().Be("SetupBuildEnvironment");

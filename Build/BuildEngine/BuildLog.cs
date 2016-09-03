@@ -21,6 +21,10 @@ namespace Build.BuildEngine
 		private readonly StreamWriter _writer;
 		private int _loggerId;
 
+		public BuildLog()
+			: this(new Arguments())
+		{}
+
 		public BuildLog(Arguments arguments)
 		{
 			_arguments = arguments;

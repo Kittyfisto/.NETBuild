@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
+using System.IO;
 using Build.BuildEngine;
 using Build.BuildEngine.Tasks.Compilers;
 using Build.Parser;
@@ -17,7 +19,7 @@ namespace Build.Test.BuildEngine.Tasks.Compilers
 		{
 			var filepath = TestPath.Get(@"TestData\CSharp\HelloWorld\HelloWorld.csproj");
 			var environment = new BuildEnvironment();
-			var project = ExpressionEngine.Evaluate(CSharpProjectParser.Instance.Parse(filepath), environment);
+			var project = ExpressionEngine.Evaluate(ProjectParser.Instance.Parse(filepath), environment);
 
 			Clean(@"TestData\CSharp\HelloWorld\bin\Debug\");
 
@@ -33,5 +35,6 @@ namespace Build.Test.BuildEngine.Tasks.Compilers
 			exitCode.Should().Be(0);
 			output.Should().Be("Hello World!");
 		}
+
 	}
 }

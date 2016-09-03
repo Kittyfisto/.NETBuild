@@ -2,6 +2,11 @@
 {
 	public interface ILogger
 	{
+		/// <summary>
+		///     Tests if any error has been logged already.
+		/// </summary>
+		bool HasErrors { get; }
+
 		void WriteLine(Verbosity verbosity, string format, params object[] arguments);
 		void WriteMultiLine(Verbosity verbosity, string message);
 

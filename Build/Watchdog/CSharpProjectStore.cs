@@ -8,7 +8,7 @@ namespace Build.Watchdog
 		: FileStore<Project>
 	{
 		public CSharpProjectStore()
-			: base(CSharpProjectParser.Instance)
+			: base(ProjectParser.Instance)
 		{}
 
 		public IReadOnlyDictionary<string, Project> CreateProjects()

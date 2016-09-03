@@ -21,9 +21,10 @@ namespace Build
 		/// </summary>
 		/// <param name="sourceFileName"></param>
 		/// <param name="destFileName"></param>
+		/// <param name="overwrite"></param>
 		/// <exception cref="UnauthorizedAccessException"></exception>
 		/// <exception cref="IOException"></exception>
-		void CopyFile(string sourceFileName, string destFileName);
+		void CopyFile(string sourceFileName, string destFileName, bool overwrite);
 
 		/// <summary>
 		/// 
@@ -32,5 +33,11 @@ namespace Build
 		/// <exception cref="UnauthorizedAccessException"></exception>
 		/// <exception cref="IOException"></exception>
 		void DeleteFile(string absoluteFile);
+
+		/// <summary>
+		/// Creates the given directory if it doesn't exist already.
+		/// </summary>
+		/// <param name="directoryPath"></param>
+		void CreateDirectory(string directoryPath);
 	}
 }

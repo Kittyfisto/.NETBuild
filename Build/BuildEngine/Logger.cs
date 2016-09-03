@@ -24,6 +24,11 @@ namespace Build.BuildEngine
 			_errors = new List<string>();
 		}
 
+		public bool HasErrors
+		{
+			get { return _errors.Count > 0; }
+		}
+
 		public void WriteLine(Verbosity verbosity, string format, params object[] arguments)
 		{
 			_buildLog.WriteLine(verbosity, _id, format, arguments);

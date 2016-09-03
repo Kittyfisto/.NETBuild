@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 using Build.ExpressionEngine;
+using Build.Parser;
+using Build.TaskEngine.Tasks;
 using Node = Build.DomainModel.MSBuild.Node;
 
 namespace Build.TaskEngine
@@ -13,87 +16,103 @@ namespace Build.TaskEngine
 	/// </summary>
 	public sealed class TaskEngine
 	{
-		private readonly BuildEnvironment _environment;
+		private readonly IBuildLog _buildLog;
+		private readonly Project _buildScript;
 		private readonly ExpressionEngine.ExpressionEngine _expressionEngine;
 		private readonly IFileSystem _fileSystem;
-		private readonly ILogger _logger;
-		private readonly Project _project;
-		private readonly string _target;
 		private readonly Dictionary<Type, ITaskRunner> _taskRunners;
-		private readonly Dictionary<string, Target> _availableTargets;
 
 		public TaskEngine(ExpressionEngine.ExpressionEngine expressionEngine,
 		                  IFileSystem fileSystem,
-		                  Project project,
-		                  string target,
-		                  BuildEnvironment environment,
-		                  ILogger logger)
+		                  IBuildLog buildLog)
 		{
 			if (expressionEngine == null)
 				throw new ArgumentNullException("expressionEngine");
 			if (fileSystem == null)
 				throw new ArgumentNullException("fileSystem");
-			if (project == null)
-				throw new ArgumentNullException("project");
-			if (environment == null)
-				throw new ArgumentNullException("environment");
-			if (logger == null)
-				throw new ArgumentNullException("logger");
+			if (buildLog == null)
+				throw new ArgumentNullException("buildLog");
 
 			_expressionEngine = expressionEngine;
 			_fileSystem = fileSystem;
-			_project = project;
-			_target = target;
-			_environment = environment;
-			_logger = logger;
-
-			_availableTargets = new Dictionary<string, Target>(_project.Targets.Count);
-			foreach (var t in _project.Targets)
-			{
-				_availableTargets.Add(t.Name, t);
-			}
+			_buildLog = buildLog;
+			_buildScript = LoadBuildScript();
 
 			_taskRunners = new Dictionary<Type, ITaskRunner>
 				{
-					{typeof (PropertyGroup), new PropertyGroupTask(_expressionEngine, _logger, _environment)},
-					{typeof (Message), new MessageTask(_expressionEngine, _logger, _environment)},
-					{typeof (Warning), new WarningTask(_expressionEngine, _logger, _environment)},
-					{typeof (Error), new MessageTask(_expressionEngine, _logger, _environment)},
-					{typeof (Copy), new CopyTask(_expressionEngine, _fileSystem, _logger, _environment)},
-					{typeof (Delete), new DeleteTask(_expressionEngine, _fileSystem, _logger, _environment)},
-					{typeof (Csc), new CscTask(_expressionEngine, _fileSystem, _logger, _environment)},
-					{typeof(Exec), new ExecTask(_expressionEngine, _fileSystem, _logger, _environment)}
+					{typeof (PropertyGroup), new PropertyGroupTask(_expressionEngine)},
+					{typeof (Message), new MessageTask(_expressionEngine)},
+					{typeof (Warning), new WarningTask(_expressionEngine)},
+					{typeof (Error), new ErrorTask(_expressionEngine)},
+					{typeof (Copy), new CopyTask(_expressionEngine, _fileSystem)},
+					{typeof (Delete), new DeleteTask(_expressionEngine, _fileSystem)},
+					{typeof (Csc), new CscTask(_expressionEngine, _fileSystem)},
+					{typeof (Exec), new ExecTask(_expressionEngine, _fileSystem)}
 				};
 		}
 
-		private List<Target> TryFindTargets(string expression)
+		private Project LoadBuildScript()
 		{
-			var targetNames = _expressionEngine.EvaluateExpression(expression, _environment)
-											   .Split(new[] { Tokenizer.ItemListSeparator }, StringSplitOptions.RemoveEmptyEntries);
+			Stream stream = typeof (BuildEnvironment).Assembly.GetManifestResourceStream("Build.Microsoft.Common.props");
+			Project project = ProjectParser.Instance.Parse(stream, "Common.props");
+			return project;
+		}
+
+		private List<Target> TryFindTargets(
+			BuildEnvironment environment,
+			ILogger logger,
+			IReadOnlyDictionary<string, Target> availableTargets,
+			string expression)
+		{
+			string[] targetNames = _expressionEngine.EvaluateExpression(expression, environment)
+			                                        .Split(new[] {Tokenizer.ItemListSeparator},
+			                                               StringSplitOptions.RemoveEmptyEntries);
 			var targets = new List<Target>(targetNames.Length);
 			for (int i = 0; i < targetNames.Length; ++i)
 			{
-				var name = targetNames[i];
-				Target target;
-				if (!_availableTargets.TryGetValue(name, out target))
+				string name = targetNames[i].Trim();
+				if (!string.IsNullOrEmpty(name))
 				{
-					_logger.WriteWarning("No such target \"{0}\"", name);
-				}
-				else
-				{
-					targets.Add(target);
+					Target target;
+					if (!availableTargets.TryGetValue(name, out target))
+					{
+						logger.WriteWarning("No such target \"{0}\"", name);
+					}
+					else
+					{
+						targets.Add(target);
+					}
 				}
 			}
 			return targets;
 		}
 
-		public void Run()
+		public void Run(Project project,
+		                string target,
+		                BuildEnvironment environment)
 		{
+			if (project == null)
+				throw new ArgumentNullException("project");
+			if (environment == null)
+				throw new ArgumentNullException("environment");
+
+			// Let's inject our custom build script (we ignore the one from MSBuild)
+			project = project.Merged(_buildScript);
+			// Now we can start evaluating the project
+			_expressionEngine.Evaluate(project, environment);
+
+			ILogger logger = _buildLog.CreateLogger();
+			var availableTargets = new Dictionary<string, Target>(project.Targets.Count);
+			foreach (Target t in project.Targets)
+			{
+				availableTargets.Add(t.Name, t);
+			}
+
 			var executedTargets = new HashSet<Target>();
 			var pendingTargets = new TargetStack();
-			var targets = TryFindTargets(_target);
+			List<Target> targets = TryFindTargets(environment, logger, availableTargets, target);
 			targets.Reverse();
-			foreach (var pendingTarget in targets)
+			foreach (Target pendingTarget in targets)
 			{
 				if (pendingTarget != null)
 					pendingTargets.Push(pendingTarget);
@@ -101,14 +120,15 @@ namespace Build.TaskEngine
 
 			while (pendingTargets.Count > 0)
 			{
-				var targetToBeExecuted = pendingTargets.Peek();
-				var dependingTargets = TryFindTargets(targetToBeExecuted.DependsOnTargets);
+				Target targetToBeExecuted = pendingTargets.Peek();
+				List<Target> dependingTargets = TryFindTargets(environment, logger, availableTargets,
+				                                               targetToBeExecuted.DependsOnTargets);
 				bool requirementsSatisfied = true;
-				foreach (var target in dependingTargets)
+				foreach (Target dependency in dependingTargets)
 				{
-					if (!executedTargets.Contains(target))
+					if (!executedTargets.Contains(dependency))
 					{
-						pendingTargets.TryPush(target);
+						pendingTargets.TryPush(dependency);
 						requirementsSatisfied = false;
 						break;
 					}
@@ -117,64 +137,73 @@ namespace Build.TaskEngine
 				if (requirementsSatisfied)
 				{
 					pendingTargets.Pop();
-					Run(targetToBeExecuted);
+
+					Run(environment, targetToBeExecuted, logger);
+					if (logger.HasErrors)
+						break;
+
 					executedTargets.Add(targetToBeExecuted);
 				}
 			}
 		}
 
-		public void Run(Target target)
+		public void Run(BuildEnvironment environment, Target target, ILogger logger)
 		{
 			if (target == null)
 				throw new ArgumentNullException("target");
 
 			if (target.Condition != null)
 			{
-				if (!_expressionEngine.EvaluateCondition(target.Condition, _environment))
+				if (!_expressionEngine.EvaluateCondition(target.Condition, environment))
 				{
-					_logger.WriteLine(Verbosity.Diagnostic, "  Skipping target \"{0}\" because {1} does not evaluate to true",
-					                  target.Name,
-					                  target.Condition);
+					logger.WriteLine(Verbosity.Diagnostic, "  Skipping target \"{0}\" because {1} does not evaluate to true",
+					                 target.Name,
+					                 target.Condition);
 					return;
 				}
 			}
 
-			target.Inputs = _expressionEngine.EvaluateConcatenation(target.Inputs, _environment);
-			target.Output = _expressionEngine.EvaluateConcatenation(target.Output, _environment);
-			if (IsUpToDate(target))
+			target.Inputs = _expressionEngine.EvaluateConcatenation(target.Inputs, environment);
+			target.Output = _expressionEngine.EvaluateConcatenation(target.Output, environment);
+			if (IsUpToDate(environment, target))
 			{
-				_logger.WriteLine(Verbosity.Normal,
-				                  "  Skipping target \"{0}\" because it's inputs are up-to-date with respect to its outputs",
-				                  target.Name);
+				logger.WriteLine(Verbosity.Normal,
+				                 "  Skipping target \"{0}\" because it's inputs are up-to-date with respect to its outputs",
+				                 target.Name);
 			}
 
-			_logger.WriteLine(Verbosity.Normal, "{0}:", target.Name);
+			logger.WriteLine(Verbosity.Normal, "{0}:", target.Name);
 
 			foreach (Node node in target.Children)
 			{
-				Run(node);
+				Run(environment, node, logger);
+
+				if (logger.HasErrors)
+				{
+					break;
+				}
 			}
 		}
 
-		private bool IsUpToDate(Target target)
+		private bool IsUpToDate(BuildEnvironment environment, Target target)
 		{
 			// TODO:
 			return false;
 		}
 
-		public void Run(Node task)
+		public void Run(BuildEnvironment environment, Node task, ILogger logger)
 		{
 			if (task == null)
 				throw new ArgumentNullException("task");
 
-			var condition = task.Condition;
+			string condition = task.Condition;
 			if (condition != null)
 			{
-				if (!_expressionEngine.EvaluateCondition(condition, _environment))
+				if (!_expressionEngine.EvaluateCondition(condition, environment))
 				{
-					_logger.WriteLine(Verbosity.Diagnostic, "  Skipping task \"{0}\" because {1} does not evaluate to true",
-					                  task.GetType().Name,
-					                  condition);
+					logger.WriteLine(Verbosity.Diagnostic, "  Skipping task \"{0}\" because {1} does not evaluate to true",
+					                 task.GetType().Name,
+					                 condition);
 					return;
 				}
 			}
@@ -185,7 +214,7 @@ namespace Build.TaskEngine
 				throw new BuildException(string.Format("Unknown task: {0}", task.GetType()));
 			}
 
-			taskRunner.Run(task);
+			taskRunner.Run(environment, task, logger);
 		}
 	}
 }

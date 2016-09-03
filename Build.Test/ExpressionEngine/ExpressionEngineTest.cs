@@ -558,7 +558,7 @@ namespace Build.Test.ExpressionEngine
 		public void TestEaluateProject3()
 		{
 			const string fname = @"..\..\Build.Test.csproj";
-			var project = CSharpProjectParser.Instance.Parse(fname);
+			var project = ProjectParser.Instance.Parse(fname);
 			var envirnoment = new BuildEnvironment();
 			_engine.Evaluate(project, envirnoment);
 

@@ -18,7 +18,7 @@ namespace Build.Test.BuildEngine.Tasks.Compilers
 		{
 			var filepath = TestPath.Get(@"TestData\CSharp\EmbeddedResource\EmbeddedResource.csproj");
 			var environment = new BuildEnvironment();
-			var project = ExpressionEngine.Evaluate(CSharpProjectParser.Instance.Parse(filepath), environment);
+			var project = ExpressionEngine.Evaluate(ProjectParser.Instance.Parse(filepath), environment);
 
 			Clean(@"TestData\CSharp\EmbeddedResource\bin\Debug\");
 

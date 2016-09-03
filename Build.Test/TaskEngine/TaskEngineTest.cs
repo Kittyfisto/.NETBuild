@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 using Build.Parser;
@@ -14,24 +13,25 @@ namespace Build.Test.TaskEngine
 	public sealed class TaskEngineTest
 	{
 		private Build.ExpressionEngine.ExpressionEngine _expressionEngine;
-		private CSharpProjectParser _parser;
+		private ProjectParser _parser;
 		private Mock<ILogger> _logger;
 		private List<string> _messages;
 		private Mock<IFileSystem> _fileSystem;
 		private List<KeyValuePair<string, string>> _copies;
+		private Build.TaskEngine.TaskEngine _engine;
 
 		[TestFixtureSetUp]
 		public void TestFixtureSetUp()
 		{
 			_fileSystem = new Mock<IFileSystem>();
 			_copies = new List<KeyValuePair<string, string>>();
-			_fileSystem.Setup(x => x.CopyFile(It.IsAny<string>(), It.IsAny<string>()))
+			_fileSystem.Setup(x => x.CopyFile(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()))
 					   .Callback(
-						   (string source, string destination) => _copies.Add(new KeyValuePair<string, string>(source, destination)));
+						   (string source, string destination, bool unused) => _copies.Add(new KeyValuePair<string, string>(source, destination)));
 
 			_expressionEngine = new Build.ExpressionEngine.ExpressionEngine(_fileSystem.Object);
 
-			_parser = CSharpProjectParser.Instance;
+			_parser = ProjectParser.Instance;
 			_logger = new Mock<ILogger>();
 			_messages = new List<string>();
 			_logger.Setup(x => x.WriteLine(It.IsAny<Verbosity>(), It.IsAny<string>(), It.IsAny<object[]>()))
@@ -41,6 +41,10 @@ namespace Build.Test.TaskEngine
 						  _messages.Add(message);
 						  Console.WriteLine(message);
 					  });
+
+			var buildLog = new Mock<IBuildLog>();
+			buildLog.Setup(x => x.CreateLogger()).Returns(_logger.Object);
+			_engine = new Build.TaskEngine.TaskEngine(_expressionEngine, _fileSystem.Object, buildLog.Object);
 		}
 
 		[SetUp]
@@ -69,50 +73,13 @@ namespace Build.Test.TaskEngine
 								}
 						}
 				};
-			var engine = Create(project, "Build");
 
-			engine.Run();
+			_engine.Run(project, "Build", new BuildEnvironment());
 			_messages.Should().Equal(new object[]
 				{
 					"Build:",
 					"  Hello World!"
 				});
-		}
-
-		[Test]
-		public void TestCopyAppConfigFile()
-		{
-			var stream = typeof (BuildEnvironment).Assembly.GetManifestResourceStream("Build.Microsoft.Common.props");
-			var project = _parser.Parse(stream, "Common.props");
-			var environment = new BuildEnvironment
-				{
-					Properties =
-						{
-							{Properties.AssemblyName, "Foo"},
-							{Properties.OutputPath, @"bin\Debug"},
-							{Properties.MSBuildProjectDirectory, Directory.GetCurrentDirectory()},
-							{Properties.OutputType, "Exe"},
-						}
-				};
-			_fileSystem.Setup(x => x.Exists(It.Is<string>(y => y == "app.config"))).Returns(true);
-			var engine = Create(project, "CopyAppConfigFile", environment);
-			engine.Run();
-
-			var dir = Directory.GetCurrentDirectory();
-			_copies.Count.Should().Be(1);
-			_copies[0].Key.Should().Be(Path.Combine(dir, "app.config"));
-			_copies[0].Value.Should().Be(Path.Combine(dir, @"bin\Debug\Foo.exe.config"));
-		}
-
-		private Build.TaskEngine.TaskEngine Create(Project project, string target, BuildEnvironment environment = null)
-		{
-			var engine = new Build.TaskEngine.TaskEngine(_expressionEngine,
-			                                             _fileSystem.Object,
-			                                             project,
-			                                             target,
-			                                             environment ?? new BuildEnvironment(),
-			                                             _logger.Object);
-			return engine;
 		}
 	}
 }

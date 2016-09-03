@@ -6,6 +6,11 @@ namespace Build.Test
 	public sealed class TestLogger
 		: ILogger
 	{
+		public bool HasErrors
+		{
+			get { return false; }
+		}
+
 		public void WriteLine(Verbosity verbosity, string format, params object[] arguments)
 		{
 			Console.WriteLine(format, arguments);

@@ -8,7 +8,7 @@ namespace Build.Watchdog
 	public sealed class SolutionStore
 		: FileStore<Solution>
 	{
-		public SolutionStore() : base(new SolutionParser(CSharpProjectParser.Instance))
+		public SolutionStore() : base(new SolutionParser(ProjectParser.Instance))
 		{}
 
 		public IEnumerable<Solution> CreateSolutions(IReadOnlyDictionary<string, Project> projects)

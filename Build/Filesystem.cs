@@ -43,14 +43,20 @@ namespace Build
 			}
 		}
 
-		public void CopyFile(string sourceFileName, string destFileName)
+		public void CopyFile(string sourceFileName, string destFileName, bool overwrite)
 		{
-			File.Copy(sourceFileName, destFileName);
+			File.Copy(sourceFileName, destFileName, overwrite);
 		}
 
 		public void DeleteFile(string absoluteFile)
 		{
 			File.Delete(absoluteFile);
+		}
+
+		public void CreateDirectory(string directoryPath)
+		{
+		//	if (!Directory.Exists(outputPath))
+			Directory.CreateDirectory(directoryPath);
 		}
 	}
 }

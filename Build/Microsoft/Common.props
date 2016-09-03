@@ -6,7 +6,7 @@
       <OutputFileExtension>.dll</OutputFileExtension>
     </PropertyGroup>
 
-    <PropertyGroup Condition="$(OutputType) == 'Exe' OR $(OutputType) == 'Winexe'">
+    <PropertyGroup Condition="$(OutputType) == 'Exe' OR $(OutputType) == 'WinExe'">
       <OutputFileExtension>.exe</OutputFileExtension>
     </PropertyGroup>
 
@@ -31,17 +31,16 @@
     <Exec WorkingDirectory="$(OutDir)" Command="$(PostBuildEvent)" />
   </Target>
 
-  <!-- Extension point for users -->
-  <Target Name="BeforeBuild">
-    
-  </Target>
+  <!-- Extension points for users -->
+  <Target Name="BeforeBuild" />
+  <Target Name="AfterBuild" />
 
   <Target Name="ResolveReferences">
     
   </Target>
   
   <Target Name="CoreBuild"
-          DependsOnTargets="DetermineOutputPaths;ResolveReferences;BeforeBuild;PreBuildEvent">
+          DependsOnTargets="SetupBuildEnvironment;ResolveReferences;BeforeBuild;PreBuildEvent">
 
     <PropertyGroup>
       <AllowUnsafeBlocks Condition="'$(AllowUnsafeBlocks)' == ''">false</AllowUnsafeBlocks>
@@ -51,6 +50,7 @@
       <PlatformTarget Condition="'$(platformTarget)' == ''">AnyCPU</PlatformTarget>
       <ErrorEndLocation Condition="'$(ErrorEndLocation)' == ''">true</ErrorEndLocation>
       <HighEntropyVA Condition="'$(HighEntropyVA)' == ''">true</HighEntropyVA>
+      <DisabledWarnings Condition="'$(DisabledWarnings)' == ''">1701,1702,2008</DisabledWarnings>
       
       <!-- Prefer32Bit was introduced in .NET 4.5. Set it to false if we are targeting 4.0 -->
       <Prefer32Bit Condition="'$(TargetFrameworkVersion)' == 'v4.0'">false</Prefer32Bit>
@@ -82,6 +82,8 @@
       OutputAssembly="$(IntermediateAssembly)"
       PdbFile="$(IntermediatePdb)"
       Platform="$(PlatformTarget)"
+      References="@(Reference)"
+      Sources="@(Compile)"
       TargetType="$(OutputType)"
       TreatWarningsAsErrors="$(TreatWarningsAsErrors)"
       Utf8Output="$(Utf8Output)"

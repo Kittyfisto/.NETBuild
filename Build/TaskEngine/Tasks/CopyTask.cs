@@ -4,42 +4,32 @@ using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 using Node = Build.DomainModel.MSBuild.Node;
 
-namespace Build.TaskEngine
+namespace Build.TaskEngine.Tasks
 {
 	internal sealed class CopyTask
 		: ITaskRunner
 	{
-		private readonly BuildEnvironment _environment;
 		private readonly ExpressionEngine.ExpressionEngine _expressionEngine;
 		private readonly IFileSystem _fileSystem;
-		private readonly ILogger _logger;
 
 		public CopyTask(ExpressionEngine.ExpressionEngine expressionEngine,
-		                IFileSystem fileSystem,
-		                ILogger logger,
-		                BuildEnvironment environment)
+		                IFileSystem fileSystem)
 		{
 			if (expressionEngine == null)
 				throw new ArgumentNullException("expressionEngine");
 			if (fileSystem == null)
 				throw new ArgumentNullException("fileSystem");
-			if (environment == null)
-				throw new ArgumentNullException("environment");
-			if (logger == null)
-				throw new ArgumentNullException("logger");
 
 			_expressionEngine = expressionEngine;
 			_fileSystem = fileSystem;
-			_logger = logger;
-			_environment = environment;
 		}
 
-		public void Run(Node task)
+		public void Run(BuildEnvironment environment, Node task, ILogger logger)
 		{
 			var copy = (Copy) task;
 
-			ProjectItem[] sourceFiles = _expressionEngine.EvaluateItemList(copy.SourceFiles, _environment);
-			ProjectItem[] destinationFiles = _expressionEngine.EvaluateItemList(copy.DestinationFiles, _environment);
+			ProjectItem[] sourceFiles = _expressionEngine.EvaluateItemList(copy.SourceFiles, environment);
+			ProjectItem[] destinationFiles = _expressionEngine.EvaluateItemList(copy.DestinationFiles, environment);
 
 			if (sourceFiles.Length != destinationFiles.Length)
 				throw new BuildException(
@@ -47,14 +37,14 @@ namespace Build.TaskEngine
 					              sourceFiles.Length,
 					              destinationFiles.Length));
 
-			string directory = _environment.Properties[Properties.MSBuildProjectDirectory];
+			string directory = environment.Properties[Properties.MSBuildProjectDirectory];
 			var copied = new ProjectItem[sourceFiles.Length];
 			for (int i = 0; i < sourceFiles.Length; ++i)
 			{
 				ProjectItem source = sourceFiles[i];
 				ProjectItem destination = destinationFiles[i];
 
-				if (Copy(directory, source, destination))
+				if (Copy(directory, source, destination, logger))
 				{
 					copied[i] = destination;
 				}
@@ -63,7 +53,8 @@ namespace Build.TaskEngine
 
 		private bool Copy(string directory,
 		                  ProjectItem source,
-		                  ProjectItem destination)
+		                  ProjectItem destination,
+		                  ILogger logger)
 		{
 			string absoluteSource = source[Metadatas.FullPath];
 			string absoluteDestination = destination[Metadatas.FullPath];
@@ -71,36 +62,37 @@ namespace Build.TaskEngine
 			string relativeSource = Path.MakeRelative(directory, absoluteSource);
 			string relativeDestination = Path.MakeRelative(directory, absoluteDestination);
 
-			_logger.WriteLine(Verbosity.Normal, "  Copying file from \"{0}\" to \"{1}\".",
-			                  relativeSource,
-			                  relativeDestination);
+			logger.WriteLine(Verbosity.Normal, "  Copying file from \"{0}\" to \"{1}\".",
+			                 relativeSource,
+			                 relativeDestination);
 
 			try
 			{
-				_fileSystem.CopyFile(absoluteSource, absoluteDestination);
+				_fileSystem.CopyFile(absoluteSource, absoluteDestination, true);
 				return true;
 			}
 			catch (UnauthorizedAccessException e)
 			{
-				LogError(relativeSource, relativeDestination, e);
+				LogError(logger, relativeSource, relativeDestination, e);
 				return false;
 			}
 			catch (IOException e)
 			{
-				LogError(relativeSource, relativeDestination, e);
+				LogError(logger, relativeSource, relativeDestination, e);
 				return false;
 			}
 		}
 
-		private void LogError(
+		private static void LogError(
+			ILogger logger,
 			string relativeSource,
 			string relativeDestination,
 			Exception inner)
 		{
-			_logger.WriteError("Unable to copy file from '\"{0}\" to \"{1}\": {2}",
-			                   relativeSource,
-			                   relativeDestination,
-			                   inner.Message);
+			logger.WriteError("Unable to copy file from '\"{0}\" to \"{1}\": {2}",
+			                  relativeSource,
+			                  relativeDestination,
+			                  inner.Message);
 		}
 	}
 }

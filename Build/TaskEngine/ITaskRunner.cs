@@ -1,9 +1,10 @@
-﻿using Build.DomainModel.MSBuild;
+﻿using Build.BuildEngine;
+using Node = Build.DomainModel.MSBuild.Node;
 
 namespace Build.TaskEngine
 {
 	internal interface ITaskRunner
 	{
-		void Run(Node task);
+		void Run(BuildEnvironment environment, Node task, ILogger logger);
 	}
 }

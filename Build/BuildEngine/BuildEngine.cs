@@ -38,7 +38,7 @@ namespace Build.BuildEngine
 			_log = new BuildLog(arguments);
 			_fileSystem = new FileSystem();
 			_expressionEngine = new ExpressionEngine.ExpressionEngine(_fileSystem);
-			_csharpProjectParser = CSharpProjectParser.Instance;
+			_csharpProjectParser = ProjectParser.Instance;
 			_solutionParser = new SolutionParser(_csharpProjectParser);
 			_resolver = new AssemblyResolver(_expressionEngine);
 			_arguments = arguments;

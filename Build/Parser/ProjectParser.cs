@@ -12,17 +12,17 @@ namespace Build.Parser
 	///     Is responsible for parsing the contents visual studio c# projects and creating
 	///     <see cref="Project" /> objects, representing them.
 	/// </summary>
-	public sealed class CSharpProjectParser
+	public sealed class ProjectParser
 		: IFileParser<Project>
 	{
-		public static readonly CSharpProjectParser Instance;
+		public static readonly ProjectParser Instance;
 
-		static CSharpProjectParser()
+		static ProjectParser()
 		{
-			Instance = new CSharpProjectParser();
+			Instance = new ProjectParser();
 		}
 
-		private CSharpProjectParser()
+		private ProjectParser()
 		{}
 
 		/// <summary>
@@ -61,6 +61,7 @@ namespace Build.Parser
 				{
 					Filename = filePath
 				};
+
 				ReadProject(reader.ReadSubtree(), project);
 				return project;
 			}
@@ -75,6 +76,10 @@ namespace Build.Parser
 				{
 					switch (reader.Name)
 					{
+						case "Import":
+							// Not yet supported
+							break;
+
 						case "PropertyGroup":
 							var condition = reader.TryReadCondition();
 							var properties = ReadPropertyGroup(reader.ReadSubtree());
