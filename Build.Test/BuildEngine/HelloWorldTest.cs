@@ -1,21 +1,41 @@
-﻿using NUnit.Framework;
+﻿using FluentAssertions;
+using NUnit.Framework;
 
 namespace Build.Test.BuildEngine
 {
 	[TestFixture]
 	public sealed class HelloWorldTest
+		: AbstractBuildEngineTest
 	{
-		[Test]
-		public void TestRun1()
+		protected override string[] ProjectDirectories
 		{
-			var arguments = new Arguments
-				{
-					InputFile = TestPath.Get(@"TestData\CSharp\HelloWorld\HelloWorld.csproj"),
-				};
-			using (var engine = new Build.BuildEngine.BuildEngine(arguments))
+			get { return new[] {"HelloWorld"}; }
+		}
+
+		protected override string[] ExpectedOutputFiles
+		{
+			get
 			{
-				engine.Execute();
+				return new[]
+					{
+						@"HelloWorld\bin\Debug\HelloWorld.exe",
+						@"HelloWorld\bin\Debug\HelloWorld.pdb",
+						@"HelloWorld\bin\Debug\HelloWorld.exe.config"
+					};
 			}
+		}
+
+		protected override string ProjectFilePath
+		{
+			get { return @"HelloWorld\HelloWorld.csproj"; }
+		}
+
+		protected override void PostBuildChecks()
+		{
+			string output;
+			int exitCode = Run(@"TestData\CSharp\HelloWorld\bin\Debug\HelloWorld.exe", out output);
+			exitCode.Should().Be(0);
+			output.Should().Be("Hello World!");
 		}
 	}
 }

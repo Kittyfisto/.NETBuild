@@ -49,9 +49,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArgumentsTest.cs" />
-    <Compile Include="BuildEngine\BuildEnvironmentTest.cs" />
+    <Compile Include="BuildEngine\AbstractBuildEngineTest.cs" />
+    <Compile Include="BuildEngine\EmbeddedResourceTest.cs" />
+    <Compile Include="BuildEngine\ReferencesLibraryTest.cs" />
+    <Compile Include="BuildEnvironmentTest.cs" />
     <Compile Include="BuildEngine\HelloWorldTest.cs" />
     <Compile Include="TaskEngine\TaskEngineAcceptanceTest.cs" />
+    <None Include="TestData\CSharp\Library\Properties\AssemblyInfo.cs" />
+    <None Include="TestData\CSharp\Library\SomeClass.cs" />
+    <None Include="TestData\CSharp\ReferencesLibrary\Program.cs" />
+    <None Include="TestData\CSharp\ReferencesLibrary\Properties\AssemblyInfo.cs" />
     <Compile Include="TestLogger.cs" />
     <Compile Include="TaskEngine\TaskEngineTest.cs" />
     <Compile Include="ExpressionEngine\BinaryExpressionTest.cs" />
@@ -68,6 +75,7 @@
     <None Include="TestData\CSharp\EmbeddedResource\Properties\AssemblyInfo.cs" />
     <Compile Include="TestPath.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <None Include="TestData\CSharp\ReferencesLibrary\App.config" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
@@ -83,6 +91,9 @@
     <Content Include="TestData\CSharp\EmbeddedResource\HelloWorld.txt" />
     <Content Include="TestData\CSharp\EmbeddedResource\SomeFolder\Some File With Spaces.xml" />
     <Content Include="TestData\CSharp\EmbeddedResource\SomeFolder\SomeDataFile.xml" />
+    <Content Include="TestData\CSharp\Library\Library.csproj" />
+    <Content Include="TestData\CSharp\ReferencesLibrary\ReferencesLibrary.csproj" />
+    <Content Include="TestData\CSharp\ReferencesLibrary\ReferencesLibrary.sln" />
     <None Include="TestData\CSharp\HelloWorld\HelloWorld.csproj" />
   </ItemGroup>
   <ItemGroup>

@@ -75,7 +75,7 @@ namespace Build.Test.TaskEngine
 				};
 
 			_engine.Run(project, "SomeMessage", new BuildEnvironment(), _logger.Object);
-			_messages.Should().Equal(new object[]
+			_messages.Should().Contain(new object[]
 				{
 					"SomeMessage:",
 					"  Hello World!"

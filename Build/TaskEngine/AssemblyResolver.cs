@@ -3,7 +3,7 @@ using System.Diagnostics.Contracts;
 using System.IO;
 using Build.DomainModel.MSBuild;
 
-namespace Build.BuildEngine
+namespace Build.TaskEngine
 {
 	/// <summary>
 	///     Responsible for resolving assemblies on the local system.

@@ -42,7 +42,7 @@ namespace Build.TaskEngine.Tasks
 			var rootPath = environment.Properties[Properties.MSBuildProjectDirectory];
 			string output;
 			var exitCode = ProcessEx.Run(CompilerPath, rootPath, arguments, out output);
-			logger.WriteMultiLine(Verbosity.Minimal, output);
+			logger.WriteMultiLine(Verbosity.Minimal, output, interpretLines: true);
 
 			if (exitCode != 0)
 				throw new BuildException(string.Format("csc returned {0}", exitCode));

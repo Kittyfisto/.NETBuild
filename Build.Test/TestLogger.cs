@@ -16,7 +16,7 @@ namespace Build.Test
 			Console.WriteLine(format, arguments);
 		}
 
-		public void WriteMultiLine(Verbosity verbosity, string message)
+		public void WriteMultiLine(Verbosity verbosity, string message, bool unused)
 		{
 			var lines = message.Split(new[] {"\n", "\r\n"}, StringSplitOptions.RemoveEmptyEntries);
 			foreach (var line in lines)

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Build.BuildEngine
 {
@@ -11,22 +10,18 @@ namespace Build.BuildEngine
 	{
 		private readonly IBuildLog _buildLog;
 		private readonly int _id;
-		private readonly List<string> _warnings;
-		private readonly List<string> _errors;
+		private int _errorCount;
+		private int _warningCount;
 
 		public Logger(IBuildLog buildLog, int id)
 		{
 			_buildLog = buildLog;
 			_id = id;
-
-			// What do we do with warnings?
-			_warnings = new List<string>();
-			_errors = new List<string>();
 		}
 
 		public bool HasErrors
 		{
-			get { return _errors.Count > 0; }
+			get { return _errorCount > 0; }
 		}
 
 		public void WriteLine(Verbosity verbosity, string format, params object[] arguments)
@@ -34,27 +29,38 @@ namespace Build.BuildEngine
 			_buildLog.WriteLine(verbosity, _id, format, arguments);
 		}
 
-		public void WriteMultiLine(Verbosity verbosity, string message)
+		public void WriteMultiLine(Verbosity verbosity, string message, bool interpretLines)
 		{
 			var lines = message.Split(new[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
 			foreach (var line in lines)
 			{
-				WriteLine(verbosity, line);
+				if (line.ToLower().Contains("error"))
+				{
+					WriteError(line);
+				}
+				else if (line.ToLower().Contains("warning"))
+				{
+					WriteWarning(line);
+				}
+				else
+				{
+					WriteLine(verbosity, line);
+				}
 			}
 		}
 
 		public void WriteWarning(string format, params object[] arguments)
 		{
 			var message = string.Format(format, arguments);
-			_warnings.Add(message);
-			WriteLine(Verbosity.Quiet, message);
+			++_warningCount;
+			_buildLog.WriteWarning(message);
 		}
 
 		public void WriteError(string format, params object[] arguments)
 		{
 			var message = string.Format(format, arguments);
-			_errors.Add(message);
-			WriteLine(Verbosity.Quiet, message);
+			++_errorCount;
+			_buildLog.WriteError(message);
 		}
 	}
 }

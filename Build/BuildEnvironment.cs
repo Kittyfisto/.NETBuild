@@ -1,9 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 
-namespace Build.BuildEngine
+namespace Build
 {
 	public sealed class BuildEnvironment
 	{

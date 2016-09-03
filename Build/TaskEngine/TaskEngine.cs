@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 using Build.ExpressionEngine;
 using Build.Parser;
 using Build.TaskEngine.Tasks;
-using Node = Build.DomainModel.MSBuild.Node;
 
 namespace Build.TaskEngine
 {
@@ -85,7 +83,7 @@ namespace Build.TaskEngine
 		public void Run(Project project,
 		                string target,
 		                BuildEnvironment environment,
-			ILogger logger)
+		                ILogger logger)
 		{
 			if (project == null)
 				throw new ArgumentNullException("project");
@@ -98,6 +96,20 @@ namespace Build.TaskEngine
 			project = project.Merged(_buildScript);
 			// Now we can start evaluating the project
 			_expressionEngine.Evaluate(project, environment);
+
+
+
+			logger.WriteLine(Verbosity.Quiet, "------ {0} started: Project: {1}, Configuration: {2} {3} ------",
+			                 target,
+			                 environment.Properties[Properties.MSBuildProjectName],
+			                 environment.Properties[Properties.Configuration],
+			                 environment.Properties[Properties.PlatformTarget]
+				);
+
+			DateTime started = DateTime.Now;
+			logger.WriteLine(Verbosity.Normal, "Build started {0}.", started);
+
+
 
 			var availableTargets = new Dictionary<string, Target>(project.Targets.Count);
 			foreach (Target t in project.Targets)
@@ -142,6 +154,11 @@ namespace Build.TaskEngine
 					executedTargets.Add(targetToBeExecuted);
 				}
 			}
+
+
+			logger.WriteLine(Verbosity.Normal, "{0} succeeded.", target);
+			TimeSpan elapsed = DateTime.Now - started;
+			logger.WriteLine(Verbosity.Minimal, "Time Elapsed {0}", elapsed);
 		}
 
 		private void Run(BuildEnvironment environment, Target target, ILogger logger)

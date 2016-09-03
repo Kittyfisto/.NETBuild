@@ -3,7 +3,7 @@ using Build.DomainModel.MSBuild;
 using FluentAssertions;
 using NUnit.Framework;
 
-namespace Build.Test.BuildEngine
+namespace Build.Test
 {
 	[TestFixture]
 	public sealed class BuildEnvironmentTest

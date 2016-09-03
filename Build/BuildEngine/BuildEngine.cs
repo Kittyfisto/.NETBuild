@@ -19,10 +19,11 @@ namespace Build.BuildEngine
 		private readonly IFileParser<Project> _csharpProjectParser;
 		private readonly BuildEnvironment _environment;
 		private readonly ExpressionEngine.ExpressionEngine _expressionEngine;
-		private readonly TaskEngine.TaskEngine _taskEngine;
-		private readonly BuildLog _log;
-		private readonly IFileParser<Solution> _solutionParser;
 		private readonly FileSystem _fileSystem;
+		private readonly BuildLog _log;
+
+		private readonly IFileParser<Solution> _solutionParser;
+		private readonly TaskEngine.TaskEngine _taskEngine;
 
 		public BuildEngine(Arguments arguments)
 		{
@@ -58,6 +59,11 @@ namespace Build.BuildEngine
 			}
 		}
 
+		public BuildLog Log
+		{
+			get { return _log; }
+		}
+
 		public void Dispose()
 		{
 			_log.Dispose();
@@ -68,7 +74,8 @@ namespace Build.BuildEngine
 			if (_arguments.NoLogo)
 				return;
 
-			_log.WriteLine(Verbosity.Quiet, "Kittyfisto's .NET Build Engine version {0}", Assembly.GetCallingAssembly().GetName().Version);
+			_log.WriteLine(Verbosity.Quiet, "Kittyfisto's .NET Build Engine version {0}",
+			               Assembly.GetCallingAssembly().GetName().Version);
 			_log.WriteLine(Verbosity.Quiet, "[Microsoft .NET Framework, version {0}]", Environment.Version);
 		}
 
@@ -95,13 +102,11 @@ namespace Build.BuildEngine
 			// #1: Parse all relevant .csproj files into memory
 			List<Project> projects = Parse();
 
-			var targets = _arguments.Targets.ToList();
-			targets.Sort(new TargetComparer());
+			List<string> targets = _arguments.Targets.ToList();
+			if (targets.Count > 1)
+				throw new BuildException("Building more than one target is not supported!");
 
-			foreach (var target in targets)
-			{
-				Build(projects, target);
-			}
+			Build(projects, targets[0]);
 		}
 
 		private void Build(List<Project> projects, string target)
@@ -124,7 +129,7 @@ namespace Build.BuildEngine
 
 			dependencyGraph.FinishedEvent.Wait();
 
-			foreach (var builder in nodes)
+			foreach (BuildNode builder in nodes)
 			{
 				builder.Stop();
 			}
@@ -171,9 +176,9 @@ namespace Build.BuildEngine
 		private string FindInputFile()
 		{
 			string directory = Directory.GetCurrentDirectory();
-			var files = Directory.EnumerateFiles(directory, "*.sln", SearchOption.TopDirectoryOnly)
-			                     .Concat(Directory.EnumerateFiles(directory, "*.csproj", SearchOption.TopDirectoryOnly))
-			                     .ToList();
+			List<string> files = Directory.EnumerateFiles(directory, "*.sln", SearchOption.TopDirectoryOnly)
+			                              .Concat(Directory.EnumerateFiles(directory, "*.csproj", SearchOption.TopDirectoryOnly))
+			                              .ToList();
 			if (files.Count == 0)
 			{
 				throw new BuildException(

@@ -2,9 +2,8 @@
 using System.ComponentModel;
 using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
-using Node = Build.DomainModel.MSBuild.Node;
 
-namespace Build.TaskEngine
+namespace Build.TaskEngine.Tasks
 {
 	internal sealed class MessageTask
 		: ITaskRunner
