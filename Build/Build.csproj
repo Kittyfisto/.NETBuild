@@ -49,8 +49,7 @@
     <Compile Include="BuildEngine\BuildEngine.cs" />
     <Compile Include="BuildEngine\BuildEnvironment.cs" />
     <Compile Include="BuildEngine\FilenameComparer.cs" />
-    <Compile Include="BuildEngine\Node.cs" />
-    <Compile Include="BuildEngine\ProjectBuilder.cs" />
+    <Compile Include="BuildEngine\BuildNode.cs" />
     <Compile Include="BuildEngine\BuildGraph.cs" />
     <Compile Include="BuildEngine\BuildLog.cs" />
     <Compile Include="BuildEngine\IBuildLog.cs" />
@@ -59,10 +58,6 @@
     <Compile Include="BuildEngine\ProjectDependencies.cs" />
     <Compile Include="BuildEngine\ProjectDependencyGraph.cs" />
     <Compile Include="BuildEngine\TargetComparer.cs" />
-    <Compile Include="BuildEngine\Tasks\DeleteFileTask.cs" />
-    <Compile Include="BuildEngine\Tasks\Compilers\IProjectCompiler.cs" />
-    <Compile Include="BuildEngine\Tasks\Copy.cs" />
-    <Compile Include="BuildEngine\Tasks\CopyFileTask.cs" />
     <Compile Include="DomainModel\MSBuild\Csc.cs" />
     <Compile Include="DomainModel\MSBuild\Exec.cs" />
     <Compile Include="EvaluationException.cs" />
@@ -150,7 +145,6 @@
     <Compile Include="DomainModel\MSBuild\ReadOnlyPropertyGroup.cs" />
     <Compile Include="DomainModel\Sandbox.cs" />
     <Compile Include="DomainModel\Solution.cs" />
-    <Compile Include="BuildEngine\Tasks\Compilers\CSharpProjectCompiler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -16,26 +16,21 @@ namespace Build.TaskEngine
 	/// </summary>
 	public sealed class TaskEngine
 	{
-		private readonly IBuildLog _buildLog;
 		private readonly Project _buildScript;
 		private readonly ExpressionEngine.ExpressionEngine _expressionEngine;
 		private readonly IFileSystem _fileSystem;
 		private readonly Dictionary<Type, ITaskRunner> _taskRunners;
 
 		public TaskEngine(ExpressionEngine.ExpressionEngine expressionEngine,
-		                  IFileSystem fileSystem,
-		                  IBuildLog buildLog)
+		                  IFileSystem fileSystem)
 		{
 			if (expressionEngine == null)
 				throw new ArgumentNullException("expressionEngine");
 			if (fileSystem == null)
 				throw new ArgumentNullException("fileSystem");
-			if (buildLog == null)
-				throw new ArgumentNullException("buildLog");
 
 			_expressionEngine = expressionEngine;
 			_fileSystem = fileSystem;
-			_buildLog = buildLog;
 			_buildScript = LoadBuildScript();
 
 			_taskRunners = new Dictionary<Type, ITaskRunner>
@@ -89,19 +84,21 @@ namespace Build.TaskEngine
 
 		public void Run(Project project,
 		                string target,
-		                BuildEnvironment environment)
+		                BuildEnvironment environment,
+			ILogger logger)
 		{
 			if (project == null)
 				throw new ArgumentNullException("project");
 			if (environment == null)
 				throw new ArgumentNullException("environment");
+			if (logger == null)
+				throw new ArgumentNullException("logger");
 
 			// Let's inject our custom build script (we ignore the one from MSBuild)
 			project = project.Merged(_buildScript);
 			// Now we can start evaluating the project
 			_expressionEngine.Evaluate(project, environment);
 
-			ILogger logger = _buildLog.CreateLogger();
 			var availableTargets = new Dictionary<string, Target>(project.Targets.Count);
 			foreach (Target t in project.Targets)
 			{
@@ -147,7 +144,7 @@ namespace Build.TaskEngine
 			}
 		}
 
-		public void Run(BuildEnvironment environment, Target target, ILogger logger)
+		private void Run(BuildEnvironment environment, Target target, ILogger logger)
 		{
 			if (target == null)
 				throw new ArgumentNullException("target");
@@ -156,7 +153,7 @@ namespace Build.TaskEngine
 			{
 				if (!_expressionEngine.EvaluateCondition(target.Condition, environment))
 				{
-					logger.WriteLine(Verbosity.Diagnostic, "  Skipping target \"{0}\" because {1} does not evaluate to true",
+					logger.WriteLine(Verbosity.Normal, "  Skipping target \"{0}\" because {1} does not evaluate to true",
 					                 target.Name,
 					                 target.Condition);
 					return;
@@ -191,7 +188,7 @@ namespace Build.TaskEngine
 			return false;
 		}
 
-		public void Run(BuildEnvironment environment, Node task, ILogger logger)
+		private void Run(BuildEnvironment environment, Node task, ILogger logger)
 		{
 			if (task == null)
 				throw new ArgumentNullException("task");

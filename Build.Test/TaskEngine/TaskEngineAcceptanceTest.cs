@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
 using System.IO;
+using System.Reflection;
 using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 using Build.Parser;
@@ -21,10 +22,10 @@ namespace Build.Test.TaskEngine
 		[SetUp]
 		public void SetUp()
 		{
-			_buildLog = new BuildLog();
+			_buildLog = new BuildLog(new Arguments(), new MemoryStream());
 			_fileSystem = new FileSystem();
 			_expressionEngine = new Build.ExpressionEngine.ExpressionEngine(_fileSystem);
-			_engine = new Build.TaskEngine.TaskEngine(_expressionEngine, _fileSystem, _buildLog);
+			_engine = new Build.TaskEngine.TaskEngine(_expressionEngine, _fileSystem);
 			_environment = new BuildEnvironment();
 		}
 
@@ -37,10 +38,13 @@ namespace Build.Test.TaskEngine
 			var project = ProjectParser.Instance.Parse(fileName);
 
 			Clean(@"TestData\CSharp\HelloWorld\bin\Debug\");
-			_engine.Run(project, Targets.Build, _environment);
+			Clean(@"TestData\CSharp\HelloWorld\obj\Debug\");
+
+			_engine.Run(project, Targets.Build, _environment, _buildLog.CreateLogger());
 
 			FileExists(@"TestData\CSharp\HelloWorld\bin\Debug\HelloWorld.exe").Should().BeTrue();
 			FileExists(@"TestData\CSharp\HelloWorld\bin\Debug\HelloWorld.pdb").Should().BeTrue();
+			FileExists(@"TestData\CSharp\HelloWorld\bin\Debug\HelloWorld.exe.config").Should().BeTrue();
 
 			string output;
 			var exitCode = Run(@"TestData\CSharp\HelloWorld\bin\Debug\HelloWorld.exe", out output);
@@ -49,6 +53,43 @@ namespace Build.Test.TaskEngine
 		}
 
 		#endregion
+
+		#region EmbeddedResource
+
+		[Test]
+		public void TestBuildEmbeddedResource()
+		{
+			var fileName = TestPath.Get(@"TestData\CSharp\EmbeddedResource\EmbeddedResource.csproj");
+			var project = ProjectParser.Instance.Parse(fileName);
+
+			Clean(@"TestData\CSharp\EmbeddedResource\bin\Debug\");
+			_engine.Run(project, Targets.Build, _environment, _buildLog.CreateLogger());
+
+			var filename = TestPath.Get(@"TestData\CSharp\EmbeddedResource\bin\Debug\EmbeddedResource.dll");
+			var assembly = Assembly.LoadFile(filename);
+			var resources = assembly.GetManifestResourceNames();
+			resources.Should().BeEquivalentTo(new[]
+				{
+					"EmbeddedResource.HelloWorld.txt",
+					"EmbeddedResource.SomeFolder.SomeDataFile.xml",
+					"EmbeddedResource.SomeFolder.Some File With Spaces.xml"
+				});
+
+			ReadResource(assembly, "EmbeddedResource.HelloWorld.txt").Should().Be("Hello World!");
+			ReadResource(assembly, "EmbeddedResource.SomeFolder.SomeDataFile.xml").Should().Be("<?xml version=\"1.0\" encoding=\"utf-8\" ?> ");
+			ReadResource(assembly, "EmbeddedResource.SomeFolder.Some File With Spaces.xml").Should().Be("<?xml version=\"1.0\" encoding=\"utf-8\" ?> \r\n<importantdata value=\"42\" />");
+		}
+
+		#endregion
+
+		private string ReadResource(Assembly assembly, string resourceName)
+		{
+			var stream = assembly.GetManifestResourceStream(resourceName);
+			stream.Should().NotBeNull();
+
+			var reader = new StreamReader(stream);
+			return reader.ReadToEnd();
+		}
 
 		private int Run(string relativeFileName, out string output)
 		{

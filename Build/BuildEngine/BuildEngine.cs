@@ -19,8 +19,8 @@ namespace Build.BuildEngine
 		private readonly IFileParser<Project> _csharpProjectParser;
 		private readonly BuildEnvironment _environment;
 		private readonly ExpressionEngine.ExpressionEngine _expressionEngine;
+		private readonly TaskEngine.TaskEngine _taskEngine;
 		private readonly BuildLog _log;
-		private readonly AssemblyResolver _resolver;
 		private readonly IFileParser<Solution> _solutionParser;
 		private readonly FileSystem _fileSystem;
 
@@ -37,10 +37,10 @@ namespace Build.BuildEngine
 
 			_log = new BuildLog(arguments);
 			_fileSystem = new FileSystem();
-			_expressionEngine = new ExpressionEngine.ExpressionEngine(_fileSystem);
 			_csharpProjectParser = ProjectParser.Instance;
 			_solutionParser = new SolutionParser(_csharpProjectParser);
-			_resolver = new AssemblyResolver(_expressionEngine);
+			_expressionEngine = new ExpressionEngine.ExpressionEngine(_fileSystem);
+			_taskEngine = new TaskEngine.TaskEngine(_expressionEngine, _fileSystem);
 			_arguments = arguments;
 			if (_arguments.Targets.Count == 0)
 			{
@@ -111,15 +111,15 @@ namespace Build.BuildEngine
 			Dictionary<Project, BuildEnvironment> evaluatedProjects = Evaluate(projects, _environment);
 
 			var dependencyGraph = new ProjectDependencyGraph(evaluatedProjects);
-			var nodes = new Node[_arguments.MaxCpuCount];
+			var nodes = new BuildNode[_arguments.MaxCpuCount];
 			for (int i = 0; i < nodes.Length; ++i)
 			{
 				string name = string.Format("Builder #{0}", i);
-				nodes[i] = new Node(dependencyGraph,
-				                    _resolver,
-				                    _log,
-				                    name,
-				                    target);
+				nodes[i] = new BuildNode(dependencyGraph,
+				                         _taskEngine,
+				                         _log,
+				                         name,
+				                         target);
 			}
 
 			dependencyGraph.FinishedEvent.Wait();

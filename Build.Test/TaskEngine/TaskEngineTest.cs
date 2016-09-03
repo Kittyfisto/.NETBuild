@@ -42,9 +42,8 @@ namespace Build.Test.TaskEngine
 						  Console.WriteLine(message);
 					  });
 
-			var buildLog = new Mock<IBuildLog>();
-			buildLog.Setup(x => x.CreateLogger()).Returns(_logger.Object);
-			_engine = new Build.TaskEngine.TaskEngine(_expressionEngine, _fileSystem.Object, buildLog.Object);
+			_engine = new Build.TaskEngine.TaskEngine(_expressionEngine,
+			                                          _fileSystem.Object);
 		}
 
 		[SetUp]
@@ -58,11 +57,12 @@ namespace Build.Test.TaskEngine
 		{
 			var project = new Project
 				{
+					Filename = "foo",
 					Targets =
 						{
 							new Target
 								{
-									Name = "Build",
+									Name = "SomeMessage",
 									Children =
 										{
 											new Message
@@ -74,10 +74,10 @@ namespace Build.Test.TaskEngine
 						}
 				};
 
-			_engine.Run(project, "Build", new BuildEnvironment());
+			_engine.Run(project, "SomeMessage", new BuildEnvironment(), _logger.Object);
 			_messages.Should().Equal(new object[]
 				{
-					"Build:",
+					"SomeMessage:",
 					"  Hello World!"
 				});
 		}

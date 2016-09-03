@@ -17,19 +17,30 @@ namespace Build.BuildEngine
 		private readonly Arguments _arguments;
 		private static readonly ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-		private readonly FileStream _buildLogStream;
+		private readonly Stream _buildLogStream;
 		private readonly StreamWriter _writer;
 		private int _loggerId;
+		private readonly bool _disposeStream;
 
 		public BuildLog()
 			: this(new Arguments())
 		{}
 
 		public BuildLog(Arguments arguments)
+			: this(arguments, File.Open("buildlog.txt", FileMode.OpenOrCreate, FileAccess.Write), true)
+		{}
+
+		public BuildLog(Arguments arguments, Stream stream, bool disposeStream = false)
 		{
+			if (arguments == null)
+				throw new ArgumentNullException("arguments");
+			if (stream == null)
+				throw new ArgumentNullException("stream");
+
 			_arguments = arguments;
-			_buildLogStream = File.Open("buildlog.txt", FileMode.OpenOrCreate, FileAccess.Write);
+			_buildLogStream = stream;
 			_buildLogStream.SetLength(0);
+			_disposeStream = disposeStream;
 			_writer = new StreamWriter(_buildLogStream, Encoding.UTF8);
 		}
 
@@ -101,7 +112,9 @@ namespace Build.BuildEngine
 		{
 			_writer.Flush();
 			_writer.Dispose();
-			_buildLogStream.Dispose();
+
+			if (_disposeStream)
+				_buildLogStream.Dispose();
 		}
 	}
 }

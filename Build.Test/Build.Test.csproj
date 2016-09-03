@@ -51,9 +51,6 @@
     <Compile Include="ArgumentsTest.cs" />
     <Compile Include="BuildEngine\BuildEnvironmentTest.cs" />
     <Compile Include="BuildEngine\HelloWorldTest.cs" />
-    <Compile Include="BuildEngine\Tasks\Compilers\AbstractCompilerTest.cs" />
-    <Compile Include="BuildEngine\Tasks\Compilers\EmbeddedResourceTest.cs" />
-    <Compile Include="BuildEngine\Tasks\Compilers\HelloWorldTest.cs" />
     <Compile Include="TaskEngine\TaskEngineAcceptanceTest.cs" />
     <Compile Include="TestLogger.cs" />
     <Compile Include="TaskEngine\TaskEngineTest.cs" />

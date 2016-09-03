@@ -37,6 +37,8 @@ namespace Build.TaskEngine.Tasks
 
 			logger.WriteLine(Verbosity.Normal, "  {0} {1}", CompilerPath, arguments);
 
+			CreateDirectories(environment, csc);
+
 			var rootPath = environment.Properties[Properties.MSBuildProjectDirectory];
 			string output;
 			var exitCode = ProcessEx.Run(CompilerPath, rootPath, arguments, out output);
@@ -44,6 +46,19 @@ namespace Build.TaskEngine.Tasks
 
 			if (exitCode != 0)
 				throw new BuildException(string.Format("csc returned {0}", exitCode));
+		}
+
+		private void CreateDirectories(BuildEnvironment environment, Csc csc)
+		{
+			var root = environment.Properties[Properties.MSBuildProjectDirectory];
+
+			var outputAssembly = _expressionEngine.EvaluateExpression(csc.OutputAssembly, environment);
+			var assemblyOutputPath = Path.MakeAbsolute(root, Path.GetDirectory(outputAssembly));
+			_fileSystem.CreateDirectory(assemblyOutputPath);
+
+			var outputPdb = _expressionEngine.EvaluateExpression(csc.PdbFile, environment);
+			var pdbPath = Path.MakeAbsolute(root, Path.GetDirectory(outputPdb));
+			_fileSystem.CreateDirectory(pdbPath);
 		}
 
 		private void BuildCommandLineArguments(BuildEnvironment environment, Csc csc, ArgumentBuilder arguments)

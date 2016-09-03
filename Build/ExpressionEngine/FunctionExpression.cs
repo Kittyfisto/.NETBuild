@@ -62,11 +62,7 @@ namespace Build.ExpressionEngine
 			switch (Operation)
 			{
 				case FunctionOperation.Exists:
-					var fileName = value;
-					if (fileName == null)
-						return false;
-
-					return fileSystem.Exists(fileName);
+					return Exists(fileSystem, environment, value);
 
 				case FunctionOperation.HasTrailingSlash:
 					var path = value;
@@ -84,6 +80,21 @@ namespace Build.ExpressionEngine
 				default:
 					throw new InvalidEnumArgumentException("Operation", (int)Operation, typeof(FunctionOperation));
 			}
+		}
+
+		private bool Exists(IFileSystem fileSystem, BuildEnvironment environment, string value)
+		{
+			var fileName = value;
+			if (fileName == null)
+				return false;
+
+			if (!Path.IsPathRooted(fileName))
+			{
+				var root = environment.Properties[Properties.MSBuildProjectDirectory];
+				fileName = Path.Combine(root, fileName);
+			}
+
+			return fileSystem.Exists(fileName);
 		}
 
 		public string ToString(IFileSystem fileSystem, BuildEnvironment environment)

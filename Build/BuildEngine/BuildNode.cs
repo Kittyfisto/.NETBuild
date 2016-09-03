@@ -9,30 +9,32 @@ namespace Build.BuildEngine
 	/// <summary>
 	///     Responsible for building one project at a time.
 	/// </summary>
-	public sealed class Node
+	public sealed class BuildNode
 	{
 		private static readonly ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-		private readonly IBuildLog _buildLog;
 		private readonly ProjectDependencyGraph _graph;
 		private readonly string _name;
-		private readonly AssemblyResolver _resolver;
 		private readonly string _target;
+		private readonly TaskEngine.TaskEngine _taskEngine;
+		private readonly IBuildLog _buildLog;
 		private readonly Thread _thread;
 		private bool _isFinished;
 
-		public Node(ProjectDependencyGraph graph,
-		            AssemblyResolver resolver,
-		            IBuildLog buildLog,
-		            string name,
-		            string target)
+		public BuildNode(ProjectDependencyGraph graph,
+		                 TaskEngine.TaskEngine taskEngine,
+		                 IBuildLog buildLog,
+		                 string name,
+		                 string target)
 		{
 			if (graph == null)
 				throw new ArgumentNullException("graph");
-			if (resolver == null)
-				throw new ArgumentNullException("resolver");
+			if (taskEngine == null)
+				throw new ArgumentNullException("taskEngine");
 			if (buildLog == null)
 				throw new ArgumentNullException("buildLog");
+			if (target == null)
+				throw new ArgumentNullException("target");
 			if (name == null)
 				throw new ArgumentNullException("name");
 			if (string.IsNullOrWhiteSpace(name))
@@ -41,7 +43,7 @@ namespace Build.BuildEngine
 				throw new ArgumentNullException("target");
 
 			_graph = graph;
-			_resolver = resolver;
+			_taskEngine = taskEngine;
 			_buildLog = buildLog;
 			_name = name;
 			_target = target;
@@ -78,19 +80,18 @@ namespace Build.BuildEngine
 					BuildEnvironment environment;
 					if (_graph.TryGetNextProject(out project, out environment))
 					{
-						ILogger logger = _buildLog.CreateLogger();
+						var logger = _buildLog.CreateLogger();
 						try
 						{
-							var builder = new ProjectBuilder(logger, _resolver, project, environment, _target);
-							builder.Run();
+							_taskEngine.Run(project, _target, environment, logger);
 						}
 						catch (BuildException e)
 						{
 							logger.WriteLine(Verbosity.Quiet, "error: {0}", e.Message);
 
 							Log.ErrorFormat("Cauhgt exception while building project '{0}': {1}",
-											project.Filename,
-											e);
+							                project.Filename,
+							                e);
 
 							_graph.Failed(project);
 						}

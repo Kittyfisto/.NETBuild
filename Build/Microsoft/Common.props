@@ -14,7 +14,8 @@
       <OutputAssemblyName>$(AssemblyName)$(OutputFileExtension)</OutputAssemblyName>
       <OutputPdbName>$(AssemblyName).pdb</OutputPdbName>
 
-      <IntermediatePath>bin\$(Configuration)</IntermediatePath>
+      <BaseIntermediateOutputPath>obj</BaseIntermediateOutputPath>
+      <IntermediatePath>$(BaseIntermediateOutputPath)\$(Configuration)</IntermediatePath>
       <IntermediateAssembly>$(IntermediatePath)\$(OutputAssemblyName)</IntermediateAssembly>
       <IntermediatePdb>$(IntermediatePath)\$(OutputPdbName)</IntermediatePdb>
 
@@ -83,6 +84,7 @@
       PdbFile="$(IntermediatePdb)"
       Platform="$(PlatformTarget)"
       References="@(Reference)"
+      Resources="@(EmbeddedResource)"
       Sources="@(Compile)"
       TargetType="$(OutputType)"
       TreatWarningsAsErrors="$(TreatWarningsAsErrors)"
@@ -105,9 +107,8 @@
 
   <Target Name="CopyFilesToOutputDirectory">
     <Copy SourceFiles="$(IntermediateAssembly)" DestinationFiles="$(OutputAssembly)" />
-    <Message Importance="Normal" Text="Build -> $(MSBuildProjectDirectory)\$(OutputFilePath)" />
-    <Copy SourceFiles="$(IntermediatePdb)" DestinationFiles="$(OutputPdb)"
-          Condition="Exists($(IntermediatePdb))" />
+    <Message Importance="Normal" Text="Build -> $(MSBuildProjectDirectory)\$(OutputAssembly)" />
+    <Copy SourceFiles="$(IntermediatePdb)" DestinationFiles="$(OutputPdb)" />
   </Target>
 
   <!-- The total order of targets that are executed in order to build one project -->

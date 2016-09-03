@@ -45,6 +45,18 @@ namespace Build
 
 		public void CopyFile(string sourceFileName, string destFileName, bool overwrite)
 		{
+			if (sourceFileName == null)
+				throw new ArgumentNullException("sourceFileName");
+			if (destFileName == null)
+				throw new ArgumentNullException("destFileName");
+			if (!Path.IsPathRooted(sourceFileName))
+				throw new ArgumentException("sourceFileName must be rooted");
+			if (!Path.IsPathRooted(destFileName))
+				throw new ArgumentException("destFileName must be rooted");
+
+			var destinationPath = Path.GetDirectory(destFileName);
+			CreateDirectory(destinationPath);
+
 			File.Copy(sourceFileName, destFileName, overwrite);
 		}
 
