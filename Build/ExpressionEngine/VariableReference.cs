@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 
 namespace Build.ExpressionEngine
@@ -37,7 +36,8 @@ namespace Build.ExpressionEngine
 			items.Capacity += fileNames.Length;
 			foreach (var fileName in fileNames)
 			{
-				var item = environment.GetOrCreate(fileSystem, fileName);
+				var cleaned = fileName.Trim();
+				var item = environment.GetOrCreate(fileSystem, cleaned);
 				items.Add(item);
 			}
 		}

@@ -13,14 +13,23 @@
     <PropertyGroup>
       <OutputAssemblyName>$(AssemblyName)$(OutputFileExtension)</OutputAssemblyName>
       <OutputPdbName>$(AssemblyName).pdb</OutputPdbName>
+      <AppConfigName>$(OutputAssemblyName).config</AppConfigName>
 
       <BaseIntermediateOutputPath>obj</BaseIntermediateOutputPath>
       <IntermediatePath>$(BaseIntermediateOutputPath)\$(Configuration)</IntermediatePath>
       <IntermediateAssembly>$(IntermediatePath)\$(OutputAssemblyName)</IntermediateAssembly>
       <IntermediatePdb>$(IntermediatePath)\$(OutputPdbName)</IntermediatePdb>
 
+      <OutputAppConfig>$(OutputPath)\$(AppConfigName)</OutputAppConfig>
       <OutputAssembly>$(OutputPath)\$(OutputAssemblyName)</OutputAssembly>
       <OutputPdb>$(OutputPath)\$(OutputPdbName)</OutputPdb>
+      <CleanFiles>
+        $(IntermediateAssembly);
+        $(IntermediatePdb);
+        $(OutputAssembly);
+        $(OutputPdb);
+        $(OutputAppConfig)
+      </CleanFiles>
     </PropertyGroup>
   </Target>
 
@@ -35,6 +44,8 @@
   <!-- Extension points for users -->
   <Target Name="BeforeBuild" />
   <Target Name="AfterBuild" />
+  <Target Name="BeforeClean" />
+  <Target Name="AfterClean" />
 
   <Target Name="ResolveReferences">
     
@@ -88,7 +99,7 @@
       Sources="@(Compile)"
       TargetType="$(OutputType)"
       TreatWarningsAsErrors="$(TreatWarningsAsErrors)"
-      Utf8Output="$(Utf8Output)"
+      Utf8Output="$(Utf8Outp+ut)"
       WarningLevel="$(WarningLevel)"
       WarningsAsErrors="$(WarningsAsErrors)"
       Win32Icon="$(ApplicationIcon)"
@@ -126,9 +137,26 @@
     </BuildDependsOn>
   </PropertyGroup>
 
-  <Target Name="Build"
-          DependsOnTargets="$(BuildDependsOn)">
+  <Target Name="Build" DependsOnTargets="$(BuildDependsOn)">
     <Message Importance="High" Text="Build Succeeded." />
+  </Target>
+
+  <Target Name="CoreClean">
+    <Delete Files="$(CleanFiles)" />
+  </Target>
+  
+  <!-- The total order of targets that are executed in order to clean one project -->
+  <PropertyGroup>
+    <CleanDependsOn>
+      SetupBuildEnvironment;
+      BeforeClean;
+      CoreClean;
+      AfterClean;
+    </CleanDependsOn>
+</PropertyGroup>
+
+  <Target Name="Clean" DependsOnTargets="$(CleanDependsOn)">
+    <Message Importance="Normal" Text="Clean Succeeded." />
   </Target>
 
 </Project>

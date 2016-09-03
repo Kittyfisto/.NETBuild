@@ -172,6 +172,10 @@ namespace Build.Parser
 							target.Children.Add(ReadCsc(innerReader));
 							break;
 
+						case "Delete":
+							target.Children.Add(ReadDelete(innerReader));
+							break;
+
 						case "Exec":
 							target.Children.Add(ReadExec(innerReader));
 							break;
@@ -185,6 +189,25 @@ namespace Build.Parser
 			}
 
 			return target;
+		}
+
+		private static Node ReadDelete(XmlReader reader)
+		{
+			var task = new Delete();
+			for (int i = 0; i < reader.AttributeCount; ++i)
+			{
+				reader.MoveToAttribute(i);
+				switch (reader.Name)
+				{
+					case "Condition":
+						task.Condition = reader.Value;
+						break;
+					case "Files":
+						task.Files = reader.Value;
+						break;
+				}
+			}
+			return task;
 		}
 
 		private static Node ReadExec(XmlReader reader)

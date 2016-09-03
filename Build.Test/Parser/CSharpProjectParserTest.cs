@@ -148,7 +148,7 @@ namespace Build.Test.Parser
 		{
 			var stream = typeof(BuildEnvironment).Assembly.GetManifestResourceStream("Build.Microsoft.Common.props");
 			var project = _parser.Parse(stream, "Common.props");
-			project.Targets.Count.Should().Be(10);
+			project.Targets.Count.Should().Be(14);
 			var target = project.Targets[0];
 			target.Should().NotBeNull();
 			target.Name.Should().Be("SetupBuildEnvironment");

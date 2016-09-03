@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 using Build.Parser;
 using FluentAssertions;

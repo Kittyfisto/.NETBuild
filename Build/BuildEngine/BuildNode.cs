@@ -84,7 +84,15 @@ namespace Build.BuildEngine
 						try
 						{
 							_taskEngine.Run(project, _target, environment, logger);
-							_graph.Succeeded(project);
+
+							if (logger.HasErrors)
+							{
+								_graph.Failed(project);
+							}
+							else
+							{
+								_graph.Succeeded(project);
+							}
 						}
 						catch (BuildException e)
 						{
