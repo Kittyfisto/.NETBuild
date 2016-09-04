@@ -148,17 +148,12 @@ namespace Build.Test.Parser
 		{
 			var stream = typeof(BuildEnvironment).Assembly.GetManifestResourceStream("Build.Microsoft.Common.props");
 			var project = _parser.Parse(stream, "Common.props");
-			project.Targets.Count.Should().Be(14);
+			project.Targets.Count.Should().Be(13);
 			var target = project.Targets[0];
 			target.Should().NotBeNull();
-			target.Name.Should().Be("SetupBuildEnvironment");
-			target.Children.Count.Should().Be(3);
-			target.Children[0].Should().BeOfType<PropertyGroup>();
-			var group = (PropertyGroup)target.Children[0];
-			group.Should().NotBeNull();
-			group.Count.Should().Be(1);
-			var property = group[0];
-			property.Name.Should().Be("OutputFileExtension");
+			target.Name.Should().Be("PreBuildEvent");
+			target.Children.Count.Should().Be(1);
+			target.Children[0].Should().BeOfType<Exec>();
 		}
 	}
 }

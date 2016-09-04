@@ -75,6 +75,8 @@ namespace Build.ExpressionEngine
 					successfullyParsed = true;
 				if (TryParseSpecialCharsAsLiteral(stack, consumeItemListSeparator: true))
 					successfullyParsed = true;
+				if (TryParseItemListReference(stack))
+					successfullyParsed = true;
 				if (TryParseVariableReference(stack))
 					successfullyParsed = true;
 				if (TryParseItemListReference(stack))
@@ -352,6 +354,8 @@ namespace Build.ExpressionEngine
 				{
 					if (pair.Expression is StringLiteral)
 						return true;
+					if (pair.Expression is ItemListReference)
+						return true;
 					if (pair.Expression is VariableReference)
 						return true;
 					if (pair.Expression is ConcatExpression)
@@ -414,8 +418,12 @@ namespace Build.ExpressionEngine
 					return true;
 				if (expression is StringLiteral)
 					return true;
+				if (expression is ItemListReference)
+					return true;
 				if (expression is VariableReference)
 					return true;
+
+				return false;
 			}
 
 			if (TryParseLiteral(tokens))

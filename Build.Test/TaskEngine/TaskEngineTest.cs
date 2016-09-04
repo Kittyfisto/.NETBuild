@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 using Build.Parser;
 using FluentAssertions;
@@ -73,7 +74,7 @@ namespace Build.Test.TaskEngine
 						}
 				};
 
-			_engine.Run(project, "SomeMessage", new BuildEnvironment(), _logger.Object);
+			_engine.Run(project, "SomeMessage", new BuildEnvironment(), new ProjectDependencyGraph(), _logger.Object);
 			_messages.Should().Contain(new object[]
 				{
 					"SomeMessage:",

@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.IO;
+using System.Reflection;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -32,8 +33,11 @@ namespace Build.Test.BuildEngine
 
 		protected override void PostBuildChecks()
 		{
-			var filename = TestPath.Get(@"TestData\CSharp\EmbeddedResource\bin\Debug\EmbeddedResource.dll");
-			var assembly = Assembly.LoadFile(filename);
+			var source = TestPath.Get(@"TestData\CSharp\EmbeddedResource\bin\Debug\EmbeddedResource.dll");
+			var dest = Path.Combine(Path.GetDirectory(source), "tmp.dll");
+			File.Copy(source, dest, true);
+
+			var assembly = Assembly.LoadFile(dest);
 			var resources = assembly.GetManifestResourceNames();
 			resources.Should().BeEquivalentTo(new[]
 				{

@@ -12,26 +12,31 @@ namespace Build
 		public const string Platform = "Platform";
 		public const string OutputPath = "OutputPath";
 
-		private readonly BuildEnvironment _default;
 		private readonly EnvironmentItemLists _items;
 		private readonly string _name;
 		private readonly BuildEnvironment _parent;
 
 		private readonly EnvironmentProperties _properties;
+		private readonly EnvironmentProperties _output;
 
-		public BuildEnvironment(BuildEnvironment parent = null, BuildEnvironment @default = null, string name = null)
+		public BuildEnvironment(BuildEnvironment parent = null, string name = null)
 		{
 			_name = name;
 			_parent = parent;
-			_default = @default;
 			_properties = new EnvironmentProperties(
-				_parent != null ? _parent._properties : null,
-				_default != null ? _default._properties : null
+				_parent != null ? _parent._properties : null
+				);
+			_output = new EnvironmentProperties(
+				_parent != null ? _parent.Output : null
 				);
 			_items = new EnvironmentItemLists(
-				_parent != null ? _parent._items : null,
-				_default != null ? _default._items : null
+				_parent != null ? _parent._items : null
 				);
+		}
+
+		public EnvironmentProperties Output
+		{
+			get { return _output; }
 		}
 
 		public EnvironmentProperties Properties
@@ -77,15 +82,12 @@ namespace Build
 		public sealed class EnvironmentItemLists
 			: IEnumerable<ProjectItem>
 		{
-			private readonly EnvironmentItemLists _defaultItems;
 			private readonly EnvironmentItemLists _parentItems;
 			private readonly Dictionary<string, ProjectItem> _items;
 
-			public EnvironmentItemLists(EnvironmentItemLists parentItems = null,
-			                            EnvironmentItemLists defaultItems = null)
+			public EnvironmentItemLists(EnvironmentItemLists parentItems = null)
 			{
 				_parentItems = parentItems;
-				_defaultItems = defaultItems;
 				_items = new Dictionary<string, ProjectItem>(new FilenameComparer());
 			}
 
@@ -116,14 +118,6 @@ namespace Build
 							items.Add(item.Include, item);
 					}
 				}
-				if (_defaultItems != null)
-				{
-					foreach (var item in _defaultItems)
-					{
-						if (!items.ContainsKey(item.Include))
-							items.Add(item.Include, item);
-					}
-				}
 				return items.Values.GetEnumerator();
 			}
 
@@ -138,9 +132,6 @@ namespace Build
 					return true;
 
 				if (_parentItems != null && _parentItems.TryGetValue(itemName, out item))
-					return true;
-
-				if (_defaultItems != null && _defaultItems.TryGetValue(itemName, out item))
 					return true;
 
 				item = null;
@@ -180,15 +171,12 @@ namespace Build
 		public sealed class EnvironmentProperties
 			: IEnumerable<KeyValuePair<string, string>>
 		{
-			private readonly EnvironmentProperties _defaultProperties;
 			private readonly EnvironmentProperties _parentProperties;
 			private readonly Dictionary<string, string> _values;
 
-			public EnvironmentProperties(EnvironmentProperties parentProperties = null,
-			                             EnvironmentProperties defaultProperties = null)
+			public EnvironmentProperties(EnvironmentProperties parentProperties = null)
 			{
 				_parentProperties = parentProperties;
-				_defaultProperties = defaultProperties;
 				_values = new Dictionary<string, string>();
 			}
 
@@ -219,9 +207,6 @@ namespace Build
 					return true;
 
 				if (_parentProperties != null && _parentProperties.TryGetValue(propertyName, out propertyValue))
-					return true;
-
-				if (_defaultProperties != null && _defaultProperties.TryGetValue(propertyName, out propertyValue))
 					return true;
 
 				propertyValue = string.Empty;

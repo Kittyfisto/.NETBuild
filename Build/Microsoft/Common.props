@@ -1,37 +1,35 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Project DefaultTargets="Build">
-  <Target Name="SetupBuildEnvironment">
 
-    <PropertyGroup Condition="$(OutputType) == 'Library'">
-      <OutputFileExtension>.dll</OutputFileExtension>
-    </PropertyGroup>
+  <PropertyGroup Condition="$(OutputType) == 'Library'">
+    <OutputFileExtension>.dll</OutputFileExtension>
+  </PropertyGroup>
 
-    <PropertyGroup Condition="$(OutputType) == 'Exe' OR $(OutputType) == 'WinExe'">
-      <OutputFileExtension>.exe</OutputFileExtension>
-    </PropertyGroup>
+  <PropertyGroup Condition="$(OutputType) == 'Exe' OR $(OutputType) == 'WinExe'">
+    <OutputFileExtension>.exe</OutputFileExtension>
+  </PropertyGroup>
 
-    <PropertyGroup>
-      <OutputAssemblyName>$(AssemblyName)$(OutputFileExtension)</OutputAssemblyName>
-      <OutputPdbName>$(AssemblyName).pdb</OutputPdbName>
-      <AppConfigName>$(OutputAssemblyName).config</AppConfigName>
+  <PropertyGroup>
+    <OutputAssemblyName>$(AssemblyName)$(OutputFileExtension)</OutputAssemblyName>
+    <OutputPdbName>$(AssemblyName).pdb</OutputPdbName>
+    <AppConfigName>$(OutputAssemblyName).config</AppConfigName>
 
-      <BaseIntermediateOutputPath>obj</BaseIntermediateOutputPath>
-      <IntermediatePath>$(BaseIntermediateOutputPath)\$(Configuration)</IntermediatePath>
-      <IntermediateAssembly>$(IntermediatePath)\$(OutputAssemblyName)</IntermediateAssembly>
-      <IntermediatePdb>$(IntermediatePath)\$(OutputPdbName)</IntermediatePdb>
+    <BaseIntermediateOutputPath>obj</BaseIntermediateOutputPath>
+    <IntermediatePath>$(BaseIntermediateOutputPath)\$(Configuration)</IntermediatePath>
+    <IntermediateAssembly>$(IntermediatePath)\$(OutputAssemblyName)</IntermediateAssembly>
+    <IntermediatePdb>$(IntermediatePath)\$(OutputPdbName)</IntermediatePdb>
 
-      <OutputAppConfig>$(OutputPath)\$(AppConfigName)</OutputAppConfig>
-      <OutputAssembly>$(OutputPath)\$(OutputAssemblyName)</OutputAssembly>
-      <OutputPdb>$(OutputPath)\$(OutputPdbName)</OutputPdb>
-      <CleanFiles>
-        $(IntermediateAssembly);
-        $(IntermediatePdb);
-        $(OutputAssembly);
-        $(OutputPdb);
-        $(OutputAppConfig)
-      </CleanFiles>
-    </PropertyGroup>
-  </Target>
+    <OutputAppConfig>$(OutputPath)\$(AppConfigName)</OutputAppConfig>
+    <OutputAssembly>$(OutputPath)\$(OutputAssemblyName)</OutputAssembly>
+    <OutputPdb>$(OutputPath)\$(OutputPdbName)</OutputPdb>
+    <CleanFiles>
+      $(IntermediateAssembly);
+      $(IntermediatePdb);
+      $(OutputAssembly);
+      $(OutputPdb);
+      $(OutputAppConfig)
+    </CleanFiles>
+  </PropertyGroup>
 
   <Target Name="PreBuildEvent">
     <Exec WorkingDirectory="$(OutDir)" Command="$(PreBuildEvent)" />
@@ -48,11 +46,19 @@
   <Target Name="AfterClean" />
 
   <Target Name="ResolveReferences">
-    
+    <ResolveProjectReference ProjectReferences="@(ProjectReference)" />
+    <Output TaskParameter="ResolvedAssemblies" PropertyName="ResolvedReferencedProjects" />
+
+    <ResolveAssemblyReference Assemblies="@(Reference)" />
+    <Output TaskParameter="ResolvedAssemblies" PropertyName="ResolvedReferencedAssemblies" />
+
+    <PropertyGroup>
+      <ReferencedAssemblies>$(ResolvedReferencedAssemblies);$(ResolvedReferencedProjects)</ReferencedAssemblies>
+    </PropertyGroup>
   </Target>
   
   <Target Name="CoreBuild"
-          DependsOnTargets="SetupBuildEnvironment;ResolveReferences;BeforeBuild;PreBuildEvent">
+          DependsOnTargets="ResolveReferences;BeforeBuild;PreBuildEvent">
 
     <PropertyGroup>
       <AllowUnsafeBlocks Condition="'$(AllowUnsafeBlocks)' == ''">false</AllowUnsafeBlocks>
@@ -94,7 +100,7 @@
       OutputAssembly="$(IntermediateAssembly)"
       PdbFile="$(IntermediatePdb)"
       Platform="$(PlatformTarget)"
-      References="@(Reference)"
+      References="$(ReferencedAssemblies)"
       Resources="@(EmbeddedResource)"
       Sources="@(Compile)"
       TargetType="$(OutputType)"
@@ -110,7 +116,6 @@
           Condition="Exists('app.config')"
           Inputs="app.config"
           Output="$(OutputPath)\$(OutputFileName).config"
-          DependsOnTargets="SetupBuildEnvironment"
           >
     <Copy SourceFiles="app.config"
           DestinationFiles="$(OutputPath)\$(OutputAssemblyName).config" />
@@ -125,7 +130,6 @@
   <!-- The total order of targets that are executed in order to build one project -->
   <PropertyGroup>
     <BuildDependsOn>
-      SetupBuildEnvironment;
       BeforeBuild;
       PreBuildEvent;
       ResolveReferences;
@@ -148,7 +152,6 @@
   <!-- The total order of targets that are executed in order to clean one project -->
   <PropertyGroup>
     <CleanDependsOn>
-      SetupBuildEnvironment;
       BeforeClean;
       CoreClean;
       AfterClean;

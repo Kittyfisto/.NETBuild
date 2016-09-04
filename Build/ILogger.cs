@@ -18,6 +18,6 @@
 		void WriteMultiLine(Verbosity verbosity, string message, bool interpretLines);
 
 		void WriteWarning(string format, params object[] arguments);
-		void WriteError(string foramt, params object[] arguments);
+		void WriteError(string format, params object[] arguments);
 	}
 }

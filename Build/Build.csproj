@@ -45,6 +45,11 @@
     <Compile Include="Application.cs" />
     <Compile Include="ArgumentBuilder.cs" />
     <Compile Include="Arguments.cs" />
+    <Compile Include="IProjectDependencyGraph.cs" />
+    <Compile Include="BuildEngine\ProjectAndEnvironment.cs" />
+    <Compile Include="DomainModel\MSBuild\Output.cs" />
+    <Compile Include="DomainModel\MSBuild\ResolveAssemblyReference.cs" />
+    <Compile Include="DomainModel\MSBuild\ResolveProjectReference.cs" />
     <Compile Include="TaskEngine\AssemblyResolver.cs" />
     <Compile Include="BuildEngine\BuildEngine.cs" />
     <Compile Include="BuildEnvironment.cs" />
@@ -55,8 +60,7 @@
     <Compile Include="BuildEngine\IBuildLog.cs" />
     <Compile Include="BuildEngine\Logger.cs" />
     <Compile Include="ILogger.cs" />
-    <Compile Include="BuildEngine\ProjectDependencies.cs" />
-    <Compile Include="BuildEngine\ProjectDependencyGraph.cs" />
+    <Compile Include="ProjectDependencyGraph.cs" />
     <Compile Include="BuildEngine\TargetComparer.cs" />
     <Compile Include="DomainModel\MSBuild\Csc.cs" />
     <Compile Include="DomainModel\MSBuild\Exec.cs" />
@@ -77,6 +81,7 @@
     <Compile Include="TaskEngine\Tasks\ExecTask.cs" />
     <Compile Include="TaskEngine\ITaskRunner.cs" />
     <Compile Include="TaskEngine\Tasks\MessageTask.cs" />
+    <Compile Include="TaskEngine\Tasks\OutputTask.cs" />
     <Compile Include="TaskEngine\Tasks\PropertyGroupTask.cs" />
     <Compile Include="TaskEngine\TargetStack.cs" />
     <Compile Include="TaskEngine\TaskEngine.cs" />
@@ -89,6 +94,8 @@
     <Compile Include="DomainModel\MSBuild\Task.cs" />
     <Compile Include="DomainModel\MSBuild\TaskItem.cs" />
     <Compile Include="DomainModel\MSBuild\Warning.cs" />
+    <Compile Include="TaskEngine\Tasks\ResolveAssemblyReferenceTask.cs" />
+    <Compile Include="TaskEngine\Tasks\ResolveProjectReferenceTask.cs" />
     <Compile Include="TaskEngine\Tasks\WarningTask.cs" />
     <Compile Include="Verbosity.cs" />
     <Compile Include="DomainModel\MSBuild\Target.cs" />

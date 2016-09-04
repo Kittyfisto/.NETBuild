@@ -21,6 +21,7 @@ namespace Build.BuildEngine
 		private readonly ExpressionEngine.ExpressionEngine _expressionEngine;
 		private readonly FileSystem _fileSystem;
 		private readonly BuildLog _log;
+		private readonly Project _buildScript;
 
 		private readonly IFileParser<Solution> _solutionParser;
 		private readonly TaskEngine.TaskEngine _taskEngine;
@@ -57,6 +58,15 @@ namespace Build.BuildEngine
 			{
 				_environment.Properties.Add(property.Name, property.Value);
 			}
+
+			_buildScript = LoadBuildScript();
+		}
+
+		private Project LoadBuildScript()
+		{
+			Stream stream = typeof(BuildEnvironment).Assembly.GetManifestResourceStream("Build.Microsoft.Common.props");
+			Project project = ProjectParser.Instance.Parse(stream, "Common.props");
+			return project;
 		}
 
 		public BuildLog Log
@@ -100,7 +110,7 @@ namespace Build.BuildEngine
 			// Building is done in a few simple steps:
 
 			// #1: Parse all relevant .csproj files into memory
-			List<Project> projects = Parse();
+			List<Project> projects = LoadInputFile();
 
 			List<string> targets = _arguments.Targets.ToList();
 			if (targets.Count > 1)
@@ -113,9 +123,8 @@ namespace Build.BuildEngine
 		{
 			// #2: Evaluate these projects using the given environment
 			// TODO: What do we do when we have conditions that require the presence of files that are from a previous step's output?
-			Dictionary<Project, BuildEnvironment> evaluatedProjects = Evaluate(projects, _environment);
+			var dependencyGraph = Evaluate(projects, _environment);
 
-			var dependencyGraph = new ProjectDependencyGraph(evaluatedProjects);
 			var nodes = new BuildNode[_arguments.MaxCpuCount];
 			for (int i = 0; i < nodes.Length; ++i)
 			{
@@ -146,7 +155,7 @@ namespace Build.BuildEngine
 			_log.WriteLine("TODO");
 		}
 
-		private List<Project> Parse()
+		private List<Project> LoadInputFile()
 		{
 			var projects = new List<Project>();
 			string inputFile = _arguments.InputFile;
@@ -188,11 +197,27 @@ namespace Build.BuildEngine
 			return files[0];
 		}
 
-		private Dictionary<Project, BuildEnvironment> Evaluate(List<Project> projects, BuildEnvironment environment)
+		struct Tmp
 		{
-			var evaluatedProjects = new Dictionary<Project, BuildEnvironment>(projects.Count);
-			foreach (Project project in projects)
+			public Project Project;
+			public Project NeededBy;
+		}
+
+		private ProjectDependencyGraph Evaluate(List<Project> rootProjects, BuildEnvironment environment)
+		{
+			var projectStack = new Stack<Tmp>(rootProjects.Count);
+			foreach (var project in rootProjects)
 			{
+				projectStack.Push(new Tmp {Project = project});
+			}
+
+			var graph = new ProjectDependencyGraph();
+
+			while (projectStack.Count > 0)
+			{
+				var pair = projectStack.Pop();
+				var rootProject = pair.Project;
+
 				// Evaluating a project means determining the values of properties, the
 				// presence of nodes, etc...
 				// Properties of a project (for example $(Configuration)) are written
@@ -200,10 +225,41 @@ namespace Build.BuildEngine
 				// to interfere with the next one, thus we create one environment for each
 				// project.
 				var projectEnvironment = new BuildEnvironment(environment);
-				Project evaluated = _expressionEngine.Evaluate(project, projectEnvironment);
-				evaluatedProjects.Add(evaluated, projectEnvironment);
+				Project evaluated = _expressionEngine.Evaluate(rootProject.Merged(_buildScript), projectEnvironment);
+				graph.Add(evaluated, projectEnvironment);
+
+				if (pair.NeededBy != null)
+				{
+					graph.AddDependency(pair.NeededBy, evaluated);
+				}
+
+				// Now that we've evaluated the project it's time to find out if it references
+				// any other projects. This is done afterwards because dependencies might be conditional
+				// and thus we won't know the dependencies until after evaluating them against the
+				// current build environment.
+				// Anyways, we'll simply add any referenced project to the list of projects so that
+				// we can build all the things!
+				var references = projectEnvironment.Items.Where(x => x.Type == Items.ProjectReference);
+				foreach (var reference in references)
+				{
+					var path = reference.Include;
+					if (!Path.IsPathRooted(path))
+						path = Path.Combine(projectEnvironment.Properties[Properties.MSBuildProjectDirectory], path);
+					path = Path.Normalize(path);
+
+					if (!graph.Contains(path))
+					{
+						var project = _csharpProjectParser.Parse(path);
+						projectStack.Push(new Tmp
+						{
+							Project = project,
+							NeededBy = evaluated,
+						});
+					}
+				}
 			}
-			return evaluatedProjects;
+
+			return graph;
 		}
 	}
 }

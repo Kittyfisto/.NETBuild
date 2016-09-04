@@ -2,7 +2,6 @@
 
 namespace Build.Test.BuildEngine
 {
-	[Ignore("Not yet implemented")]
 	[TestFixture]
 	public sealed class ReferencesLibraryTest
 		: AbstractBuildEngineTest

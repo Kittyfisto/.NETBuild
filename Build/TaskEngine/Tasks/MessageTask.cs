@@ -18,7 +18,7 @@ namespace Build.TaskEngine.Tasks
 			_expressionEngine = expressionEngine;
 		}
 
-		public void Run(BuildEnvironment environment, Node task, ILogger logger)
+		public void Run(BuildEnvironment environment, Node task, IProjectDependencyGraph graph, ILogger logger)
 		{
 			if (environment == null)
 				throw new ArgumentNullException("environment");

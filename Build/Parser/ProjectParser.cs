@@ -180,6 +180,18 @@ namespace Build.Parser
 							target.Children.Add(ReadExec(innerReader));
 							break;
 
+						case "ResolveAssemblyReference":
+							target.Children.Add(ReadResolveAssemblyReference(innerReader));
+							break;
+
+						case "ResolveProjectReference":
+							target.Children.Add(ReadResolveProjectReference(innerReader));
+							break;
+
+						case "Output":
+							target.Children.Add(ReadOutput(innerReader));
+							break;
+
 						default:
 							throw new ParseException(string.Format("Unsupported node: '{0}'", innerReader.Name));
 					}
@@ -189,6 +201,75 @@ namespace Build.Parser
 			}
 
 			return target;
+		}
+
+		private static Node ReadResolveProjectReference(XmlReader reader)
+		{
+			var task = new ResolveProjectReference();
+			for (int i = 0; i < reader.AttributeCount; ++i)
+			{
+				reader.MoveToAttribute(i);
+				switch (reader.Name)
+				{
+					case "Condition":
+						task.Condition = reader.Value;
+						break;
+					case "ProjectReferences":
+						task.ProjectReferences = reader.Value;
+						break;
+					default:
+						throw new ParseException(string.Format("Unknown attribute \"{0}\" on ResolveProjectReference element",
+															   reader.Name));
+				}
+			}
+			return task;
+		}
+
+		private static Node ReadResolveAssemblyReference(XmlReader reader)
+		{
+			var task = new ResolveAssemblyReference();
+			for (int i = 0; i < reader.AttributeCount; ++i)
+			{
+				reader.MoveToAttribute(i);
+				switch (reader.Name)
+				{
+					case "Condition":
+						task.Condition = reader.Value;
+						break;
+					case "Assemblies":
+						task.Assemblies = reader.Value;
+						break;
+					default:
+						throw new ParseException(string.Format("Unknown attribute \"{0}\" on ResolveAssemblyReference element",
+															   reader.Name));
+				}
+			}
+			return task;
+		}
+
+		private static Node ReadOutput(XmlReader reader)
+		{
+			var task = new Output();
+			for (int i = 0; i < reader.AttributeCount; ++i)
+			{
+				reader.MoveToAttribute(i);
+				switch (reader.Name)
+				{
+					case "Condition":
+						task.Condition = reader.Value;
+						break;
+					case "TaskParameter":
+						task.TaskParameter = reader.Value;
+						break;
+					case "PropertyName":
+						task.PropertyName = reader.Value;
+						break;
+					default:
+						throw new ParseException(string.Format("Unknown attribute \"{0}\" on Output element",
+															   reader.Name));
+				}
+			}
+			return task;
 		}
 
 		private static Node ReadDelete(XmlReader reader)
@@ -205,6 +286,9 @@ namespace Build.Parser
 					case "Files":
 						task.Files = reader.Value;
 						break;
+					default:
+						throw new ParseException(string.Format("Unknown attribute \"{0}\" on Delete element",
+															   reader.Name));
 				}
 			}
 			return task;

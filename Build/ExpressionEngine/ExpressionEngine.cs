@@ -72,6 +72,12 @@ namespace Build.ExpressionEngine
 					environment.Items.Add(item);
 				}
 			}
+
+			foreach (var target in project.Targets)
+			{
+				evaluated.Targets.Add(target);
+			}
+
 			return evaluated;
 		}
 

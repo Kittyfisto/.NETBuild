@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 using Node = Build.DomainModel.MSBuild.Node;
 
@@ -22,7 +23,7 @@ namespace Build.TaskEngine.Tasks
 			_fileSystem = fileSystem;
 		}
 
-		public void Run(BuildEnvironment environment, Node task, ILogger logger)
+		public void Run(BuildEnvironment environment, Node task, IProjectDependencyGraph graph, ILogger logger)
 		{
 			var delete = (Delete) task;
 			ProjectItem[] files = _expressionEngine.EvaluateItemList(delete.Files, environment);

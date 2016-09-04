@@ -54,6 +54,7 @@
     <Compile Include="BuildEngine\ReferencesLibraryTest.cs" />
     <Compile Include="BuildEnvironmentTest.cs" />
     <Compile Include="BuildEngine\HelloWorldTest.cs" />
+    <Compile Include="ProjectDependencyGraphTest.cs" />
     <Compile Include="TaskEngine\TaskEngineAcceptanceTest.cs" />
     <None Include="TestData\CSharp\Library\Properties\AssemblyInfo.cs" />
     <None Include="TestData\CSharp\Library\SomeClass.cs" />

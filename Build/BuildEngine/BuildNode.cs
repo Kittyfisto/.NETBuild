@@ -83,15 +83,19 @@ namespace Build.BuildEngine
 						var logger = _buildLog.CreateLogger();
 						try
 						{
-							_taskEngine.Run(project, _target, environment, logger);
+							_taskEngine.Run(project,
+							                _target,
+							                environment,
+							                _graph,
+							                logger);
 
 							if (logger.HasErrors)
 							{
-								_graph.Failed(project);
+								_graph.MarkAsFailed(project);
 							}
 							else
 							{
-								_graph.Succeeded(project);
+								_graph.MarkAsSuccess(project);
 							}
 						}
 						catch (BuildException e)
@@ -102,7 +106,7 @@ namespace Build.BuildEngine
 							                project.Filename,
 							                e);
 
-							_graph.Failed(project);
+							_graph.MarkAsFailed(project);
 						}
 						catch (Exception e)
 						{
@@ -112,7 +116,7 @@ namespace Build.BuildEngine
 							                project.Filename,
 							                e);
 
-							_graph.Failed(project);
+							_graph.MarkAsFailed(project);
 						}
 					}
 					else

@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 using Build.ExpressionEngine;
-using Build.Parser;
 using Build.TaskEngine.Tasks;
 
 namespace Build.TaskEngine
@@ -14,7 +13,6 @@ namespace Build.TaskEngine
 	/// </summary>
 	public sealed class TaskEngine
 	{
-		private readonly Project _buildScript;
 		private readonly ExpressionEngine.ExpressionEngine _expressionEngine;
 		private readonly IFileSystem _fileSystem;
 		private readonly Dictionary<Type, ITaskRunner> _taskRunners;
@@ -29,7 +27,6 @@ namespace Build.TaskEngine
 
 			_expressionEngine = expressionEngine;
 			_fileSystem = fileSystem;
-			_buildScript = LoadBuildScript();
 
 			_taskRunners = new Dictionary<Type, ITaskRunner>
 				{
@@ -40,15 +37,11 @@ namespace Build.TaskEngine
 					{typeof (Copy), new CopyTask(_expressionEngine, _fileSystem)},
 					{typeof (Delete), new DeleteTask(_expressionEngine, _fileSystem)},
 					{typeof (Csc), new CscTask(_expressionEngine, _fileSystem)},
-					{typeof (Exec), new ExecTask(_expressionEngine, _fileSystem)}
+					{typeof (Exec), new ExecTask(_expressionEngine, _fileSystem)},
+					{typeof (ResolveAssemblyReference), new ResolveAssemblyReferenceTask(_expressionEngine, _fileSystem)},
+					{typeof (ResolveProjectReference), new ResolveProjectReferenceTask(_expressionEngine, _fileSystem)},
+					{typeof (Output), new OutputTask(_expressionEngine)}
 				};
-		}
-
-		private Project LoadBuildScript()
-		{
-			Stream stream = typeof (BuildEnvironment).Assembly.GetManifestResourceStream("Build.Microsoft.Common.props");
-			Project project = ProjectParser.Instance.Parse(stream, "Common.props");
-			return project;
 		}
 
 		private List<Target> TryFindTargets(
@@ -83,21 +76,17 @@ namespace Build.TaskEngine
 		public void Run(Project project,
 		                string target,
 		                BuildEnvironment environment,
+		                IProjectDependencyGraph graph,
 		                ILogger logger)
 		{
 			if (project == null)
 				throw new ArgumentNullException("project");
 			if (environment == null)
 				throw new ArgumentNullException("environment");
+			if (graph == null)
+				throw new ArgumentNullException("graph");
 			if (logger == null)
 				throw new ArgumentNullException("logger");
-
-			// Let's inject our custom build script (we ignore the one from MSBuild)
-			project = project.Merged(_buildScript);
-			// Now we can start evaluating the project
-			_expressionEngine.Evaluate(project, environment);
-
-
 
 			logger.WriteLine(Verbosity.Quiet, "------ {0} started: Project: {1}, Configuration: {2} {3} ------",
 			                 target,
@@ -108,7 +97,6 @@ namespace Build.TaskEngine
 
 			DateTime started = DateTime.Now;
 			logger.WriteLine(Verbosity.Normal, "Build started {0}.", started);
-
 
 
 			var availableTargets = new Dictionary<string, Target>(project.Targets.Count);
@@ -147,7 +135,7 @@ namespace Build.TaskEngine
 				{
 					pendingTargets.Pop();
 
-					Run(environment, targetToBeExecuted, logger);
+					Run(environment, targetToBeExecuted, graph, logger);
 					if (logger.HasErrors)
 						break;
 
@@ -161,7 +149,10 @@ namespace Build.TaskEngine
 			logger.WriteLine(Verbosity.Minimal, "Time Elapsed {0}", elapsed);
 		}
 
-		private void Run(BuildEnvironment environment, Target target, ILogger logger)
+		private void Run(BuildEnvironment environment,
+		                 Target target,
+		                 IProjectDependencyGraph graph,
+		                 ILogger logger)
 		{
 			if (target == null)
 				throw new ArgumentNullException("target");
@@ -190,7 +181,7 @@ namespace Build.TaskEngine
 
 			foreach (Node node in target.Children)
 			{
-				Run(environment, node, logger);
+				Run(environment, node, graph, logger);
 
 				if (logger.HasErrors)
 				{
@@ -205,10 +196,19 @@ namespace Build.TaskEngine
 			return false;
 		}
 
-		private void Run(BuildEnvironment environment, Node task, ILogger logger)
+		private void Run(BuildEnvironment environment,
+		                 Node task,
+		                 IProjectDependencyGraph graph,
+		                 ILogger logger)
 		{
+			if (environment == null)
+				throw new ArgumentNullException("environment");
 			if (task == null)
 				throw new ArgumentNullException("task");
+			if (graph == null)
+				throw new ArgumentNullException("graph");
+			if (logger == null)
+				throw new ArgumentNullException("logger");
 
 			string condition = task.Condition;
 			if (condition != null)
@@ -228,7 +228,7 @@ namespace Build.TaskEngine
 				throw new BuildException(string.Format("Unknown task: {0}", task.GetType()));
 			}
 
-			taskRunner.Run(environment, task, logger);
+			taskRunner.Run(environment, task, graph, logger);
 		}
 	}
 }

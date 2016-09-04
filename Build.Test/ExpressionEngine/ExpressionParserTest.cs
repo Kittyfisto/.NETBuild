@@ -230,6 +230,24 @@ namespace Build.Test.ExpressionEngine
 		}
 
 		[Test]
+		public void TestParse25()
+		{
+			_parser.ParseItemList("@(Reference)")
+				   .Should().Be(new ItemListReference("Reference"));
+		}
+
+		[Test]
+		public void TestParse26()
+		{
+			_parser.ParseItemList("@(Reference);$(ProjectReferenceAssemblies)")
+				   .Should().Be(
+				   new ItemListExpression(
+					   new ItemListReference("Reference"),
+					   new VariableReference("ProjectReferenceAssemblies")
+					   ));
+		}
+
+		[Test]
 		public void TestParse30()
 		{
 			_parser.ParseExpression(" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ")
@@ -347,6 +365,18 @@ namespace Build.Test.ExpressionEngine
 		public void TestParseConcatenation12()
 		{
 			_parser.ParseConcatenation(null).Should().Be(StringLiteral.Empty);
+		}
+
+		[Test]
+		public void TestParseConcatenation13()
+		{
+			_parser.ParseConcatenation("@(Reference);$(ProjectReferenceAssemblies)").Should().Be(
+				new ConcatExpression(
+					new ItemListReference("Reference"),
+					new StringLiteral(";"),
+					new VariableReference("ProjectReferenceAssemblies")
+					)
+				);
 		}
 
 		#endregion
@@ -515,6 +545,17 @@ namespace Build.Test.ExpressionEngine
 					   new StringLiteral("foo'bar"),
 					   new ItemListReference("Content"),
 					   new StringLiteral("program.cs")
+					   ));
+		}
+
+		[Test]
+		public void TestParseItemList15()
+		{
+			_parser.ParseItemList("@(Reference);$(ProjectReferenceAssemblies)")
+				   .Should().Be(
+				   new ItemListExpression(
+					   new ItemListReference("Reference"),
+					   new VariableReference("ProjectReferenceAssemblies")
 					   ));
 		}
 
