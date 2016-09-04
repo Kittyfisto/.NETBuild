@@ -38,7 +38,7 @@ namespace Build.TaskEngine.Tasks
 			if (builder.Length != 0)
 				builder.Remove(builder.Length - 1, 1);
 
-			environment.Output["ResolvedAssemblies"] = builder.ToString();
+			environment.Output["ResolvedFiles"] = builder.ToString();
 		}
 
 		private string[] ResolveFileNames(ProjectItem[] items, BuildEnvironment environment)

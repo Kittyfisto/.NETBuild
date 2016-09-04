@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 using Node = Build.DomainModel.MSBuild.Node;
 
@@ -9,9 +8,7 @@ namespace Build.TaskEngine.Tasks
 	public class CscTask : ITaskRunner
 	{
 		private const string CompilerPath = @"C:\Windows\Microsoft.NET\Framework\v4.0.30319\Csc.exe";
-		private static readonly ProjectItem MsCoreLibrary = new ProjectItem(Items.Reference, "mscorlib");
 
-		private readonly AssemblyResolver _resolver;
 		private readonly ExpressionEngine.ExpressionEngine _expressionEngine;
 		private readonly IFileSystem _fileSystem;
 
@@ -23,7 +20,6 @@ namespace Build.TaskEngine.Tasks
 			if (fileSystem == null)
 				throw new ArgumentNullException("fileSystem");
 
-			_resolver = new AssemblyResolver(expressionEngine);
 			_expressionEngine = expressionEngine;
 			_fileSystem = fileSystem;
 		}
@@ -105,7 +101,6 @@ namespace Build.TaskEngine.Tasks
 			{
 				AddReference(arguments, reference, rootPath);
 			}
-			AddReference(arguments, MsCoreLibrary, rootPath);
 
 			var resources = _expressionEngine.EvaluateItemList(csc.Resources, environment);
 			foreach (var resource in resources)
@@ -144,7 +139,7 @@ namespace Build.TaskEngine.Tasks
 
 		private void AddReference(ArgumentBuilder arguments, ProjectItem reference, string rootPath)
 		{
-			string referencePath = _resolver.ResolveReference(reference, rootPath);
+			string referencePath = reference.Include;
 			arguments.Add("reference", referencePath);
 		}
 

@@ -50,7 +50,6 @@
     <Compile Include="DomainModel\MSBuild\Output.cs" />
     <Compile Include="DomainModel\MSBuild\ResolveAssemblyReference.cs" />
     <Compile Include="DomainModel\MSBuild\ResolveProjectReference.cs" />
-    <Compile Include="TaskEngine\AssemblyResolver.cs" />
     <Compile Include="BuildEngine\BuildEngine.cs" />
     <Compile Include="BuildEnvironment.cs" />
     <Compile Include="BuildEngine\FilenameComparer.cs" />

@@ -47,10 +47,10 @@
 
   <Target Name="ResolveReferences">
     <ResolveProjectReference ProjectReferences="@(ProjectReference)" />
-    <Output TaskParameter="ResolvedAssemblies" PropertyName="ResolvedReferencedProjects" />
+    <Output TaskParameter="ResolvedFiles" PropertyName="ResolvedReferencedProjects" />
 
-    <ResolveAssemblyReference Assemblies="@(Reference)" />
-    <Output TaskParameter="ResolvedAssemblies" PropertyName="ResolvedReferencedAssemblies" />
+    <ResolveAssemblyReference Assemblies="mscorlib;@(Reference)" />
+    <Output TaskParameter="ResolvedFiles" PropertyName="ResolvedReferencedAssemblies" />
 
     <PropertyGroup>
       <ReferencedAssemblies>$(ResolvedReferencedAssemblies);$(ResolvedReferencedProjects)</ReferencedAssemblies>
