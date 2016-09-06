@@ -161,6 +161,8 @@ namespace Build.BuildEngine
 			string inputFile = _arguments.InputFile;
 			if (inputFile == null)
 				inputFile = FindInputFile();
+			else if (!Path.IsPathRooted(inputFile))
+				inputFile = Path.Normalize(Path.Combine(Directory.GetCurrentDirectory(), inputFile));
 
 			string extension = Path.GetExtension(inputFile);
 			switch (extension)
