@@ -29,6 +29,11 @@ namespace Build.ExpressionEngine
 			return environment.Properties[Name];
 		}
 
+		public string ToString(IFileSystem fileSystem, BuildEnvironment environment, ProjectItem item)
+		{
+			return ToString(fileSystem, environment);
+		}
+
 		public void ToItemList(IFileSystem fileSystem, BuildEnvironment environment, List<ProjectItem> items)
 		{
 			var fileNames = ToString(fileSystem, environment)

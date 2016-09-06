@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 
 namespace Build.ExpressionEngine
@@ -69,10 +68,15 @@ namespace Build.ExpressionEngine
 
 		public string ToString(IFileSystem fileSystem, BuildEnvironment environment)
 		{
+			return ToString(fileSystem, environment, null);
+		}
+
+		public string ToString(IFileSystem fileSystem, BuildEnvironment environment, ProjectItem item)
+		{
 			var builder = new StringBuilder();
 			for (int i = 0; i < Arguments.Length; ++i)
 			{
-				var value = Arguments[i].ToString(fileSystem, environment);
+				var value = Arguments[i].ToString(fileSystem, environment, item);
 				builder.Append(value);
 			}
 			return builder.ToString();

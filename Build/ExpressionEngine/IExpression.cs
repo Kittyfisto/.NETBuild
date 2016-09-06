@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.Contracts;
-using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 
 namespace Build.ExpressionEngine
@@ -12,6 +11,9 @@ namespace Build.ExpressionEngine
 
 		[Pure]
 		string ToString(IFileSystem fileSystem, BuildEnvironment environment);
+
+		[Pure]
+		string ToString(IFileSystem fileSystem, BuildEnvironment environment, ProjectItem item);
 
 		void ToItemList(IFileSystem fileSystem,
 			BuildEnvironment environment,

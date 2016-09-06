@@ -559,6 +559,17 @@ namespace Build.Test.ExpressionEngine
 					   ));
 		}
 
+		[Test]
+		public void TestParseItemList16()
+		{
+			_parser.ParseItemList("@(Reference -> '%(FileName)')")
+				   .Should().Be(
+					   new ItemListProjection(
+						   "Reference",
+						   new MetadataReference("FileName")
+						   ));
+		}
+
 		#endregion
 	}
 }

@@ -31,7 +31,10 @@ namespace Build.Test.ExpressionEngine
 			_tokenizer.Tokenize("AND").Should().Equal(new Token(TokenType.And));
 			_tokenizer.Tokenize("OR").Should().Equal(new Token(TokenType.Or));
 			_tokenizer.Tokenize("$").Should().Equal(new Token(TokenType.Dollar));
+			_tokenizer.Tokenize("@").Should().Equal(new Token(TokenType.At));
+			_tokenizer.Tokenize("%").Should().Equal(new Token(TokenType.Percent));
 			_tokenizer.Tokenize(";").Should().Equal(new Token(TokenType.ItemListSeparator));
+			_tokenizer.Tokenize("->").Should().Equal(new Token(TokenType.Arrow));
 			_tokenizer.Tokenize("SomeValue").Should().Equal(new Token(TokenType.Literal, "SomeValue"));
 		}
 
@@ -167,6 +170,36 @@ namespace Build.Test.ExpressionEngine
 					new Token(TokenType.At),
 					new Token(TokenType.OpenBracket),
 					new Token(TokenType.Literal, "References"),
+					new Token(TokenType.CloseBracket)
+				});
+		}
+
+		[Test]
+		public void TestTokenize13()
+		{
+			_tokenizer.Tokenize("->").Should().Equal(new object[]
+				{
+					new Token(TokenType.Arrow),
+				});
+		}
+
+		[Test]
+		public void TestTokenize14()
+		{
+			_tokenizer.Tokenize("@(Compile -> '%(FileName)')").Should().Equal(new object[]
+				{
+					new Token(TokenType.At),
+					new Token(TokenType.OpenBracket),
+					new Token(TokenType.Literal, "Compile"),
+					new Token(TokenType.Whitespace, " "),
+					new Token(TokenType.Arrow),
+					new Token(TokenType.Whitespace, " "),
+					new Token(TokenType.Quotation),
+					new Token(TokenType.Percent),
+					new Token(TokenType.OpenBracket),
+					new Token(TokenType.Literal, "FileName"),
+					new Token(TokenType.CloseBracket),
+					new Token(TokenType.Quotation),
 					new Token(TokenType.CloseBracket)
 				});
 		}

@@ -17,8 +17,8 @@ namespace Build.ExpressionEngine
 		public IExpression ParseCondition(string expression)
 		{
 			List<Token> tokens = _tokenizer.Tokenize(expression);
-			var expr =  Parse(tokens);
-			var optimized = ExpressionOptimizer.Run(expr);
+			IExpression expr = Parse(tokens);
+			IExpression optimized = ExpressionOptimizer.Run(expr);
 			return optimized;
 		}
 
@@ -27,7 +27,7 @@ namespace Build.ExpressionEngine
 		{
 			List<Token> tokens = _tokenizer.Tokenize(expression);
 			var stack = new List<TokenOrExpression>();
-			foreach (var token in tokens)
+			foreach (Token token in tokens)
 			{
 				stack.Add(token);
 			}
@@ -41,17 +41,16 @@ namespace Build.ExpressionEngine
 
 				if (TryParseItemList(stack))
 					successfullyParsed = true;
-
 			} while (stack.Count > 1 && successfullyParsed);
 
 			if (stack.Count == 0) //< Empty input was given
 				return new ItemListExpression();
 
 			if (stack.Count > 1 || stack[0].Expression == null)
-				throw new ParseException();
+				throw new ParseException(string.Format("Unable to parse \"{0}\"", expression));
 
-			var itemList = stack[0].Expression;
-			var optimized = ExpressionOptimizer.Run(itemList);
+			IExpression itemList = stack[0].Expression;
+			IExpression optimized = ExpressionOptimizer.Run(itemList);
 			return optimized;
 		}
 
@@ -64,7 +63,7 @@ namespace Build.ExpressionEngine
 			// in string concatenation: We only replace property values..
 			List<Token> tokens = _tokenizer.Tokenize(expression);
 			var stack = new List<TokenOrExpression>(tokens.Count);
-			foreach (var token in tokens)
+			foreach (Token token in tokens)
 				stack.Add(token);
 
 			bool successfullyParsed;
@@ -81,7 +80,7 @@ namespace Build.ExpressionEngine
 					successfullyParsed = true;
 				if (TryParseItemListReference(stack))
 					successfullyParsed = true;
-				if (TryParseConcatenation(stack, consumeItemListSeparator: true))
+				if (TryParseConcatenation(stack, consumeItemListSeparator: true, includeMetadataReference: true))
 					successfullyParsed = true;
 			} while (stack.Count > 1 && successfullyParsed);
 
@@ -90,16 +89,16 @@ namespace Build.ExpressionEngine
 			if (stack[0].Expression == null)
 				throw new ParseException();
 
-			var expr = stack[0].Expression;
-			var optimized = ExpressionOptimizer.Run(expr);
+			IExpression expr = stack[0].Expression;
+			IExpression optimized = ExpressionOptimizer.Run(expr);
 			return optimized;
 		}
 
 		public IExpression ParseExpression(string expression)
 		{
 			List<Token> tokens = _tokenizer.Tokenize(expression);
-			var expr = Parse(tokens);
-			var optimized = ExpressionOptimizer.Run(expr);
+			IExpression expr = Parse(tokens);
+			IExpression optimized = ExpressionOptimizer.Run(expr);
 			return optimized;
 		}
 
@@ -305,7 +304,6 @@ namespace Build.ExpressionEngine
 
 				if (tokens.Count > beginTokens)
 					throw new Exception("Parser encountered an error: There shouldn't be more tokens than we started with!");
-
 			} while (tokens.Count < beginTokens);
 
 			if (tokens.Count == 1 &&
@@ -348,7 +346,8 @@ namespace Build.ExpressionEngine
 		}
 
 		private bool TryParseConcatenation(List<TokenOrExpression> tokens,
-			bool consumeItemListSeparator)
+		                                   bool consumeItemListSeparator,
+		                                   bool includeMetadataReference)
 		{
 			Func<TokenOrExpression, bool> isLiteralOrVariable = (pair) =>
 				{
@@ -360,6 +359,8 @@ namespace Build.ExpressionEngine
 						return true;
 					if (pair.Expression is ConcatExpression)
 						return true;
+					if (pair.Expression is MetadataReference)
+						return includeMetadataReference;
 
 					switch (pair.Token.Type)
 					{
@@ -379,6 +380,9 @@ namespace Build.ExpressionEngine
 						case TokenType.Whitespace:
 							return true;
 
+						case TokenType.Percent:
+							return includeMetadataReference;
+
 						case TokenType.ItemListSeparator:
 							return consumeItemListSeparator;
 					}
@@ -388,18 +392,18 @@ namespace Build.ExpressionEngine
 
 			if (tokens.Count >= 2 &&
 			    isLiteralOrVariable(tokens[0]) &&
-				(consumeItemListSeparator || tokens[1].Token.Type != TokenType.ItemListSeparator))
+			    (consumeItemListSeparator || tokens[1].Token.Type != TokenType.ItemListSeparator))
 			{
-				var lhs = tokens.Cut(0, 1);
-				if (!TryParseOneConcatenationContent(lhs, consumeItemListSeparator))
+				List<TokenOrExpression> lhs = tokens.Cut(0, 1);
+				if (!TryParseOneConcatenationContent(lhs, consumeItemListSeparator, includeMetadataReference))
 					throw new ParseException("Internal error");
 
-				var leftHandSide = lhs[0].Expression;
+				IExpression leftHandSide = lhs[0].Expression;
 
-				if (!TryParseOneConcatenationContent(tokens, consumeItemListSeparator))
+				if (!TryParseOneConcatenationContent(tokens, consumeItemListSeparator, includeMetadataReference))
 					throw new ParseException("Internal error");
 
-				var rightHandSide = tokens[0].Expression;
+				IExpression rightHandSide = tokens[0].Expression;
 				tokens[0] = new TokenOrExpression(
 					new ConcatExpression(leftHandSide, rightHandSide));
 				return true;
@@ -409,11 +413,12 @@ namespace Build.ExpressionEngine
 		}
 
 		private bool TryParseOneConcatenationContent(List<TokenOrExpression> tokens,
-			bool consumeItemListSeparator)
+		                                             bool consumeItemListSeparator,
+		                                             bool includeMetadataReference)
 		{
 			if (tokens.Count >= 1 && tokens[0].Expression != null)
 			{
-				var expression = tokens[0].Expression;
+				IExpression expression = tokens[0].Expression;
 				if (expression is ConcatExpression)
 					return true;
 				if (expression is StringLiteral)
@@ -422,6 +427,8 @@ namespace Build.ExpressionEngine
 					return true;
 				if (expression is VariableReference)
 					return true;
+				if (expression is MetadataReference)
+					return includeMetadataReference;
 
 				return false;
 			}
@@ -435,6 +442,9 @@ namespace Build.ExpressionEngine
 			if (TryParseItemListReference(tokens))
 				return true;
 
+			if (TryParseMetadataReference(tokens))
+				return true;
+
 			if (TryParseOperatorsAsLiteral(tokens))
 				return true;
 
@@ -445,11 +455,11 @@ namespace Build.ExpressionEngine
 		}
 
 		private bool TryParseSpecialCharsAsLiteral(List<TokenOrExpression> tokens,
-			bool consumeItemListSeparator)
+		                                           bool consumeItemListSeparator)
 		{
 			if (tokens.Count >= 1)
 			{
-				var type = tokens[0].Token.Type;
+				TokenType type = tokens[0].Token.Type;
 				switch (type)
 				{
 					case TokenType.Not:
@@ -481,9 +491,9 @@ namespace Build.ExpressionEngine
 		private bool TryParseLiteral(List<TokenOrExpression> tokens)
 		{
 			if (tokens.Count >= 1 &&
-				(tokens[0].Token.Type == TokenType.Literal))
+			    (tokens[0].Token.Type == TokenType.Literal))
 			{
-				var value = tokens[0].Token.Value;
+				string value = tokens[0].Token.Value;
 				tokens[0] = new TokenOrExpression(
 					new StringLiteral(value));
 				return true;
@@ -517,13 +527,22 @@ namespace Build.ExpressionEngine
 			return false;
 		}
 
+		private bool TryParseMetadataReference(List<TokenOrExpression> tokens)
+		{
+			if (Matches(tokens, TokenType.Percent, TokenType.OpenBracket, TokenType.Literal, TokenType.CloseBracket))
+			{
+				TokenOrExpression name = tokens[2];
+				tokens.RemoveRange(0, 4);
+				tokens.Insert(0, new TokenOrExpression(new MetadataReference(name.Token.Value)));
+				return true;
+			}
+
+			return false;
+		}
+
 		private bool TryParseVariableReference(List<TokenOrExpression> tokens)
 		{
-			if (tokens.Count >= 4 &&
-			    tokens[0].Token.Type == TokenType.Dollar &&
-			    tokens[1].Token.Type == TokenType.OpenBracket &&
-			    tokens[2].Token.Type == TokenType.Literal &&
-			    tokens[3].Token.Type == TokenType.CloseBracket)
+			if (Matches(tokens, TokenType.Dollar, TokenType.OpenBracket, TokenType.Literal, TokenType.CloseBracket))
 			{
 				TokenOrExpression name = tokens[2];
 				tokens.RemoveRange(0, 4);
@@ -534,13 +553,71 @@ namespace Build.ExpressionEngine
 			return false;
 		}
 
+		private bool TryParseItemListProjection(List<TokenOrExpression> tokens)
+		{
+			int index;
+			if (Matches(tokens, TokenType.At, TokenType.OpenBracket, TokenType.Literal, TokenType.Whitespace, TokenType.Arrow, TokenType.Whitespace) &&
+			    TryFindClosingBracket(tokens, out index))
+			{
+				TokenOrExpression name = tokens[2];
+				List<TokenOrExpression> content = tokens.Splice(6, index - 6);
+				content.Trim(TokenType.Whitespace);
+				content.Trim(TokenType.Quotation);
+				tokens.RemoveRange(0, index + 1);
+
+				bool parsed;
+				do
+				{
+					parsed = false;
+					if (TryParseOneConcatenationContent(content, consumeItemListSeparator: false, includeMetadataReference: true))
+						parsed = true;
+					if (TryParseConcatenation(content, consumeItemListSeparator: false, includeMetadataReference: true))
+						parsed = true;
+				} while (parsed && content.Count > 1);
+
+				if (content.Count != 1 || content[0].Expression == null)
+					throw new ParseException();
+
+				IExpression projectionRule = content[0].Expression;
+				tokens.Insert(0, new TokenOrExpression(new ItemListProjection(
+					                                       name.Token.Value,
+					                                       projectionRule
+					                                       )));
+				return true;
+			}
+
+			return false;
+		}
+
+		private static bool TryFindClosingBracket(List<TokenOrExpression> tokens, out int index)
+		{
+			int depth = 0;
+			for (int i = 0; i < tokens.Count; ++i)
+			{
+				Token token = tokens[i].Token;
+				switch (token.Type)
+				{
+					case TokenType.OpenBracket:
+						++depth;
+						break;
+
+					case TokenType.CloseBracket:
+						if (--depth == 0)
+						{
+							index = i;
+							return true;
+						}
+						break;
+				}
+			}
+
+			index = -1;
+			return false;
+		}
+
 		private bool TryParseItemListReference(List<TokenOrExpression> tokens)
 		{
-			if (tokens.Count >= 4 &&
-			    tokens[0].Token.Type == TokenType.At &&
-			    tokens[1].Token.Type == TokenType.OpenBracket &&
-			    tokens[2].Token.Type == TokenType.Literal &&
-			    tokens[3].Token.Type == TokenType.CloseBracket)
+			if (Matches(tokens, TokenType.At, TokenType.OpenBracket, TokenType.Literal, TokenType.CloseBracket))
 			{
 				TokenOrExpression name = tokens[2];
 				tokens.RemoveRange(0, 4);
@@ -553,13 +630,15 @@ namespace Build.ExpressionEngine
 
 		private bool TryParseItemListContent(List<TokenOrExpression> tokens)
 		{
-			if (TryParseConcatenation(tokens, consumeItemListSeparator: false))
+			if (TryParseConcatenation(tokens, consumeItemListSeparator: false, includeMetadataReference: false))
 				return true;
 			if (TryParseOperatorsAsLiteral(tokens))
 				return true;
 			if (TryParseVariableReference(tokens))
 				return true;
 			if (TryParseLiteral(tokens))
+				return true;
+			if (TryParseItemListProjection(tokens))
 				return true;
 			if (TryParseItemListReference(tokens))
 				return true;
@@ -572,7 +651,7 @@ namespace Build.ExpressionEngine
 			    tokens[0].Token.Type != TokenType.ItemListSeparator &&
 			    tokens[1].Token.Type == TokenType.ItemListSeparator)
 			{
-				var leftHandSide = Parse(tokens[0]);
+				IExpression leftHandSide = Parse(tokens[0]);
 				tokens.RemoveRange(0, 2);
 
 				List<TokenOrExpression> rhs;
@@ -588,12 +667,13 @@ namespace Build.ExpressionEngine
 				}
 
 				while (TryParseItemListContent(rhs))
-				{ }
+				{
+				}
 
 				if (rhs.Count != 1)
 					throw new ParseException();
 
-				var rightHandSide = rhs[0].Expression;
+				IExpression rightHandSide = rhs[0].Expression;
 				tokens.Insert(0, new TokenOrExpression(new ItemListExpression(leftHandSide, rightHandSide)));
 				return true;
 			}
@@ -606,13 +686,13 @@ namespace Build.ExpressionEngine
 			int endIndex;
 			if (tokens.Count >= 3 && IsFunctionName(tokens[0].Token, out operation) &&
 			    tokens[1].Token.Type == TokenType.OpenBracket &&
-				TryFindFirst(tokens, TokenType.CloseBracket, out endIndex))
+			    TryFindFirst(tokens, TokenType.CloseBracket, out endIndex))
 			{
 				// Function call fn(...)
 				// We want to retrieve the arguments from the token-stack
 				// parse them and trash the fn(...) part
-				var arguments = tokens.Splice(2, endIndex - 2);
-				tokens.RemoveRange(0, endIndex+1);
+				List<TokenOrExpression> arguments = tokens.Splice(2, endIndex - 2);
+				tokens.RemoveRange(0, endIndex + 1);
 
 				if (!TryParseOne(arguments))
 					throw new ParseException();
@@ -636,7 +716,7 @@ namespace Build.ExpressionEngine
 			{
 				// Binary expression
 				TokenOrExpression lhs = tokens[0];
-				var op = tokens[1].Token.Type;
+				TokenType op = tokens[1].Token.Type;
 				tokens.RemoveRange(0, 2);
 				TryParseLeftToRight(tokens);
 				if (tokens.Count != 1)
@@ -700,6 +780,31 @@ namespace Build.ExpressionEngine
 				default:
 					throw new ParseException(string.Format("Expected token or literal but found: {0}", token));
 			}
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="tokens"></param>
+		/// <param name="types"></param>
+		/// <returns></returns>
+		private static bool Matches(List<TokenOrExpression> tokens,
+									params TokenType[] types)
+		{
+			if (tokens.Count < types.Length)
+				return false;
+
+			// ReSharper disable LoopCanBeConvertedToQuery
+			for (int i = 0; i < types.Length; ++i)
+			// ReSharper restore LoopCanBeConvertedToQuery
+			{
+				TokenType type = types[i];
+				Token token = tokens[i].Token;
+				if (token.Type != type)
+					return false;
+			}
+
+			return true;
 		}
 
 		#endregion

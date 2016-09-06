@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 
 namespace Build.ExpressionEngine
@@ -48,6 +47,11 @@ namespace Build.ExpressionEngine
 					builder.Append(Tokenizer.ItemListSeparator);
 			}
 			return builder.ToString();
+		}
+
+		public string ToString(IFileSystem fileSystem, BuildEnvironment environment, ProjectItem item)
+		{
+			throw new NotImplementedException();
 		}
 
 		public void ToItemList(IFileSystem fileSystem, BuildEnvironment environment, List<ProjectItem> items)

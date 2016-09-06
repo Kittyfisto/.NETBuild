@@ -27,6 +27,8 @@ namespace Build.ExpressionEngine
 					{TokenType.Quotation, "'"},
 					{TokenType.Dollar, "$"},
 					{TokenType.At, "@"},
+					{TokenType.Percent, "%"},
+					{TokenType.Arrow, "->"},
 					{TokenType.ItemListSeparator, ItemListSeparator}
 				};
 		}

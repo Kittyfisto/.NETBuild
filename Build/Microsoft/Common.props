@@ -123,8 +123,10 @@
 
   <Target Name="CopyFilesToOutputDirectory">
     <Copy SourceFiles="$(IntermediateAssembly)" DestinationFiles="$(OutputAssembly)" />
-    <Message Importance="Normal" Text="Build -> $(MSBuildProjectDirectory)\$(OutputAssembly)" />
     <Copy SourceFiles="$(IntermediatePdb)" DestinationFiles="$(OutputPdb)" />
+    <Copy SourceFiles="$(ResolvedReferencedProjects)" DestinationFiles="@(ResolvedReferencedProjects -> '$(OutputPath)\%(FileName)%(Extension)')" />
+          
+    <Message Importance="Normal" Text="Build -> $(MSBuildProjectDirectory)\$(OutputAssembly)" />
   </Target>
 
   <!-- The total order of targets that are executed in order to build one project -->
@@ -148,7 +150,7 @@
   <Target Name="CoreClean">
     <Delete Files="$(CleanFiles)" />
   </Target>
-  
+
   <!-- The total order of targets that are executed in order to clean one project -->
   <PropertyGroup>
     <CleanDependsOn>

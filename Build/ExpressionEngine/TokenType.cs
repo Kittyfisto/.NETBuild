@@ -28,7 +28,9 @@
 		Quotation,
 		Dollar,
 		At,
+		Percent,
 		ItemListSeparator,
+		Arrow,
 		Literal,
 	}
 }

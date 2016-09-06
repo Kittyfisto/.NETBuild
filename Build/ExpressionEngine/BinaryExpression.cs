@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
-using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 
 namespace Build.ExpressionEngine
@@ -117,6 +116,11 @@ namespace Build.ExpressionEngine
 		}
 
 		public string ToString(IFileSystem fileSystem, BuildEnvironment environment)
+		{
+			throw new NotImplementedException();
+		}
+
+		public string ToString(IFileSystem fileSystem, BuildEnvironment environment, ProjectItem item)
 		{
 			throw new NotImplementedException();
 		}

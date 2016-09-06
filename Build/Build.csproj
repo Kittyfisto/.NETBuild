@@ -45,6 +45,9 @@
     <Compile Include="Application.cs" />
     <Compile Include="ArgumentBuilder.cs" />
     <Compile Include="Arguments.cs" />
+    <Compile Include="ExpressionEngine\ItemListProjection.cs" />
+    <Compile Include="ExpressionEngine\MetadataReference.cs" />
+    <Compile Include="ExpressionEngine\TokenOrExpressionExtensions.cs" />
     <Compile Include="IProjectDependencyGraph.cs" />
     <Compile Include="BuildEngine\ProjectAndEnvironment.cs" />
     <Compile Include="DomainModel\MSBuild\Output.cs" />

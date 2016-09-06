@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.Contracts;
-using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 
 namespace Build.ExpressionEngine
@@ -40,6 +39,11 @@ namespace Build.ExpressionEngine
 		public string ToString(IFileSystem fileSystem, BuildEnvironment environment)
 		{
 			return Evaluate(fileSystem, environment).ToString();
+		}
+
+		public string ToString(IFileSystem fileSystem, BuildEnvironment environment, ProjectItem item)
+		{
+			throw new System.NotImplementedException();
 		}
 
 		public void ToItemList(IFileSystem fileSystem, BuildEnvironment environment, List<ProjectItem> items)
