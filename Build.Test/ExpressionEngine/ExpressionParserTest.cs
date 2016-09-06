@@ -26,7 +26,7 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestParse2()
 		{
-			_parser.ParseExpression("$(foo)").Should().Be(new VariableReference("foo"));
+			_parser.ParseExpression("$(foo)").Should().Be(new PropertyReference("foo"));
 		}
 
 		[Test]
@@ -62,7 +62,7 @@ namespace Build.Test.ExpressionEngine
 		{
 			_parser.ParseExpression("$(Configuration) == Debug")
 			       .Should()
-			       .Be(new BinaryExpression(new VariableReference("Configuration"), BinaryOperation.Equals, new StringLiteral("Debug")));
+			       .Be(new BinaryExpression(new PropertyReference("Configuration"), BinaryOperation.Equals, new StringLiteral("Debug")));
 		}
 
 		[Test]
@@ -70,7 +70,7 @@ namespace Build.Test.ExpressionEngine
 		{
 			_parser.ParseExpression("$(Configuration) == Debug|Foo")
 			       .Should()
-			       .Be(new BinaryExpression(new VariableReference("Configuration"), BinaryOperation.Equals,
+			       .Be(new BinaryExpression(new PropertyReference("Configuration"), BinaryOperation.Equals,
 			                                new StringLiteral("Debug|Foo")));
 		}
 
@@ -91,7 +91,7 @@ namespace Build.Test.ExpressionEngine
 		public void TestParse10()
 		{
 			_parser.ParseExpression(" '$(Configuration)' == '' ").Should().Be(new BinaryExpression(
-																		new VariableReference("Configuration"),
+																		new PropertyReference("Configuration"),
 																		BinaryOperation.Equals,
 																		new StringLiteral("")));
 		}
@@ -100,7 +100,7 @@ namespace Build.Test.ExpressionEngine
 		public void TestParse11()
 		{
 			_parser.ParseExpression(" '$(Platform)' != '' ").Should().Be(new BinaryExpression(
-																   new VariableReference("Platform"),
+																   new PropertyReference("Platform"),
 																   BinaryOperation.EqualsNot,
 																   new StringLiteral("")));
 		}
@@ -109,9 +109,9 @@ namespace Build.Test.ExpressionEngine
 		public void TestParse12()
 		{
 			_parser.ParseExpression("'$(Configuration)|$(Platform)'").Should().Be(new ConcatExpression(
-				                                                            new VariableReference("Configuration"),
+				                                                            new PropertyReference("Configuration"),
 				                                                            new StringLiteral("|"),
-				                                                            new VariableReference("Platform")));
+				                                                            new PropertyReference("Platform")));
 		}
 
 		[Test]
@@ -119,9 +119,9 @@ namespace Build.Test.ExpressionEngine
 		{
 			_parser.ParseExpression("'$(Configuration)' == 'Debug' AND '$(Platform)' == 'AnyCPU'").
 			        Should().Be(new BinaryExpression(
-				                    new BinaryExpression(new VariableReference("Configuration"), BinaryOperation.Equals, new StringLiteral("Debug")),
+				                    new BinaryExpression(new PropertyReference("Configuration"), BinaryOperation.Equals, new StringLiteral("Debug")),
 				                    BinaryOperation.And,
-				                    new BinaryExpression(new VariableReference("Platform"), BinaryOperation.Equals, new StringLiteral("AnyCPU"))));
+				                    new BinaryExpression(new PropertyReference("Platform"), BinaryOperation.Equals, new StringLiteral("AnyCPU"))));
 		}
 
 		[Test]
@@ -129,9 +129,9 @@ namespace Build.Test.ExpressionEngine
 		{
 			_parser.ParseExpression("$(Configuration) == 'Debug' AND $(Platform) == 'AnyCPU'").
 					Should().Be(new BinaryExpression(
-									new BinaryExpression(new VariableReference("Configuration"), BinaryOperation.Equals, new StringLiteral("Debug")),
+									new BinaryExpression(new PropertyReference("Configuration"), BinaryOperation.Equals, new StringLiteral("Debug")),
 									BinaryOperation.And,
-									new BinaryExpression(new VariableReference("Platform"), BinaryOperation.Equals, new StringLiteral("AnyCPU"))));
+									new BinaryExpression(new PropertyReference("Platform"), BinaryOperation.Equals, new StringLiteral("AnyCPU"))));
 		}
 
 		[Test]
@@ -139,9 +139,9 @@ namespace Build.Test.ExpressionEngine
 		{
 			_parser.ParseExpression("$(Configuration) == 'Debug' OR $(Platform) == 'AnyCPU'").
 					Should().Be(new BinaryExpression(
-									new BinaryExpression(new VariableReference("Configuration"), BinaryOperation.Equals, new StringLiteral("Debug")),
+									new BinaryExpression(new PropertyReference("Configuration"), BinaryOperation.Equals, new StringLiteral("Debug")),
 									BinaryOperation.Or,
-									new BinaryExpression(new VariableReference("Platform"), BinaryOperation.Equals, new StringLiteral("AnyCPU"))));
+									new BinaryExpression(new PropertyReference("Platform"), BinaryOperation.Equals, new StringLiteral("AnyCPU"))));
 		}
 
 		[Test]
@@ -149,9 +149,9 @@ namespace Build.Test.ExpressionEngine
 		{
 			_parser.ParseExpression("'$(Configuration)' == 'Debug' OR '$(Platform)' == 'AnyCPU'").
 					Should().Be(new BinaryExpression(
-									new BinaryExpression(new VariableReference("Configuration"), BinaryOperation.Equals, new StringLiteral("Debug")),
+									new BinaryExpression(new PropertyReference("Configuration"), BinaryOperation.Equals, new StringLiteral("Debug")),
 									BinaryOperation.Or,
-									new BinaryExpression(new VariableReference("Platform"), BinaryOperation.Equals, new StringLiteral("AnyCPU"))));
+									new BinaryExpression(new PropertyReference("Platform"), BinaryOperation.Equals, new StringLiteral("AnyCPU"))));
 		}
 
 		[Test]
@@ -166,20 +166,20 @@ namespace Build.Test.ExpressionEngine
 		public void TestParse18()
 		{
 			_parser.ParseExpression("true != $(Foobar)").
-					Should().Be(new BinaryExpression(new StringLiteral("true"), BinaryOperation.EqualsNot, new VariableReference("Foobar")));
+					Should().Be(new BinaryExpression(new StringLiteral("true"), BinaryOperation.EqualsNot, new PropertyReference("Foobar")));
 		}
 
 		[Test]
 		public void TestParse19()
 		{
 			_parser.ParseExpression("42 > $(Foobar)").
-					Should().Be(new BinaryExpression(new StringLiteral("42"), BinaryOperation.GreaterThan, new VariableReference("Foobar")));
+					Should().Be(new BinaryExpression(new StringLiteral("42"), BinaryOperation.GreaterThan, new PropertyReference("Foobar")));
 			_parser.ParseExpression("42 < $(Foobar)").
-					Should().Be(new BinaryExpression(new StringLiteral("42"), BinaryOperation.LessThan, new VariableReference("Foobar")));
+					Should().Be(new BinaryExpression(new StringLiteral("42"), BinaryOperation.LessThan, new PropertyReference("Foobar")));
 			_parser.ParseExpression("42 >= $(Foobar)").
-					Should().Be(new BinaryExpression(new StringLiteral("42"), BinaryOperation.GreaterOrEquals, new VariableReference("Foobar")));
+					Should().Be(new BinaryExpression(new StringLiteral("42"), BinaryOperation.GreaterOrEquals, new PropertyReference("Foobar")));
 			_parser.ParseExpression("42 <= $(Foobar)").
-					Should().Be(new BinaryExpression(new StringLiteral("42"), BinaryOperation.LessOrEquals, new VariableReference("Foobar")));
+					Should().Be(new BinaryExpression(new StringLiteral("42"), BinaryOperation.LessOrEquals, new PropertyReference("Foobar")));
 		}
 
 		[Test]
@@ -243,7 +243,7 @@ namespace Build.Test.ExpressionEngine
 				   .Should().Be(
 				   new ItemListExpression(
 					   new ItemListReference("Reference"),
-					   new VariableReference("ProjectReferenceAssemblies")
+					   new PropertyReference("ProjectReferenceAssemblies")
 					   ));
 		}
 
@@ -252,9 +252,9 @@ namespace Build.Test.ExpressionEngine
 		{
 			_parser.ParseExpression(" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ")
 				   .Should().Be(new BinaryExpression(
-									new ConcatExpression(new VariableReference("Configuration"),
+									new ConcatExpression(new PropertyReference("Configuration"),
 														 new StringLiteral("|"),
-														 new VariableReference("Platform")
+														 new PropertyReference("Platform")
 										),
 									BinaryOperation.Equals,
 										new StringLiteral("Debug|AnyCPU")));
@@ -291,7 +291,7 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestParseConcatenation4()
 		{
-			_parser.ParseConcatenation("$(Foo)").Should().Be(new VariableReference("Foo"));
+			_parser.ParseConcatenation("$(Foo)").Should().Be(new PropertyReference("Foo"));
 		}
 
 		[Test]
@@ -300,7 +300,7 @@ namespace Build.Test.ExpressionEngine
 			_parser.ParseConcatenation(" $(Foo) ").Should().Be(
 				new ConcatExpression(
 					new StringLiteral(" "),
-					new VariableReference("Foo"),
+					new PropertyReference("Foo"),
 					new StringLiteral(" ")));
 		}
 
@@ -310,7 +310,7 @@ namespace Build.Test.ExpressionEngine
 			_parser.ParseConcatenation(" '$(Foo)' ").Should().Be(
 				new ConcatExpression(
 					new StringLiteral(" '"),
-					new VariableReference("Foo"),
+					new PropertyReference("Foo"),
 					new StringLiteral("' ")));
 		}
 
@@ -319,9 +319,9 @@ namespace Build.Test.ExpressionEngine
 		{
 			_parser.ParseConcatenation("$(Foo) $(Bar)").Should().Be(
 				new ConcatExpression(
-					new VariableReference("Foo"),
+					new PropertyReference("Foo"),
 					new StringLiteral(" "),
-					new VariableReference("Bar")));
+					new PropertyReference("Bar")));
 		}
 
 		[Test]
@@ -329,7 +329,7 @@ namespace Build.Test.ExpressionEngine
 		{
 			_parser.ParseConcatenation("$(Foo) @(Content)").Should().Be(
 				new ConcatExpression(
-					new VariableReference("Foo"),
+					new PropertyReference("Foo"),
 					new StringLiteral(" "),
 					new ItemListReference("Content")));
 		}
@@ -346,9 +346,9 @@ namespace Build.Test.ExpressionEngine
 		{
 			_parser.ParseConcatenation("$(Foo);$(Bar).cs").Should().Be(
 				new ConcatExpression(
-					new VariableReference("Foo"),
+					new PropertyReference("Foo"),
 					new StringLiteral(";"),
-					new VariableReference("Bar"),
+					new PropertyReference("Bar"),
 					new StringLiteral(".cs")
 					));
 		}
@@ -374,7 +374,7 @@ namespace Build.Test.ExpressionEngine
 				new ConcatExpression(
 					new ItemListReference("Reference"),
 					new StringLiteral(";"),
-					new VariableReference("ProjectReferenceAssemblies")
+					new PropertyReference("ProjectReferenceAssemblies")
 					)
 				);
 		}
@@ -399,14 +399,14 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestParseCondition2()
 		{
-			_parser.ParseCondition("$(Foo)").Should().Be(new VariableReference("Foo"));
+			_parser.ParseCondition("$(Foo)").Should().Be(new PropertyReference("Foo"));
 		}
 
 		[Test]
 		public void TestParseCondition3()
 		{
 			_parser.ParseCondition("$(Foo) > 42").Should().Be(
-				new BinaryExpression(new VariableReference("Foo"),
+				new BinaryExpression(new PropertyReference("Foo"),
 				                     BinaryOperation.GreaterThan,
 				                     new StringLiteral("42"))
 				);
@@ -443,7 +443,7 @@ namespace Build.Test.ExpressionEngine
 		public void TestParseItemList4()
 		{
 			_parser.ParseItemList("$(OutputPath)")
-			       .Should().Be(new VariableReference("OutputPath"));
+			       .Should().Be(new PropertyReference("OutputPath"));
 		}
 
 		[Test]
@@ -451,8 +451,8 @@ namespace Build.Test.ExpressionEngine
 		{
 			_parser.ParseItemList("$(OutputPath)$(Extension)")
 			       .Should().Be(
-				       new ConcatExpression(new VariableReference("OutputPath"),
-				                            new VariableReference("Extension")));
+				       new ConcatExpression(new PropertyReference("OutputPath"),
+				                            new PropertyReference("Extension")));
 		}
 
 		[Test]
@@ -461,8 +461,8 @@ namespace Build.Test.ExpressionEngine
 			_parser.ParseItemList("$(File1);$(File2)")
 			       .Should().Be(
 				       new ItemListExpression(
-					       new VariableReference("File1"),
-					       new VariableReference("File2")
+					       new PropertyReference("File1"),
+					       new PropertyReference("File2")
 					       ));
 		}
 
@@ -472,7 +472,7 @@ namespace Build.Test.ExpressionEngine
 			_parser.ParseItemList("$(File1);data.xml")
 			       .Should().Be(
 				       new ItemListExpression(
-					       new VariableReference("File1"),
+					       new PropertyReference("File1"),
 					       new StringLiteral("data.xml")
 					       ));
 		}
@@ -482,9 +482,9 @@ namespace Build.Test.ExpressionEngine
 		{
 			_parser.ParseItemList("$(OutputPath)\\$(OutputAssemblyName).config")
 			       .Should().Be(new ConcatExpression(
-				                    new VariableReference("OutputPath"),
+				                    new PropertyReference("OutputPath"),
 				                    new StringLiteral("\\"),
-				                    new VariableReference("OutputAssemblyName"),
+				                    new PropertyReference("OutputAssemblyName"),
 				                    new StringLiteral(".config")
 				                    )
 				);
@@ -523,7 +523,7 @@ namespace Build.Test.ExpressionEngine
 				   .Should().Be(
 				   new ItemListExpression(
 					   new StringLiteral("data.xaml"),
-					   new VariableReference("Foo"),
+					   new PropertyReference("Foo"),
 					   new StringLiteral("foo'bar")
 					   ));
 		}
@@ -535,7 +535,7 @@ namespace Build.Test.ExpressionEngine
 				   .Should().Be(
 				   new ItemListExpression(
 					   new StringLiteral("data.xaml"),
-					   new VariableReference("Foo"),
+					   new PropertyReference("Foo"),
 					   new StringLiteral("foo'bar"),
 					   new StringLiteral("program.cs")
 					   ));
@@ -548,7 +548,7 @@ namespace Build.Test.ExpressionEngine
 				   .Should().Be(
 				   new ItemListExpression(
 					   new StringLiteral("data.xaml"),
-					   new VariableReference("Foo"),
+					   new PropertyReference("Foo"),
 					   new StringLiteral("foo'bar"),
 					   new ItemListReference("Content"),
 					   new StringLiteral("program.cs")
@@ -562,7 +562,7 @@ namespace Build.Test.ExpressionEngine
 				   .Should().Be(
 				   new ItemListExpression(
 					   new ItemListReference("Reference"),
-					   new VariableReference("ProjectReferenceAssemblies")
+					   new PropertyReference("ProjectReferenceAssemblies")
 					   ));
 		}
 

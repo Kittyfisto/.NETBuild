@@ -383,7 +383,7 @@ namespace Build.ExpressionEngine
 						return true;
 					if (pair.Expression is ItemListReference)
 						return true;
-					if (pair.Expression is VariableReference)
+					if (pair.Expression is PropertyReference)
 						return true;
 					if (pair.Expression is ConcatExpression)
 						return true;
@@ -453,7 +453,7 @@ namespace Build.ExpressionEngine
 					return true;
 				if (expression is ItemListReference)
 					return true;
-				if (expression is VariableReference)
+				if (expression is PropertyReference)
 					return true;
 				if (expression is MetadataReference)
 					return includeMetadataReference;
@@ -575,7 +575,7 @@ namespace Build.ExpressionEngine
 			{
 				TokenOrExpression name = tokens[2];
 				tokens.RemoveRange(0, 4);
-				tokens.Insert(0, new TokenOrExpression(new VariableReference(name.Token.Value)));
+				tokens.Insert(0, new TokenOrExpression(new PropertyReference(name.Token.Value)));
 				return true;
 			}
 

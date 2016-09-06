@@ -4,12 +4,12 @@ using Build.DomainModel.MSBuild;
 
 namespace Build.ExpressionEngine
 {
-	public sealed class VariableReference
+	public sealed class PropertyReference
 		: IExpression
 	{
 		public readonly string Name;
 
-		public VariableReference(string name)
+		public PropertyReference(string name)
 		{
 			Name = name;
 		}
@@ -50,7 +50,7 @@ namespace Build.ExpressionEngine
 			}
 		}
 
-		private bool Equals(VariableReference other)
+		private bool Equals(PropertyReference other)
 		{
 			return string.Equals(Name, other.Name);
 		}
@@ -59,7 +59,7 @@ namespace Build.ExpressionEngine
 		{
 			if (ReferenceEquals(null, obj)) return false;
 			if (ReferenceEquals(this, obj)) return true;
-			return obj is VariableReference && Equals((VariableReference) obj);
+			return obj is PropertyReference && Equals((PropertyReference) obj);
 		}
 
 		public override int GetHashCode()

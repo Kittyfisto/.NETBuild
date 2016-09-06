@@ -54,7 +54,7 @@ namespace Build.Test.ExpressionEngine
 			_environment.Properties["OutputPath"] = @"bin\debug";
 			_item["Filename"] = "data";
 			_item["Extension"] = ".txt";
-			new ItemListProjection("Foo", new VariableReference("OutputPath"), new StringLiteral(@"\"), new MetadataReference("Filename"), new MetadataReference("Extension"))
+			new ItemListProjection("Foo", new PropertyReference("OutputPath"), new StringLiteral(@"\"), new MetadataReference("Filename"), new MetadataReference("Extension"))
 				.ToString(_fileSystem.Object, _environment, _item).Should().Be(@"bin\debug\data.txt");
 		}
 
@@ -90,7 +90,7 @@ namespace Build.Test.ExpressionEngine
 		public void TestEquals5()
 		{
 			new ItemListProjection("Foo", new MetadataReference("Filename"))
-				.Equals(new ItemListProjection("Foo", new VariableReference("Filename"))).Should().BeFalse();
+				.Equals(new ItemListProjection("Foo", new PropertyReference("Filename"))).Should().BeFalse();
 		}
 
 		[Test]
@@ -103,7 +103,7 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestToItemList1()
 		{
-			var projection = new ItemListProjection("Foo", new VariableReference("OutputPath"), new StringLiteral(@"\"),
+			var projection = new ItemListProjection("Foo", new PropertyReference("OutputPath"), new StringLiteral(@"\"),
 			                                        new MetadataReference("Filename"), new MetadataReference("Extension"));
 
 			var items = new List<ProjectItem>();

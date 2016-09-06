@@ -120,7 +120,7 @@
     <Compile Include="ExpressionEngine\TokenType.cs" />
     <Compile Include="ExpressionEngine\UnaryExpression.cs" />
     <Compile Include="ExpressionEngine\UnaryOperation.cs" />
-    <Compile Include="ExpressionEngine\VariableReference.cs" />
+    <Compile Include="ExpressionEngine\PropertyReference.cs" />
     <Compile Include="Slash.cs" />
     <Compile Include="Path.cs" />
     <Compile Include="ProcessEx.cs" />
