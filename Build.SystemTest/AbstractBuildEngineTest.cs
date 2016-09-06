@@ -5,10 +5,11 @@ using System.IO;
 using System.Reflection;
 using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
+using Build.Test;
 using FluentAssertions;
 using NUnit.Framework;
 
-namespace Build.Test.BuildEngine
+namespace Build.SystemTest
 {
 	[TestFixture]
 	public abstract class AbstractBuildEngineTest
@@ -29,7 +30,7 @@ namespace Build.Test.BuildEngine
 		{
 			var arguments = new Arguments
 				{
-					InputFile = TestPath.Get(Path.Combine(@"TestData\CSharp", ProjectFilePath)),
+					InputFile = TestPath.Get(Path.Combine("Projects", ProjectFilePath)),
 					Targets = {Targets.Build},
 					Verbosity = Verbosity.Minimal
 				};
@@ -110,7 +111,7 @@ namespace Build.Test.BuildEngine
 		{
 			var arguments = new Arguments
 				{
-					InputFile = TestPath.Get(Path.Combine(@"TestData\CSharp", ProjectFilePath)),
+					InputFile = TestPath.Get(Path.Combine("Projects", ProjectFilePath)),
 					Targets = {Targets.Clean},
 					Verbosity = Verbosity.Normal
 				};
@@ -128,7 +129,7 @@ namespace Build.Test.BuildEngine
 
 			foreach (string file in ExpectedOutputFiles)
 			{
-				string path = TestPath.Get(Path.Combine(@"TestData\CSharp", file));
+				string path = TestPath.Get(Path.Combine("Projects", file));
 				File.Exists(path).Should().BeTrue(
 					"because the file '{0}' should've been created during the build process",
 					path);
@@ -140,7 +141,7 @@ namespace Build.Test.BuildEngine
 
 			foreach (string file in ExpectedOutputFiles)
 			{
-				string path = TestPath.Get(Path.Combine(@"TestData\CSharp", file));
+				string path = TestPath.Get(Path.Combine("Projects", file));
 				File.Exists(path).Should().BeFalse(
 					"because the file '{0}' should've been deleted during the clean process",
 					path);

@@ -1,6 +1,6 @@
 ﻿using NUnit.Framework;
 
-namespace Build.Test.BuildEngine
+namespace Build.SystemTest
 {
 	[TestFixture]
 	public sealed class ReferencesLibraryTest

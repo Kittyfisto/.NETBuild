@@ -1,9 +1,10 @@
 ﻿using System.IO;
 using System.Reflection;
+using Build.Test;
 using FluentAssertions;
 using NUnit.Framework;
 
-namespace Build.Test.BuildEngine
+namespace Build.SystemTest
 {
 	[TestFixture]
 	public sealed class EmbeddedResourceTest
@@ -11,7 +12,7 @@ namespace Build.Test.BuildEngine
 	{
 		protected override string[] ProjectDirectories
 		{
-			get { return new[]{"EmbeddedResource"}; }
+			get { return new[]{@"EmbeddedResource"}; }
 		}
 
 		protected override string[] ExpectedOutputFiles
@@ -33,7 +34,7 @@ namespace Build.Test.BuildEngine
 
 		protected override void PostBuildChecks()
 		{
-			var source = TestPath.Get(@"TestData\CSharp\EmbeddedResource\bin\Debug\EmbeddedResource.dll");
+			var source = TestPath.Get(@"Projects\EmbeddedResource\bin\Debug\EmbeddedResource.dll");
 			var dest = Path.Combine(Path.GetDirectory(source), "tmp.dll");
 			File.Copy(source, dest, true);
 

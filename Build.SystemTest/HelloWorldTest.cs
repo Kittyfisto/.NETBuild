@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using NUnit.Framework;
 
-namespace Build.Test.BuildEngine
+namespace Build.SystemTest
 {
 	[TestFixture]
 	public sealed class HelloWorldTest
@@ -33,7 +33,7 @@ namespace Build.Test.BuildEngine
 		protected override void PostBuildChecks()
 		{
 			string output;
-			int exitCode = Run(@"TestData\CSharp\HelloWorld\bin\Debug\HelloWorld.exe", out output);
+			int exitCode = Run(@"Projects\HelloWorld\bin\Debug\HelloWorld.exe", out output);
 			exitCode.Should().Be(0);
 			output.Should().Be("Hello World!");
 		}
