@@ -44,7 +44,7 @@ namespace Build.ExpressionEngine
 				var cleaned = fileName.Trim();
 				if (!string.IsNullOrEmpty(cleaned))
 				{
-					var item = fileSystem.CreateProjectItem("None", cleaned, null, environment);
+					var item = fileSystem.CreateProjectItem(Items.None, cleaned, ToString(), environment);
 					items.Add(item);
 				}
 			}

@@ -58,6 +58,8 @@
     <Compile Include="BuildEnvironmentTest.cs" />
     <Compile Include="BuildEngine\HelloWorldTest.cs" />
     <Compile Include="ExpressionEngine\ItemListProjectionTest.cs" />
+    <Compile Include="ExpressionEngine\PropertyReferenceTest.cs" />
+    <Compile Include="ExpressionEngine\StringLiteralTest.cs" />
     <Compile Include="ExpressionEngine\TokenOrExpressionExtensionsTest.cs" />
     <Compile Include="ProjectDependencyGraphTest.cs" />
     <Compile Include="TaskEngine\TaskEngineAcceptanceTest.cs" />

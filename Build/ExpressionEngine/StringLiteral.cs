@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using Build.DomainModel.MSBuild;
 
@@ -39,8 +40,17 @@ namespace Build.ExpressionEngine
 
 		public void ToItemList(IFileSystem fileSystem, BuildEnvironment environment, List<ProjectItem> items)
 		{
-			var item = fileSystem.CreateProjectItem("None", Value, null, environment);
-			items.Add(item);
+			var fileNames = Value.Split(new[] { Tokenizer.ItemListSeparator }, StringSplitOptions.RemoveEmptyEntries);
+
+			foreach (var fileName in fileNames)
+			{
+				var cleaned = fileName.Trim();
+				if (!string.IsNullOrEmpty(cleaned))
+				{
+					var item = fileSystem.CreateProjectItem(Items.None, cleaned, ToString(), environment);
+					items.Add(item);
+				}
+			}
 		}
 
 		private bool Equals(StringLiteral other)
