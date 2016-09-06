@@ -22,13 +22,6 @@
     <OutputAppConfig>$(OutputPath)\$(AppConfigName)</OutputAppConfig>
     <OutputAssembly>$(OutputPath)\$(OutputAssemblyName)</OutputAssembly>
     <OutputPdb>$(OutputPath)\$(OutputPdbName)</OutputPdb>
-    <CleanFiles>
-      $(IntermediateAssembly);
-      $(IntermediatePdb);
-      $(OutputAssembly);
-      $(OutputPdb);
-      $(OutputAppConfig)
-    </CleanFiles>
   </PropertyGroup>
 
   <Target Name="PreBuildEvent">
@@ -48,9 +41,35 @@
   <Target Name="ResolveReferences">
     <ResolveProjectReference ProjectReferences="@(ProjectReference)" />
     <Output TaskParameter="ResolvedFiles" PropertyName="ResolvedReferencedProjects" />
+    <ItemGroup>
+      <ResolvedReferencedProjects Include="$(ResolvedReferencedProjects)" />
+      <OutputResolvedReferencedProjects Include="@(ResolvedReferencedProjects -> '$(OutputPath)\%(Filename)%(Extension)')" />
 
+      <ResolvedReferencedProjectPdbs Include="@(ResolvedReferencedProjects -> '%(RootDir)%(Directory)%(Filename).pdb')" />
+      <OutputResolvedReferencedProjectPdbs Include="@(ResolvedReferencedProjects -> '$(OutputPath)\%(Filename).pdb')" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <OutputFiles>
+        $(IntermediateAssembly);
+        $(IntermediatePdb);
+        $(OutputAssembly);
+        $(OutputPdb);
+        $(OutputAppConfig);
+        @(OutputResolvedReferencedProjects);
+        @(OutputResolvedReferencedProjectPdbs)
+      </OutputFiles>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <OutputFiles Include="$(OutputFiles)" />
+    </ItemGroup>
+    
     <ResolveAssemblyReference Assemblies="mscorlib;@(Reference)" />
     <Output TaskParameter="ResolvedFiles" PropertyName="ResolvedReferencedAssemblies" />
+    <ItemGroup>
+      <ResolvedReferencedAssemblies Include="$(ResolvedReferencedAssemblies)" />
+    </ItemGroup>
 
     <PropertyGroup>
       <ReferencedAssemblies>$(ResolvedReferencedAssemblies);$(ResolvedReferencedProjects)</ReferencedAssemblies>
@@ -124,7 +143,8 @@
   <Target Name="CopyFilesToOutputDirectory">
     <Copy SourceFiles="$(IntermediateAssembly)" DestinationFiles="$(OutputAssembly)" />
     <Copy SourceFiles="$(IntermediatePdb)" DestinationFiles="$(OutputPdb)" />
-    <Copy SourceFiles="$(ResolvedReferencedProjects)" DestinationFiles="@(ResolvedReferencedProjects -> '$(OutputPath)\%(FileName)%(Extension)')" />
+    <Copy SourceFiles="@(ResolvedReferencedProjects)" DestinationFiles="@(OutputResolvedReferencedProjects)" />
+    <Copy SourceFiles="@(ResolvedReferencedProjectPdbs)" DestinationFiles="@(OutputResolvedReferencedProjectPdbs)" />
           
     <Message Importance="Normal" Text="Build -> $(MSBuildProjectDirectory)\$(OutputAssembly)" />
   </Target>
@@ -148,13 +168,14 @@
   </Target>
 
   <Target Name="CoreClean">
-    <Delete Files="$(CleanFiles)" />
+    <Delete Files="@(OutputFiles)" />
   </Target>
 
   <!-- The total order of targets that are executed in order to clean one project -->
   <PropertyGroup>
     <CleanDependsOn>
       BeforeClean;
+      ResolveReferences;
       CoreClean;
       AfterClean;
     </CleanDependsOn>

@@ -186,7 +186,7 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestTokenize14()
 		{
-			_tokenizer.Tokenize("@(Compile -> '%(FileName)')").Should().Equal(new object[]
+			_tokenizer.Tokenize("@(Compile -> '%(Filename)')").Should().Equal(new object[]
 				{
 					new Token(TokenType.At),
 					new Token(TokenType.OpenBracket),
@@ -197,7 +197,7 @@ namespace Build.Test.ExpressionEngine
 					new Token(TokenType.Quotation),
 					new Token(TokenType.Percent),
 					new Token(TokenType.OpenBracket),
-					new Token(TokenType.Literal, "FileName"),
+					new Token(TokenType.Literal, "Filename"),
 					new Token(TokenType.CloseBracket),
 					new Token(TokenType.Quotation),
 					new Token(TokenType.CloseBracket)

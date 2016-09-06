@@ -160,6 +160,11 @@ namespace Build.Parser
 							}
 							break;
 
+						case "ItemGroup":
+							var itemGroup = ReadItemGroup(reader.ReadSubtree());
+							target.Children.Add(itemGroup);
+							break;
+
 						case "Message":
 							target.Children.Add(ReadMessage(innerReader));
 							break;

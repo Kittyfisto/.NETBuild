@@ -39,7 +39,7 @@ namespace Build.ExpressionEngine
 
 		public void ToItemList(IFileSystem fileSystem, BuildEnvironment environment, List<ProjectItem> items)
 		{
-			var item = environment.GetOrCreate(fileSystem, Value);
+			var item = fileSystem.CreateProjectItem("None", Value, null, environment);
 			items.Add(item);
 		}
 

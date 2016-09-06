@@ -379,6 +379,13 @@ namespace Build.Test.ExpressionEngine
 				);
 		}
 
+		[Test]
+		public void TestParseConcatenation14()
+		{
+			_parser.ParseConcatenation("->").Should().Be(
+				new StringLiteral("->"));
+		}
+
 		#endregion
 
 		#region Condition
@@ -562,11 +569,11 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestParseItemList16()
 		{
-			_parser.ParseItemList("@(Reference -> '%(FileName)')")
+			_parser.ParseItemList("@(Reference -> '%(Filename)')")
 				   .Should().Be(
 					   new ItemListProjection(
 						   "Reference",
-						   new MetadataReference("FileName")
+						   new MetadataReference("Filename")
 						   ));
 		}
 

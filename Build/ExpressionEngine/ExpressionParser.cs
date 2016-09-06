@@ -16,90 +16,118 @@ namespace Build.ExpressionEngine
 		[Pure]
 		public IExpression ParseCondition(string expression)
 		{
-			List<Token> tokens = _tokenizer.Tokenize(expression);
-			IExpression expr = Parse(tokens);
-			IExpression optimized = ExpressionOptimizer.Run(expr);
-			return optimized;
+			try
+			{
+				List<Token> tokens = _tokenizer.Tokenize(expression);
+				IExpression expr = Parse(tokens);
+				IExpression optimized = ExpressionOptimizer.Run(expr);
+				return optimized;
+			}
+			catch (Exception e)
+			{
+				throw new ParseException(string.Format("Unable to parse \"{0}\": {1}", expression, e.Message), e);
+			}
 		}
 
 		[Pure]
 		public IExpression ParseItemList(string expression)
 		{
-			List<Token> tokens = _tokenizer.Tokenize(expression);
-			var stack = new List<TokenOrExpression>();
-			foreach (Token token in tokens)
+			try
 			{
-				stack.Add(token);
+				List<Token> tokens = _tokenizer.Tokenize(expression);
+				var stack = new List<TokenOrExpression>();
+				foreach (Token token in tokens)
+				{
+					stack.Add(token);
+				}
+
+				bool successfullyParsed;
+				do
+				{
+					successfullyParsed = false;
+					if (TryParseItemListContent(stack))
+						successfullyParsed = true;
+
+					if (TryParseItemList(stack))
+						successfullyParsed = true;
+				} while (stack.Count > 1 && successfullyParsed);
+
+				if (stack.Count == 0) //< Empty input was given
+					return new ItemListExpression();
+
+				if (stack.Count > 1 || stack[0].Expression == null)
+					throw new ParseException("Expected exactly one token on the stack");
+
+				IExpression itemList = stack[0].Expression;
+				IExpression optimized = ExpressionOptimizer.Run(itemList);
+				return optimized;
 			}
-
-			bool successfullyParsed;
-			do
+			catch (Exception e)
 			{
-				successfullyParsed = false;
-				if (TryParseItemListContent(stack))
-					successfullyParsed = true;
-
-				if (TryParseItemList(stack))
-					successfullyParsed = true;
-			} while (stack.Count > 1 && successfullyParsed);
-
-			if (stack.Count == 0) //< Empty input was given
-				return new ItemListExpression();
-
-			if (stack.Count > 1 || stack[0].Expression == null)
-				throw new ParseException(string.Format("Unable to parse \"{0}\"", expression));
-
-			IExpression itemList = stack[0].Expression;
-			IExpression optimized = ExpressionOptimizer.Run(itemList);
-			return optimized;
+				throw new ParseException(string.Format("Unable to parse \"{0}\": {1}", expression, e.Message), e);
+			}
 		}
 
 		public IExpression ParseConcatenation(string expression)
 		{
-			if (string.IsNullOrEmpty(expression))
-				return StringLiteral.Empty;
-
-			// This is much simpler since we don't interpret general expressions
-			// in string concatenation: We only replace property values..
-			List<Token> tokens = _tokenizer.Tokenize(expression);
-			var stack = new List<TokenOrExpression>(tokens.Count);
-			foreach (Token token in tokens)
-				stack.Add(token);
-
-			bool successfullyParsed;
-			do
+			try
 			{
-				successfullyParsed = false;
-				if (TryParseLiteral(stack))
-					successfullyParsed = true;
-				if (TryParseSpecialCharsAsLiteral(stack, consumeItemListSeparator: true))
-					successfullyParsed = true;
-				if (TryParseItemListReference(stack))
-					successfullyParsed = true;
-				if (TryParseVariableReference(stack))
-					successfullyParsed = true;
-				if (TryParseItemListReference(stack))
-					successfullyParsed = true;
-				if (TryParseConcatenation(stack, consumeItemListSeparator: true, includeMetadataReference: true))
-					successfullyParsed = true;
-			} while (stack.Count > 1 && successfullyParsed);
+				if (string.IsNullOrEmpty(expression))
+					return StringLiteral.Empty;
 
-			if (stack.Count != 1)
-				throw new ParseException();
-			if (stack[0].Expression == null)
-				throw new ParseException();
+				// This is much simpler since we don't interpret general expressions
+				// in string concatenation: We only replace property values..
+				List<Token> tokens = _tokenizer.Tokenize(expression);
+				var stack = new List<TokenOrExpression>(tokens.Count);
+				foreach (Token token in tokens)
+					stack.Add(token);
 
-			IExpression expr = stack[0].Expression;
-			IExpression optimized = ExpressionOptimizer.Run(expr);
-			return optimized;
+				bool successfullyParsed;
+				do
+				{
+					successfullyParsed = false;
+					if (TryParseLiteral(stack))
+						successfullyParsed = true;
+					if (TryParseSpecialCharsAsLiteral(stack, consumeItemListSeparator: true))
+						successfullyParsed = true;
+					if (TryParseItemListReference(stack))
+						successfullyParsed = true;
+					if (TryParseVariableReference(stack))
+						successfullyParsed = true;
+					if (TryParseItemListReference(stack))
+						successfullyParsed = true;
+					if (TryParseConcatenation(stack, consumeItemListSeparator: true, includeMetadataReference: true))
+						successfullyParsed = true;
+				} while (stack.Count > 1 && successfullyParsed);
+
+				if (stack.Count != 1)
+					throw new ParseException();
+				if (stack[0].Expression == null)
+					throw new ParseException();
+
+				IExpression expr = stack[0].Expression;
+				IExpression optimized = ExpressionOptimizer.Run(expr);
+				return optimized;
+			}
+			catch (Exception e)
+			{
+				throw new ParseException(string.Format("Unable to parse \"{0}\": {1}", expression, e.Message), e);
+			}
 		}
 
 		public IExpression ParseExpression(string expression)
 		{
-			List<Token> tokens = _tokenizer.Tokenize(expression);
-			IExpression expr = Parse(tokens);
-			IExpression optimized = ExpressionOptimizer.Run(expr);
-			return optimized;
+			try
+			{
+				List<Token> tokens = _tokenizer.Tokenize(expression);
+				IExpression expr = Parse(tokens);
+				IExpression optimized = ExpressionOptimizer.Run(expr);
+				return optimized;
+			}
+			catch (Exception e)
+			{
+				throw new ParseException(string.Format("Unable to parse \"{0}\": {1}", expression, e.Message), e);
+			}
 		}
 
 		#region Optimization
@@ -466,6 +494,7 @@ namespace Build.ExpressionEngine
 					case TokenType.OpenBracket:
 					case TokenType.CloseBracket:
 					case TokenType.Quotation:
+					case TokenType.Arrow:
 						tokens[0] = new TokenOrExpression(new StringLiteral(Tokenizer.ToString(type)));
 						return true;
 

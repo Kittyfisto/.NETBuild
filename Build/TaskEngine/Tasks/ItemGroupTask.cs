@@ -3,12 +3,12 @@ using Build.DomainModel.MSBuild;
 
 namespace Build.TaskEngine.Tasks
 {
-	internal sealed class PropertyGroupTask
+	public sealed class ItemGroupTask
 		: ITaskRunner
 	{
 		private readonly ExpressionEngine.ExpressionEngine _expressionEngine;
 
-		public PropertyGroupTask(ExpressionEngine.ExpressionEngine expressionEngine)
+		public ItemGroupTask(ExpressionEngine.ExpressionEngine expressionEngine)
 		{
 			if (expressionEngine == null)
 				throw new ArgumentNullException("expressionEngine");
@@ -18,7 +18,7 @@ namespace Build.TaskEngine.Tasks
 
 		public void Run(BuildEnvironment environment, Node task, IProjectDependencyGraph graph, ILogger logger)
 		{
-			var group = (PropertyGroup) task;
+			var group = (ItemGroup) task;
 			_expressionEngine.Evaluate(group, environment);
 		}
 	}

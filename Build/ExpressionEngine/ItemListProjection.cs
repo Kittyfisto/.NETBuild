@@ -57,16 +57,35 @@ namespace Build.ExpressionEngine
 			return builder.ToString();
 		}
 
+		private string Identity
+		{
+			get
+			{
+				var builder = new StringBuilder();
+				foreach (var expression in _projectedFilename)
+				{
+					var value = expression.ToString();
+					builder.Append(value);
+				}
+				return builder.ToString();
+			}
+		}
+
 		public void ToItemList(IFileSystem fileSystem, BuildEnvironment environment, List<ProjectItem> items)
 		{
+			var identity = Identity;
 			var originalItems = environment.Items.GetItemsOfType(_itemListName);
 			items.Capacity += originalItems.Count;
+
 // ReSharper disable LoopCanBeConvertedToQuery
 			foreach (var originalItem in originalItems)
 // ReSharper restore LoopCanBeConvertedToQuery
 			{
 				var include = ToString(fileSystem, environment, originalItem);
-				var item = new ProjectItem(originalItem.Type, include);
+				var item = fileSystem.CreateProjectItem(originalItem.Type,
+				                                        include,
+				                                        identity,
+				                                        environment);
 				items.Add(item);
 			}
 		}

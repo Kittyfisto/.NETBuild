@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
-using System.Linq;
-using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 
 namespace Build.ExpressionEngine
@@ -15,12 +13,6 @@ namespace Build.ExpressionEngine
 	{
 		private readonly IFileSystem _fileSystem;
 		private readonly ExpressionParser _parser;
-		private static readonly char[] ItemListSeparator;
-
-		static ExpressionEngine()
-		{
-			ItemListSeparator = new[] {';'};
-		}
 
 		public ExpressionEngine(IFileSystem fileSystem)
 		{
@@ -60,18 +52,12 @@ namespace Build.ExpressionEngine
 			// TODO: Maybe, probably, we need to do this in the order the property- and item groups
 			//       appear in the csproject file
 			Evaluate(project.Properties, environment);
+			Evaluate(project.ItemGroups, environment);
 
 			var evaluated =  new Project
 				{
 					Filename = project.Filename,
 				};
-			foreach (var itemGroup in Evaluate(project.ItemGroups, environment))
-			{
-				foreach (var item in itemGroup)
-				{
-					environment.Items.Add(item);
-				}
-			}
 
 			foreach (var target in project.Targets)
 			{
@@ -133,35 +119,23 @@ namespace Build.ExpressionEngine
 			environment.Properties.Add(property.Name, expanded);
 		}
 
-		public IEnumerable<ItemGroup> Evaluate(IEnumerable<ItemGroup> groups, BuildEnvironment environment)
+		public void Evaluate(IEnumerable<ItemGroup> groups, BuildEnvironment environment)
 		{
-			var evaluated = new List<ItemGroup>();
-
 			foreach (var group in groups)
 			{
-				var evaluatedGroup = Evaluate(group, environment);
-				if (evaluatedGroup.Count > 0)
-				{
-					evaluated.Add(evaluatedGroup);
-				}
+				Evaluate(group, environment);
 			}
-
-			return evaluated;
 		}
 
-		public ItemGroup Evaluate(ItemGroup group, BuildEnvironment environment)
+		public void Evaluate(ItemGroup group, BuildEnvironment environment)
 		{
 			if (group.Condition != null && !EvaluateCondition(group.Condition, environment))
-				return new ItemGroup();
+				return;
 
-			var evaluated = new List<ProjectItem>();
 			foreach (var item in group)
 			{
-				var evaluatedItems = Evaluate(item, environment);
-				evaluated.AddRange(evaluatedItems);
+				Evaluate(item, environment);
 			}
-
-			return new ItemGroup(evaluated);
 		}
 
 		/// <summary>
@@ -173,47 +147,18 @@ namespace Build.ExpressionEngine
 		/// <remarks>
 		/// Returns an enumeration of items where each item represents ONE file only.
 		/// </remarks>
-		public IEnumerable<ProjectItem> Evaluate(ProjectItem item, BuildEnvironment environment)
+		public void Evaluate(ProjectItem item, BuildEnvironment environment)
 		{
 			if (item.Condition != null && !EvaluateCondition(item.Condition, environment))
-				return Enumerable.Empty<ProjectItem>();
+				return;
 
-			var expandedInclude = Expand(item.Include, environment);
-			var expandedExclude = Expand(item.Exclude, environment);
-			var expandedRemove = Expand(item.Remove, environment);
-
-			// TODO: Split each string into lists of filenames (; as separator) and build a complete list of files represented by this item
-			var fullPath = Path.MakeAbsolute(environment.Properties[Properties.MSBuildProjectDirectory], expandedInclude);
-			var info = _fileSystem.GetInfo(fullPath);
-			var metadata = new List<Metadata>
-				{
-					new Metadata(Metadatas.FullPath, fullPath),
-					new Metadata(Metadatas.RootDir, Path.GetRootDir(fullPath)),
-					new Metadata(Metadatas.Filename, Path.GetFilenameWithoutExtension(fullPath)),
-					new Metadata(Metadatas.Extension, Path.GetExtension(fullPath)),
-					new Metadata(Metadatas.RelativeDir, Path.GetRelativeDir(expandedInclude)),
-					new Metadata(Metadatas.Directory, Path.GetDirectoryWithoutRoot(fullPath, Slash.Include)),
-					new Metadata(Metadatas.Identity, expandedInclude),
-					new Metadata(Metadatas.ModifiedTime, FormatTime(info.ModifiedTime)),
-					new Metadata(Metadatas.CreatedTime, FormatTime(info.CreatedTime)),
-					new Metadata(Metadatas.AccessedTime, FormatTime(info.AccessTime))
-				};
-
-			metadata.AddRange(item.Metadata);
-
-			var evaluated = new ProjectItem(item.Type,
-			                         expandedInclude,
-			                         expandedExclude,
-			                         expandedRemove,
-			                         null,
-			                         metadata);
-			return new[] {evaluated};
-		}
-
-		private static string FormatTime(DateTime lastWriteTime)
-		{
-			var value = lastWriteTime.ToString("yyyy-mm-dd hh:mm:ss.fffffff");
-			return value;
+			var items = EvaluateItemList(item.Include, environment);
+			foreach (var actualItem in items)
+			{
+				actualItem.Type = item.Type;
+				actualItem[Metadatas.Identity] = item.Include;
+			}
+			environment.Items.AddRange(items);
 		}
 
 		[Pure]

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
 using System.IO;
+using Build.DomainModel.MSBuild;
 
 namespace Build
 {
@@ -15,6 +16,16 @@ namespace Build
 
 		[Pure]
 		FileInfo GetInfo(string filename);
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="include"></param>
+		/// <param name="identity"></param>
+		/// <param name="environment"></param>
+		[Pure]
+		ProjectItem CreateProjectItem(string type, string include, string identity, BuildEnvironment environment);
 
 		/// <summary>
 		/// 
@@ -39,5 +50,6 @@ namespace Build
 		/// </summary>
 		/// <param name="directoryPath"></param>
 		void CreateDirectory(string directoryPath);
+
 	}
 }

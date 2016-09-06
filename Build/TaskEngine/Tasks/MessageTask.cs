@@ -25,7 +25,8 @@ namespace Build.TaskEngine.Tasks
 
 			var message = (Message) task;
 			Verbosity verbosity = ImportanceToVerbosity(message.Importance);
-			var text = _expressionEngine.EvaluateExpression(message.Text, environment);
+			//var text = _expressionEngine.EvaluateExpression(message.Text, environment);
+			var text = _expressionEngine.EvaluateConcatenation(message.Text, environment);
 
 			logger.WriteLine(verbosity, "  {0}", text);
 		}

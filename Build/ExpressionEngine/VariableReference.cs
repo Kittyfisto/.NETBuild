@@ -38,12 +38,15 @@ namespace Build.ExpressionEngine
 		{
 			var fileNames = ToString(fileSystem, environment)
 				.Split(new[] {Tokenizer.ItemListSeparator}, StringSplitOptions.RemoveEmptyEntries);
-			items.Capacity += fileNames.Length;
+
 			foreach (var fileName in fileNames)
 			{
 				var cleaned = fileName.Trim();
-				var item = environment.GetOrCreate(fileSystem, cleaned);
-				items.Add(item);
+				if (!string.IsNullOrEmpty(cleaned))
+				{
+					var item = fileSystem.CreateProjectItem("None", cleaned, null, environment);
+					items.Add(item);
+				}
 			}
 		}
 

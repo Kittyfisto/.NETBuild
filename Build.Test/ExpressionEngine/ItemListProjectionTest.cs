@@ -27,10 +27,10 @@ namespace Build.Test.ExpressionEngine
 		{
 			new ItemListProjection("Foo", new StringLiteral("Bar"))
 				.ToString().Should().Be("@(Foo -> 'Bar')");
-			new ItemListProjection("Foo", new MetadataReference("FileName"))
-				.ToString().Should().Be("@(Foo -> '%(FileName)')");
-			new ItemListProjection("Foo", new MetadataReference("FileName"), new MetadataReference("Extension"))
-				.ToString().Should().Be("@(Foo -> '%(FileName)%(Extension)')");
+			new ItemListProjection("Foo", new MetadataReference("Filename"))
+				.ToString().Should().Be("@(Foo -> '%(Filename)')");
+			new ItemListProjection("Foo", new MetadataReference("Filename"), new MetadataReference("Extension"))
+				.ToString().Should().Be("@(Foo -> '%(Filename)%(Extension)')");
 		}
 
 		[Test]
@@ -43,8 +43,8 @@ namespace Build.Test.ExpressionEngine
 		[Test]
 		public void TestToString3()
 		{
-			_item["FileName"] = "data.txt";
-			new ItemListProjection("Foo", new MetadataReference("FileName"))
+			_item["Filename"] = "data.txt";
+			new ItemListProjection("Foo", new MetadataReference("Filename"))
 				.ToString(_fileSystem.Object, _environment, _item).Should().Be("data.txt");
 		}
 
@@ -52,59 +52,59 @@ namespace Build.Test.ExpressionEngine
 		public void TestToString4()
 		{
 			_environment.Properties["OutputPath"] = @"bin\debug";
-			_item["FileName"] = "data";
+			_item["Filename"] = "data";
 			_item["Extension"] = ".txt";
-			new ItemListProjection("Foo", new VariableReference("OutputPath"), new StringLiteral(@"\"), new MetadataReference("FileName"), new MetadataReference("Extension"))
+			new ItemListProjection("Foo", new VariableReference("OutputPath"), new StringLiteral(@"\"), new MetadataReference("Filename"), new MetadataReference("Extension"))
 				.ToString(_fileSystem.Object, _environment, _item).Should().Be(@"bin\debug\data.txt");
 		}
 
 		[Test]
 		public void TestEquals1()
 		{
-			new ItemListProjection("Foo", new MetadataReference("FileName"))
+			new ItemListProjection("Foo", new MetadataReference("Filename"))
 				.Equals(null).Should().BeFalse();
 		}
 
 		[Test]
 		public void TestEquals2()
 		{
-			new ItemListProjection("Foo", new MetadataReference("FileName"))
+			new ItemListProjection("Foo", new MetadataReference("Filename"))
 				.Equals(new MetadataReference("Bar")).Should().BeFalse();
 		}
 
 		[Test]
 		public void TestEquals3()
 		{
-			new ItemListProjection("Foo", new MetadataReference("FileName"))
+			new ItemListProjection("Foo", new MetadataReference("Filename"))
 				.Equals(new ItemListProjection("Foo")).Should().BeFalse();
 		}
 
 		[Test]
 		public void TestEquals4()
 		{
-			new ItemListProjection("Foo", new MetadataReference("FileName"))
-				.Equals(new ItemListProjection("BAR", new MetadataReference("FileName"))).Should().BeFalse();
+			new ItemListProjection("Foo", new MetadataReference("Filename"))
+				.Equals(new ItemListProjection("BAR", new MetadataReference("Filename"))).Should().BeFalse();
 		}
 
 		[Test]
 		public void TestEquals5()
 		{
-			new ItemListProjection("Foo", new MetadataReference("FileName"))
-				.Equals(new ItemListProjection("Foo", new VariableReference("FileName"))).Should().BeFalse();
+			new ItemListProjection("Foo", new MetadataReference("Filename"))
+				.Equals(new ItemListProjection("Foo", new VariableReference("Filename"))).Should().BeFalse();
 		}
 
 		[Test]
 		public void TestEquals6()
 		{
-			new ItemListProjection("Foo", new MetadataReference("FileName"))
-				.Equals(new ItemListProjection("Foo", new MetadataReference("FileName"))).Should().BeTrue();
+			new ItemListProjection("Foo", new MetadataReference("Filename"))
+				.Equals(new ItemListProjection("Foo", new MetadataReference("Filename"))).Should().BeTrue();
 		}
 
 		[Test]
 		public void TestToItemList1()
 		{
 			var projection = new ItemListProjection("Foo", new VariableReference("OutputPath"), new StringLiteral(@"\"),
-			                                        new MetadataReference("FileName"), new MetadataReference("Extension"));
+			                                        new MetadataReference("Filename"), new MetadataReference("Extension"));
 
 			var items = new List<ProjectItem>();
 			projection.ToItemList(_fileSystem.Object, _environment, items);

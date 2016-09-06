@@ -31,6 +31,7 @@ namespace Build.TaskEngine
 			_taskRunners = new Dictionary<Type, ITaskRunner>
 				{
 					{typeof (PropertyGroup), new PropertyGroupTask(_expressionEngine)},
+					{typeof (ItemGroup), new ItemGroupTask(_expressionEngine)},
 					{typeof (Message), new MessageTask(_expressionEngine)},
 					{typeof (Warning), new WarningTask(_expressionEngine)},
 					{typeof (Error), new ErrorTask(_expressionEngine)},

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 using Build.Parser;
 using FluentAssertions;
@@ -91,6 +90,38 @@ namespace Build.Test.ExpressionEngine
 			_engine.Evaluate(propertyGroup, environment);
 			environment.Properties[Properties.Configuration].Should().Be("Debug");
 			environment.Properties[Properties.Platform].Should().Be("AnyCPU");
+		}
+
+		[Test]
+		public void TestEvaluate5()
+		{
+			var itemGroup = new ItemGroup
+				{
+					new ProjectItem {Include = "$(Foo)"}
+				};
+			var environment = new BuildEnvironment();
+			_engine.Evaluate(itemGroup, environment);
+			environment.Items.Should().BeEmpty("Because '$(Foo)' evaluates to an empty string and thus to zero items");
+		}
+
+		[Test]
+		public void TestEvaluate6()
+		{
+			var itemGroup = new ItemGroup
+				{
+					new ProjectItem {Include = "$(Foo)", Type = "Content"}
+				};
+			var environment = new BuildEnvironment();
+			environment.Properties[Properties.MSBuildProjectDirectory] = Directory.GetCurrentDirectory();
+			environment.Properties["Foo"] = "a.txt";
+			_engine.Evaluate(itemGroup, environment);
+			environment.Items.Count().Should().Be(1);
+			var item = environment.Items.First();
+			item.Type.Should().Be("Content");
+			item.Include.Should().Be("a.txt");
+			item[Metadatas.Filename].Should().Be("a");
+			item[Metadatas.Extension].Should().Be(".txt");
+			item[Metadatas.Identity].Should().Be("$(Foo)");
 		}
 
 		[Test]
@@ -350,79 +381,52 @@ namespace Build.Test.ExpressionEngine
 		public void TestEvaluateItemList1()
 		{
 			var environment = new BuildEnvironment();
-			var item = new ProjectItem
-				{
-					Type = "Content",
-					Include = "data.xml"
-				};
-			environment.Items.Add(item);
-
-			_engine.EvaluateItemList("data.xml", environment)
-			       .Should()
-			       .Equal(new object[] { item });
+			environment.Properties[Properties.MSBuildProjectDirectory] = Directory.GetCurrentDirectory();
+			var items = _engine.EvaluateItemList("data.xml", environment);
+			items.Should().NotBeNull();
+			items.Length.Should().Be(1);
+			var item = items[0];
+			item.Should().NotBeNull();
+			item.Include.Should().Be("data.xml");
+			item[Metadatas.FullPath].Should().Be(Path.Combine(Directory.GetCurrentDirectory(), "data.xml"));
+			item.Type.Should().Be("None");
 		}
 
 		[Test]
 		public void TestEvaluateItemList2()
 		{
 			var environment = new BuildEnvironment();
-			var item1 = new ProjectItem
-			{
-				Type = "Content",
-				Include = "data.xml"
-			};
-			environment.Items.Add(item1);
-			var item2 = new ProjectItem
-			{
-				Type = "Content",
-				Include = "schema.xsd"
-			};
-			environment.Items.Add(item2);
-
-			_engine.EvaluateItemList("data.xml;schema.xsd", environment)
-				   .Should()
-				   .Equal(new object[] { item1, item2 });
+			environment.Properties[Properties.MSBuildProjectDirectory] = Directory.GetCurrentDirectory();
+			var items = _engine.EvaluateItemList("data.xml;schema.xsd", environment);
+			items.Length.Should().Be(2);
+			items[0].Include.Should().Be("data.xml");
+			items[1].Include.Should().Be("schema.xsd");
 		}
 
 		[Test]
 		public void TestEvaluateItemList3()
 		{
 			var environment = new BuildEnvironment();
-			var item = new ProjectItem
-			{
-				Type = "Content",
-				Include = "data.xml"
-			};
-			environment.Items.Add(item);
+			environment.Properties[Properties.MSBuildProjectDirectory] = Directory.GetCurrentDirectory();
 			environment.Properties["Filename"] = "data.xml";
 
-			_engine.EvaluateItemList("$(Filename)", environment)
-				   .Should()
-				   .Equal(new object[] { item });
+			var items = _engine.EvaluateItemList("$(Filename)", environment);
+			items.Length.Should().Be(1);
+			items[0].Include.Should().Be("data.xml");
 		}
 
 		[Test]
 		public void TestEvaluateItemList4()
 		{
 			var environment = new BuildEnvironment();
-			var item1 = new ProjectItem
-			{
-				Type = "Content",
-				Include = "data.xml"
-			};
-			environment.Items.Add(item1);
-			var item2 = new ProjectItem
-			{
-				Type = "Content",
-				Include = "schema.xsd"
-			};
-			environment.Items.Add(item2);
+			environment.Properties[Properties.MSBuildProjectDirectory] = Directory.GetCurrentDirectory();
 			environment.Properties["DataFilename"] = "data.xml";
 			environment.Properties["SchemaFilename"] = "schema.xsd";
 
-			_engine.EvaluateItemList("$(DataFilename);$(SchemaFilename)", environment)
-				   .Should()
-				   .Equal(new object[] { item1, item2 });
+			var items = _engine.EvaluateItemList("$(DataFilename);$(SchemaFilename)", environment);
+			items.Length.Should().Be(2);
+			items[0].Include.Should().Be("data.xml");
+			items[1].Include.Should().Be("schema.xsd");
 		}
 
 		[Test]
@@ -467,6 +471,59 @@ namespace Build.Test.ExpressionEngine
 			item.Include.Should().Be("someimportantfile.bin");
 		}
 
+		[Test]
+		public void TestEvaluateItemList7()
+		{
+			var environment = new BuildEnvironment();
+			environment.Properties[Properties.MSBuildProjectDirectory] = @"C:\work\doodledoo";
+			environment.Properties[Properties.OutputPath] = @"bin\debug";
+			var item = new ProjectItem { Include = @"C:\Code\Test\foo.dll", Type = "ResolvedReferencedProjects" };
+			item[Metadatas.Filename] = "foo";
+			item[Metadatas.Extension] = ".dll";
+			environment.Items.Add(item);
+			var items = _engine.EvaluateItemList(@"@(ResolvedReferencedProjects -> '$(OutputPath)\%(Filename)%(Extension)')",
+			                                     environment);
+			items.Should().NotBeNull();
+			items.Length.Should().Be(1);
+			var actualItem = items[0];
+			actualItem.Include.Should().Be(@"bin\debug\foo.dll");
+			actualItem.Type.Should().Be("ResolvedReferencedProjects");
+			actualItem[Metadatas.Filename].Should().Be("foo");
+			actualItem[Metadatas.Extension].Should().Be(".dll");
+			actualItem[Metadatas.Directory].Should().Be(@"work\doodledoo\bin\debug\");
+			actualItem[Metadatas.FullPath].Should().Be(@"C:\work\doodledoo\bin\debug\foo.dll");
+			//actualItem[Metadatas.Identity].Should().Be(@"@(ResolvedReferencedProjects -> '$(OutputPath)\%(Filename)%(Extension)')");
+		}
+
+		[Test]
+		public void TestEvaluateItemList8()
+		{
+			var environment = new BuildEnvironment();
+			environment.Properties[Properties.MSBuildProjectDirectory] = @"C:\work\doodledoo";
+			var items = _engine.EvaluateItemList("$(Foo);$(Bar)", environment);
+			items.Should().BeEmpty();
+		}
+
+		[Test]
+		public void TestEvaluateItemList9()
+		{
+			var environment = new BuildEnvironment();
+			environment.Properties[Properties.MSBuildProjectDirectory] = @"C:\work\doodledoo";
+			environment.Properties["Foo"] = ";;;";
+			var items = _engine.EvaluateItemList("$(Foo)", environment);
+			items.Should().BeEmpty();
+		}
+
+		[Test]
+		public void TestEvaluateItemList10()
+		{
+			var environment = new BuildEnvironment();
+			environment.Properties[Properties.MSBuildProjectDirectory] = @"C:\work\doodledoo";
+			environment.Properties["Foo"] = "  ;	;\r;	\r\n ";
+			var items = _engine.EvaluateItemList("$(Foo)", environment);
+			items.Should().BeEmpty();
+		}
+
 		#endregion
 
 		#region Item Evaluation
@@ -483,10 +540,9 @@ namespace Build.Test.ExpressionEngine
 							{Properties.MSBuildProjectDirectory, Directory.GetCurrentDirectory()}
 						}
 				};
-			var items = _engine.Evaluate(item, environment);
-			items.Should().NotBeNull();
-			items.Count().Should().Be(1);
-			var evaluated = items.First();
+			_engine.Evaluate(item, environment);
+			environment.Items.Count().Should().Be(1);
+			var evaluated = environment.Items.First();
 			evaluated.Type.Should().Be("Compile");
 			evaluated.Include.Should().Be("Build.exe");
 			evaluated.Metadata.Count().Should().Be(10);
@@ -562,11 +618,14 @@ namespace Build.Test.ExpressionEngine
 			var envirnoment = new BuildEnvironment();
 			_engine.Evaluate(project, envirnoment);
 
-			envirnoment.Properties[Properties.MSBuildProjectDirectory].Should().Be(@"C:\Snapshots\.NETBuild\Build.Test");
-			envirnoment.Properties[Properties.MSBuildProjectDirectoryNoRoot].Should().Be(@"Snapshots\.NETBuild\Build.Test");
+		    var fullPath = Path.Normalize(Path.Combine(Directory.GetCurrentDirectory(), fname));
+		    var directory = Path.GetDirectory(fullPath);
+
+			envirnoment.Properties[Properties.MSBuildProjectDirectory].Should().Be(directory);
+			envirnoment.Properties[Properties.MSBuildProjectDirectoryNoRoot].Should().Be(directory.Remove(0, 3));
 			envirnoment.Properties[Properties.MSBuildProjectExtension].Should().Be(".csproj");
 			envirnoment.Properties[Properties.MSBuildProjectFile].Should().Be("Build.Test.csproj");
-			envirnoment.Properties[Properties.MSBuildProjectFullPath].Should().Be(@"C:\Snapshots\.NETBuild\Build.Test\Build.Test.csproj");
+			envirnoment.Properties[Properties.MSBuildProjectFullPath].Should().Be(fullPath);
 			envirnoment.Properties[Properties.MSBuildProjectName].Should().Be("Build.Test");
 		}
 

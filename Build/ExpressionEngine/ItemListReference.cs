@@ -35,6 +35,11 @@ namespace Build.ExpressionEngine
 
 		public string ToString(IFileSystem fileSystem, BuildEnvironment environment)
 		{
+			return ToString(fileSystem, environment, null);
+		}
+
+		public string ToString(IFileSystem fileSystem, BuildEnvironment environment, ProjectItem unused)
+		{
 			var items = new List<ProjectItem>();
 			ToItemList(fileSystem, environment, items);
 			var builder = new StringBuilder();
@@ -47,11 +52,6 @@ namespace Build.ExpressionEngine
 					builder.Append(Tokenizer.ItemListSeparator);
 			}
 			return builder.ToString();
-		}
-
-		public string ToString(IFileSystem fileSystem, BuildEnvironment environment, ProjectItem item)
-		{
-			throw new NotImplementedException();
 		}
 
 		public void ToItemList(IFileSystem fileSystem, BuildEnvironment environment, List<ProjectItem> items)

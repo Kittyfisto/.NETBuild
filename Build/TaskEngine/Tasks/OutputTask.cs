@@ -1,5 +1,4 @@
-﻿using Build.BuildEngine;
-using Build.DomainModel.MSBuild;
+﻿using Build.DomainModel.MSBuild;
 
 namespace Build.TaskEngine.Tasks
 {
