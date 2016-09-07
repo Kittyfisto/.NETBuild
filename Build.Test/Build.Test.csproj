@@ -76,7 +76,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="BuildEngine\" />
-    <Folder Include="TestData\CSharp\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Build\Build.csproj">

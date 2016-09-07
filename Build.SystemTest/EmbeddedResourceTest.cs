@@ -49,7 +49,7 @@ namespace Build.SystemTest
 
 			ReadResource(assembly, "EmbeddedResource.HelloWorld.txt").Should().Be("Hello World!");
 			ReadResource(assembly, "EmbeddedResource.SomeFolder.SomeDataFile.xml").Should().Be("<?xml version=\"1.0\" encoding=\"utf-8\" ?> ");
-			ReadResource(assembly, "EmbeddedResource.SomeFolder.Some File With Spaces.xml").Should().Be("<?xml version=\"1.0\" encoding=\"utf-8\" ?> \r\n<importantdata value=\"42\" />");
+			ReadResource(assembly, "EmbeddedResource.SomeFolder.Some File With Spaces.xml").Should().Be("<?xml version=\"1.0\" encoding=\"utf-8\" ?> <importantdata value=\"42\" />");
 		}
 	}
 }
