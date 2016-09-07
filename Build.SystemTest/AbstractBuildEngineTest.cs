@@ -30,11 +30,11 @@ namespace Build.SystemTest
 		{
 			var arguments = new Arguments
 				{
-					InputFile = TestPath.Get(Path.Combine("Projects", ProjectFilePath)),
+					InputFile = TestPath.Get(Path.Combine(@"Build.SystemTest\Projects", ProjectFilePath)),
 					Targets = {Targets.Build},
 					Verbosity = Verbosity.Minimal
 				};
-			using (var engine = new Build.BuildEngine.BuildEngine(arguments))
+			using (var engine = new BuildEngine.BuildEngine(arguments))
 			{
 				new Action(() => engine.Execute())
 					.ShouldNotThrow("Because building this project should succeed");
@@ -51,7 +51,7 @@ namespace Build.SystemTest
 		{
 			foreach (string projectDirectory in ProjectDirectories)
 			{
-				string directory = TestPath.Get(Path.Combine(@"TestData\CSharp", projectDirectory));
+				string directory = TestPath.Get(Path.Combine(@"Build.SystemTest\TestData\CSharp", projectDirectory));
 
 				Clean(Path.Combine(directory, "bin", "debug"));
 				Clean(Path.Combine(directory, "bin", "release"));
@@ -71,7 +71,7 @@ namespace Build.SystemTest
 
 		protected int Run(string relativeFileName, out string output)
 		{
-			string fullPath = TestPath.Get(relativeFileName);
+			string fullPath = TestPath.Get(Path.Combine("Build.SystemTest", relativeFileName));
 			string workingDirectory = Path.GetDirectory(fullPath);
 
 			Console.WriteLine("Executing '{0}'", fullPath);
@@ -111,11 +111,11 @@ namespace Build.SystemTest
 		{
 			var arguments = new Arguments
 				{
-					InputFile = TestPath.Get(Path.Combine("Projects", ProjectFilePath)),
+					InputFile = TestPath.Get(Path.Combine(@"Build.SystemTest\Projects", ProjectFilePath)),
 					Targets = {Targets.Clean},
 					Verbosity = Verbosity.Normal
 				};
-			using (var engine = new Build.BuildEngine.BuildEngine(arguments))
+			using (var engine = new BuildEngine.BuildEngine(arguments))
 			{
 				new Action(() => engine.Execute())
 					.ShouldNotThrow("Because cleaning this project should succeed");
@@ -129,7 +129,7 @@ namespace Build.SystemTest
 
 			foreach (string file in ExpectedOutputFiles)
 			{
-				string path = TestPath.Get(Path.Combine("Projects", file));
+				string path = TestPath.Get(Path.Combine(@"Build.SystemTest\Projects", file));
 				File.Exists(path).Should().BeTrue(
 					"because the file '{0}' should've been created during the build process",
 					path);
@@ -141,7 +141,7 @@ namespace Build.SystemTest
 
 			foreach (string file in ExpectedOutputFiles)
 			{
-				string path = TestPath.Get(Path.Combine("Projects", file));
+				string path = TestPath.Get(Path.Combine(@"Build.SystemTest\Projects", file));
 				File.Exists(path).Should().BeFalse(
 					"because the file '{0}' should've been deleted during the clean process",
 					path);

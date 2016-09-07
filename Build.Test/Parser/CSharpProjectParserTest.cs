@@ -23,7 +23,7 @@ namespace Build.Test.Parser
 		[Test]
 		public void TestParse1()
 		{
-			var path = TestPath.Get(@"Parser/Build.Test.csproj");
+			var path = TestPath.Get(@"Build.Test/Parser/Build.Test.csproj");
 			var project = _parser.Parse(path);
 			project.Should().NotBeNull();
 			project.Filename.Should().Be(path);

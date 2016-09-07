@@ -611,9 +611,9 @@ namespace Build.Test.ExpressionEngine
 
 		[Test]
 		[Description("Verifies that evaluating a project adds resvered/well known properties in the environment")]
-		public void TestEaluateProject3()
+		public void TestEvaluateProject3()
 		{
-			const string fname = @"..\..\Build.Test.csproj";
+			var fname = TestPath.Get(@"Build.Test\Build.Test.csproj");
 			var project = ProjectParser.Instance.Parse(fname);
 			var envirnoment = new BuildEnvironment();
 			_engine.Evaluate(project, envirnoment);

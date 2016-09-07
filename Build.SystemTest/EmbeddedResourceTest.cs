@@ -34,7 +34,7 @@ namespace Build.SystemTest
 
 		protected override void PostBuildChecks()
 		{
-			var source = TestPath.Get(@"Projects\EmbeddedResource\bin\Debug\EmbeddedResource.dll");
+			var source = TestPath.Get(@"Build.SystemTest\Projects\EmbeddedResource\bin\Debug\EmbeddedResource.dll");
 			var dest = Path.Combine(Path.GetDirectory(source), "tmp.dll");
 			File.Copy(source, dest, true);
 
