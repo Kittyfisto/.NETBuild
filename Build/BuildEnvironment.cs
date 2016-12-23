@@ -24,13 +24,13 @@ namespace Build
 			_name = name;
 			_parent = parent;
 			_properties = new EnvironmentProperties(
-				_parent != null ? _parent._properties : null
+				_parent?._properties
 				);
 			_output = new EnvironmentProperties(
-				_parent != null ? _parent.Output : null
+				_parent?.Output
 				);
 			_items = new EnvironmentItemLists(
-				_parent != null ? _parent._items : null
+				_parent?._items
 				);
 		}
 

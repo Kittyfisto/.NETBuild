@@ -114,5 +114,24 @@ namespace Build
 		//	if (!Directory.Exists(outputPath))
 			Directory.CreateDirectory(directoryPath);
 		}
+
+		public string ReadAllText(string fileName)
+		{
+			return File.ReadAllText(fileName);
+		}
+
+		public Stream OpenWrite(string fileName)
+		{
+			var path = Path.GetDirectory(fileName);
+			if (!Exists(path))
+				CreateDirectory(path);
+
+			return File.OpenWrite(fileName);
+		}
+
+		public Stream OpenRead(string fileName)
+		{
+			return File.OpenRead(fileName);
+		}
 	}
 }

@@ -16,9 +16,9 @@ namespace Build.TaskEngine.Tasks
 		               IFileSystem fileSystem)
 		{
 			if (expressionEngine == null)
-				throw new ArgumentNullException("expressionEngine");
+				throw new ArgumentNullException(nameof(expressionEngine));
 			if (fileSystem == null)
-				throw new ArgumentNullException("fileSystem");
+				throw new ArgumentNullException(nameof(fileSystem));
 
 			_expressionEngine = expressionEngine;
 			_fileSystem = fileSystem;

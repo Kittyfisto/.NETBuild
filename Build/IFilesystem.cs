@@ -18,7 +18,6 @@ namespace Build
 		FileInfo GetInfo(string filename);
 
 		/// <summary>
-		/// 
 		/// </summary>
 		/// <param name="type"></param>
 		/// <param name="include"></param>
@@ -28,7 +27,6 @@ namespace Build
 		ProjectItem CreateProjectItem(string type, string include, string identity, BuildEnvironment environment);
 
 		/// <summary>
-		/// 
 		/// </summary>
 		/// <param name="sourceFileName"></param>
 		/// <param name="destFileName"></param>
@@ -38,7 +36,6 @@ namespace Build
 		void CopyFile(string sourceFileName, string destFileName, bool overwrite);
 
 		/// <summary>
-		/// 
 		/// </summary>
 		/// <param name="absoluteFile"></param>
 		/// <exception cref="UnauthorizedAccessException"></exception>
@@ -46,10 +43,29 @@ namespace Build
 		void DeleteFile(string absoluteFile);
 
 		/// <summary>
-		/// Creates the given directory if it doesn't exist already.
+		///     Creates the given directory if it doesn't exist already.
 		/// </summary>
 		/// <param name="directoryPath"></param>
 		void CreateDirectory(string directoryPath);
 
+		/// <summary>
+		/// </summary>
+		/// <param name="fileName"></param>
+		/// <returns></returns>
+		string ReadAllText(string fileName);
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="fileName"></param>
+		/// <returns></returns>
+		Stream OpenWrite(string fileName);
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="fileName"></param>
+		/// <returns></returns>
+		Stream OpenRead(string fileName);
 	}
 }
