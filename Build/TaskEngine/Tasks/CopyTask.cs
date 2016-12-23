@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 using Build.IO;
 using Node = Build.DomainModel.MSBuild.Node;
@@ -69,6 +68,9 @@ namespace Build.TaskEngine.Tasks
 
 			try
 			{
+				var dir = Path.GetDirectory(absoluteDestination);
+				_fileSystem.CreateDirectory(dir);
+
 				_fileSystem.CopyFile(absoluteSource, absoluteDestination, true);
 				return true;
 			}

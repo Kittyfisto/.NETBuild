@@ -42,6 +42,9 @@ namespace Build.TaskEngine.Tasks
 
 			var manifestResources = GetManifestResources(environment, csc);
 
+			var directory = Path.GetDirectory(fullAssemblyFileName);
+			_fileSystem.CreateDirectory(directory);
+
 			using (var assemblyStream = _fileSystem.OpenWrite(fullAssemblyFileName))
 			using (var pdbStream = _fileSystem.OpenWrite(fullPdbFileName))
 			{
