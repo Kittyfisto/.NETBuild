@@ -48,7 +48,16 @@ namespace Build.TaskEngine.Tasks
 			using (var assemblyStream = _fileSystem.OpenWrite(fullAssemblyFileName))
 			using (var pdbStream = _fileSystem.OpenWrite(fullPdbFileName))
 			{
-				compilation.Emit(assemblyStream, pdbStream, manifestResources: manifestResources);
+				var result = compilation.Emit(assemblyStream, pdbStream, manifestResources: manifestResources);
+				if (!result.Success)
+				{
+					foreach(var diagnostic in result.Diagnostics)
+					{
+						logger.WriteMultiLine(Verbosity.Minimal, diagnostic.ToString(), true);
+					}
+
+					throw new BuildException("csc returned: -1");
+				}
 			}
 		}
 

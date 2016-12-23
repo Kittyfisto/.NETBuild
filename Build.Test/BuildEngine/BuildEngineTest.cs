@@ -1,8 +1,8 @@
 ﻿using System.IO;
 using System.Reflection;
 using System.Xml;
-using Build.BuildEngine;
 using Build.IO;
+using FluentAssertions;
 using NUnit.Framework;
 
 namespace Build.Test.BuildEngine
@@ -10,40 +10,20 @@ namespace Build.Test.BuildEngine
 	[TestFixture]
 	public sealed class BuildEngineTest
 	{
-		private InMemoryFileSystem _filesystem;
-		private BuildLog _log;
-
 		[SetUp]
 		public void Setup()
 		{
 			_filesystem = new InMemoryFileSystem();
 		}
 
-		[Test]
-		public void TestErrorCS0015()
-		{
-			CreateProject(new[] {AddFile("CS0015.cs")});
-			Build();
-		}
-
-		private void Build()
-		{
-			var arguments = new Arguments();
-			using (var engine = new Build.BuildEngine.BuildEngine(arguments, _filesystem))
-			{
-				engine.Execute();
-
-				_log = engine.Log;
-			}
-		}
-
+		private InMemoryFileSystem _filesystem;
+		
 		private string AddFile(string embeddedFileName)
 		{
 			var assembly = Assembly.GetCallingAssembly();
 			var resourceName = string.Format("Build.Test.Resources.{0}", embeddedFileName);
-
-			var test = assembly.GetManifestResourceNames();
-			using (Stream resourceStream = assembly.GetManifestResourceStream(resourceName))
+			
+			using (var resourceStream = assembly.GetManifestResourceStream(resourceName))
 			using (var stream = _filesystem.OpenWrite(embeddedFileName))
 			{
 				resourceStream.CopyTo(stream);
@@ -54,22 +34,16 @@ namespace Build.Test.BuildEngine
 
 		private void CreateProject(string[] files)
 		{
-			var testName = TestContext.CurrentContext.Test.Name;
-			var projectName = string.Format("{0}.csproj", testName);
+			var projectName = "Project.csproj";
 
 			CreateProject(projectName, files);
 		}
 
 		private void CreateProject(string projectFileName, params string[] compiles)
 		{
-			var settings = new XmlWriterSettings
-			{
-				NewLineHandling = NewLineHandling.Entitize,
-				NewLineChars = "\r\n",
-			};
 			using (var stream = _filesystem.OpenWrite(projectFileName))
-			using (StreamWriter streamWriter = new StreamWriter(stream))
-			using (XmlTextWriter writer = new XmlTextWriter(streamWriter))
+			using (var streamWriter = new StreamWriter(stream))
+			using (var writer = new XmlTextWriter(streamWriter))
 			{
 				writer.Formatting = Formatting.Indented;
 				writer.Indentation = 4;
@@ -142,6 +116,30 @@ namespace Build.Test.BuildEngine
 
 				writer.WriteEndDocument();
 			}
+		}
+
+		[Test]
+		public void TestErrors(
+			[Values(
+			"CS0019", "CS0029", "CS0034", "CS0039", "CS0050", "CS0051", "CS0052", "CS0071",
+			"CS0103", "CS0106", "CS0115", "CS0116", "CS0120", "CS0122", "CS0133", "CS0151", "CS0163", "CS0165", "CS0173", "CS0178", "CS0188",
+			"CS0201", "CS0229", "CS0233", "CS0234", "CS0246", "CS0260", "CS0266", "CS0269", "CS0270",
+			"CS0304", "CS0310", "CS0311",
+			"CS0413", "CS0417", /*"CS0433",*/ "CS0445", "CS0446",
+			"CS0504", "CS0507", /*"CS0518",*/ "CS0523", "CS0545", "CS0552", "CS0563", /*CS0570,*/ "CS0571", "CS0579", "CS0592",
+			"CS7013")] string errorCode)
+		{
+			CreateProject(new[] {AddFile(string.Format("{0}.cs", errorCode))});
+
+			var arguments = new Arguments();
+			using (var engine = new Build.BuildEngine.BuildEngine(arguments, _filesystem))
+			{
+				engine.Execute();
+
+				var message = string.Format("error {0}", errorCode);
+				engine.Log.Errors.Should().Contain(x => x.Contains(message));
+			}
+
 		}
 	}
 }
