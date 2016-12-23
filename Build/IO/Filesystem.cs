@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Security;
 using Build.DomainModel.MSBuild;
 using log4net;
 
-namespace Build
+namespace Build.IO
 {
 	public sealed class FileSystem
 		: IFileSystem
@@ -17,7 +18,7 @@ namespace Build
 			return File.Exists(filename);
 		}
 
-		public FileInfo GetInfo(string filename)
+		public FileInfo GetFileInfo(string filename)
 		{
 			if (!Exists(filename))
 				return new FileInfo();
@@ -43,50 +44,7 @@ namespace Build
 				return new FileInfo();
 			}
 		}
-
-		public ProjectItem CreateProjectItem(string type, string include, string identity, BuildEnvironment environment)
-		{
-			if (type == null)
-				throw new ArgumentNullException("type");
-			if (include == null)
-				throw new ArgumentNullException("include");
-
-			var item = new ProjectItem
-				{
-					Type = type,
-					Include = include
-				};
-
-			string projectDirectory = environment.Properties[Properties.MSBuildProjectDirectory];
-			if (string.IsNullOrEmpty(projectDirectory))
-				throw new ArgumentException(string.Format("Expected \"$(MSBuildProjectDirectory)\" to contain a valid path, but it is empty!"));
-
-			string fullPath = Path.IsPathRooted(include)
-				                  ? include
-				                  : Path.Normalize(Path.Combine(projectDirectory, include));
-
-			var info = GetInfo(fullPath);
-
-			item[Metadatas.FullPath] = fullPath;
-			item[Metadatas.RootDir] = Path.GetRootDir(fullPath);
-			item[Metadatas.Filename] = Path.GetFilenameWithoutExtension(fullPath);
-			item[Metadatas.Extension] = Path.GetExtension(fullPath);
-			item[Metadatas.RelativeDir] = Path.GetRelativeDir(include);
-			item[Metadatas.Directory] = Path.GetDirectoryWithoutRoot(fullPath, Slash.Include);
-			item[Metadatas.Identity] = identity;
-			item[Metadatas.ModifiedTime] = FormatTime(info.ModifiedTime);
-			item[Metadatas.CreatedTime] = FormatTime(info.CreatedTime);
-			item[Metadatas.AccessedTime] = FormatTime(info.AccessTime);
-
-			return item;
-		}
-
-		private static string FormatTime(DateTime lastWriteTime)
-		{
-			var value = lastWriteTime.ToString("yyyy-mm-dd hh:mm:ss.fffffff");
-			return value;
-		}
-
+		
 		public void CopyFile(string sourceFileName, string destFileName, bool overwrite)
 		{
 			if (sourceFileName == null)
@@ -104,14 +62,13 @@ namespace Build
 			File.Copy(sourceFileName, destFileName, overwrite);
 		}
 
-		public void DeleteFile(string absoluteFile)
+		public void DeleteFile(string fileName)
 		{
-			File.Delete(absoluteFile);
+			File.Delete(fileName);
 		}
 
 		public void CreateDirectory(string directoryPath)
 		{
-		//	if (!Directory.Exists(outputPath))
 			Directory.CreateDirectory(directoryPath);
 		}
 
@@ -122,9 +79,9 @@ namespace Build
 
 		public Stream OpenWrite(string fileName)
 		{
-			var path = Path.GetDirectory(fileName);
+			/*var path = Path.GetDirectory(fileName);
 			if (!Exists(path))
-				CreateDirectory(path);
+				CreateDirectory(path);*/
 
 			return File.OpenWrite(fileName);
 		}
@@ -132,6 +89,47 @@ namespace Build
 		public Stream OpenRead(string fileName)
 		{
 			return File.OpenRead(fileName);
+		}
+
+		public string CurrentDirectory
+		{
+			get { return Directory.GetCurrentDirectory(); }
+			set { Directory.SetCurrentDirectory(value); }
+		}
+
+		public bool ExistsDirectory(string directory)
+		{
+			return Directory.Exists(directory);
+		}
+
+		public void WriteAllText(string fileName, string text)
+		{
+			File.WriteAllText(fileName, text);
+		}
+
+		public void WriteAllBytes(string fileName, byte[] data)
+		{
+			File.WriteAllBytes(fileName, data);
+		}
+
+		public byte[] ReadAllBytes(string fileName)
+		{
+			return File.ReadAllBytes(fileName);
+		}
+
+		public IEnumerable<string> EnumerateFiles(string path)
+		{
+			return Directory.EnumerateFiles(path);
+		}
+
+		public IEnumerable<string> EnumerateFiles(string path, string searchPattern)
+		{
+			return Directory.EnumerateFiles(path, searchPattern);
+		}
+
+		public IEnumerable<string> EnumerateFiles(string path, string searchPattern, SearchOption searchOption)
+		{
+			return Directory.EnumerateFiles(path, searchPattern, searchOption);
 		}
 	}
 }

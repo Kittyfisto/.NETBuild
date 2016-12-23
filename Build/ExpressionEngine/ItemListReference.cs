@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Build.DomainModel.MSBuild;
+using Build.IO;
 
 namespace Build.ExpressionEngine
 {

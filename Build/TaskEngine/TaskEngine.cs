@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Build.DomainModel.MSBuild;
 using Build.ExpressionEngine;
+using Build.IO;
 using Build.TaskEngine.Tasks;
 
 namespace Build.TaskEngine

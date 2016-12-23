@@ -53,12 +53,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArgumentsTest.cs" />
+    <Compile Include="BuildEngine\BuildEngineTest.cs" />
     <Compile Include="BuildEnvironmentTest.cs" />
     <Compile Include="ExpressionEngine\ItemListProjectionTest.cs" />
     <Compile Include="ExpressionEngine\PropertyReferenceTest.cs" />
     <Compile Include="ExpressionEngine\StringLiteralTest.cs" />
     <Compile Include="ExpressionEngine\TokenOrExpressionExtensionsTest.cs" />
+    <Compile Include="IO\AbstractFilesystemTest.cs" />
+    <Compile Include="IO\FileSystemTest.cs" />
+    <Compile Include="IO\InMemoryFileSystemTest.cs" />
     <Compile Include="ProjectDependencyGraphTest.cs" />
+    <EmbeddedResource Include="Resources\CS0015.cs" />
     <Compile Include="TaskEngine\TaskEngineAcceptanceTest.cs" />
     <None Include="packages.config" />
     <Compile Include="TestLogger.cs" />
@@ -75,9 +80,7 @@
     <Compile Include="TestPath.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="BuildEngine\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\Build\Build.csproj">
       <Project>{63F3A0B5-909C-43C5-8B79-CEA032DFE4F1}</Project>

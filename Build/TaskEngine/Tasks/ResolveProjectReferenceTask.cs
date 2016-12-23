@@ -2,6 +2,7 @@
 using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 using Build.ExpressionEngine;
+using Build.IO;
 
 namespace Build.TaskEngine.Tasks
 {

@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading;
 using Build.DomainModel;
 using Build.DomainModel.MSBuild;
+using Build.IO;
 using log4net;
 
 namespace Build.Watchdog
@@ -25,12 +26,14 @@ namespace Build.Watchdog
 		private readonly Thread _thread;
 		private Sandbox _currentSandbox;
 		private bool _isDisposed;
+		private readonly IFileSystem _filesystem;
 
 		public SandboxWatchdog(string rootFolder)
 		{
 			if (rootFolder == null)
 				throw new ArgumentNullException("rootFolder");
 
+			_filesystem = new FileSystem();
 			_rootFolder = rootFolder;
 			_pendingActions = new ConcurrentQueue<PendingAction>();
 
@@ -99,7 +102,7 @@ namespace Build.Watchdog
 
 		private void ExecutePendingActions()
 		{
-			var sandboxLoader = new SandboxLoader();
+			var sandboxLoader = new SandboxLoader(_filesystem);
 			while (!_isDisposed)
 			{
 				PendingAction action;

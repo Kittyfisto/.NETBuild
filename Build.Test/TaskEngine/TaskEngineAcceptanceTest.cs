@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using Build.BuildEngine;
+using Build.IO;
 using NUnit.Framework;
 
 namespace Build.Test.TaskEngine

@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using Build.DomainModel.MSBuild;
 using Build.ExpressionEngine;
+using Build.IO;
 
 namespace Build.TaskEngine.Tasks
 {

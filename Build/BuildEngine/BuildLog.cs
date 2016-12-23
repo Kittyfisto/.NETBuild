@@ -25,17 +25,7 @@ namespace Build.BuildEngine
 		private readonly StreamWriter _writer;
 
 		private int _loggerId;
-
-		public BuildLog()
-			: this(new Arguments())
-		{
-		}
-
-		public BuildLog(Arguments arguments)
-			: this(arguments, File.Open("buildlog.txt", FileMode.OpenOrCreate, FileAccess.Write), true)
-		{
-		}
-
+		
 		public BuildLog(Arguments arguments, Stream stream, bool disposeStream = false)
 		{
 			if (arguments == null)

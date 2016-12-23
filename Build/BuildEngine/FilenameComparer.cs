@@ -1,18 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Build.BuildEngine
 {
 	public sealed class FilenameComparer : IEqualityComparer<string>
 	{
+		private static string Normalize(string x)
+		{
+			return x.ToLower().Replace('/', '\\');
+		}
+
 		public bool Equals(string x, string y)
 		{
-			return string.Equals(x, y, StringComparison.CurrentCultureIgnoreCase);
+			var left = Normalize(x);
+			var right = Normalize(y);
+
+			return string.Equals(left, right);
 		}
 
 		public int GetHashCode(string filename)
 		{
-			return filename.ToLower().GetHashCode();
+			return Normalize(filename).GetHashCode();
 		}
 	}
 }

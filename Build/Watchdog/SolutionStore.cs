@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Build.DomainModel;
 using Build.DomainModel.MSBuild;
+using Build.IO;
 using Build.Parser;
 
 namespace Build.Watchdog
@@ -8,7 +9,7 @@ namespace Build.Watchdog
 	public sealed class SolutionStore
 		: FileStore<Solution>
 	{
-		public SolutionStore() : base(new SolutionParser(ProjectParser.Instance))
+		public SolutionStore(IFileSystem fileSystem) : base(new SolutionParser(new ProjectParser(fileSystem)))
 		{}
 
 		public IEnumerable<Solution> CreateSolutions(IReadOnlyDictionary<string, Project> projects)

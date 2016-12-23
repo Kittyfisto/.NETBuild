@@ -107,6 +107,9 @@
     <Compile Include="ExpressionEngine\ItemListProjection.cs" />
     <Compile Include="ExpressionEngine\MetadataReference.cs" />
     <Compile Include="ExpressionEngine\TokenOrExpressionExtensions.cs" />
+    <Compile Include="IO\AsynchronousFileSystem.cs" />
+    <Compile Include="IO\FilesystemExtensions.cs" />
+    <Compile Include="IO\InMemoryFileSystem.cs" />
     <Compile Include="IProjectDependencyGraph.cs" />
     <Compile Include="BuildEngine\ProjectAndEnvironment.cs" />
     <Compile Include="DomainModel\MSBuild\Output.cs" />
@@ -132,9 +135,10 @@
     <Compile Include="ExpressionEngine\ItemListExpression.cs" />
     <Compile Include="ExpressionEngine\ItemListReference.cs" />
     <Compile Include="FileInfo.cs" />
-    <Compile Include="Filesystem.cs" />
-    <Compile Include="IFilesystem.cs" />
+    <Compile Include="IO\Filesystem.cs" />
+    <Compile Include="IO\IFilesystem.cs" />
     <Compile Include="ListExtensions.cs" />
+    <Compile Include="StreamExtensions.cs" />
     <Compile Include="TaskEngine\Tasks\CopyTask.cs" />
     <Compile Include="TaskEngine\Tasks\CscTask.cs" />
     <Compile Include="TaskEngine\Tasks\RoslynTask.cs" />

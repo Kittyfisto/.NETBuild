@@ -1,4 +1,5 @@
 ﻿using Build.ExpressionEngine;
+using Build.IO;
 using FluentAssertions;
 using Moq;
 using NUnit.Framework;

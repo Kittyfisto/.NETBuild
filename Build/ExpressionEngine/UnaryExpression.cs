@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Diagnostics.Contracts;
 using Build.DomainModel.MSBuild;
+using Build.IO;
 
 namespace Build.ExpressionEngine
 {

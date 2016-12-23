@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
+using Build.IO;
 using Build.Parser;
 using FluentAssertions;
 using Moq;
@@ -31,7 +31,7 @@ namespace Build.Test.TaskEngine
 
 			_expressionEngine = new Build.ExpressionEngine.ExpressionEngine(_fileSystem.Object);
 
-			_parser = ProjectParser.Instance;
+			_parser = new ProjectParser(new FileSystem());
 			_logger = new Mock<ILogger>();
 			_messages = new List<string>();
 			_logger.Setup(x => x.WriteLine(It.IsAny<Verbosity>(), It.IsAny<string>(), It.IsAny<object[]>()))

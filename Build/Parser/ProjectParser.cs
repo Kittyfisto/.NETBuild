@@ -5,6 +5,7 @@ using System.IO;
 using System.Xml;
 using Build.DomainModel.MSBuild;
 using Build.ExpressionEngine;
+using Build.IO;
 
 namespace Build.Parser
 {
@@ -15,15 +16,15 @@ namespace Build.Parser
 	public sealed class ProjectParser
 		: IFileParser<Project>
 	{
-		public static readonly ProjectParser Instance;
+		private readonly IFileSystem _fileSystem;
 
-		static ProjectParser()
+		public ProjectParser(IFileSystem fileSystem)
 		{
-			Instance = new ProjectParser();
-		}
+			if (fileSystem == null)
+				throw new ArgumentNullException("fileSystem");
 
-		private ProjectParser()
-		{}
+			_fileSystem = fileSystem;
+		}
 
 		/// <summary>
 		/// 
@@ -33,7 +34,7 @@ namespace Build.Parser
 		[Pure]
 		public Project Parse(string filePath)
 		{
-			using (var stream = File.OpenRead(filePath))
+			using (var stream = _fileSystem.OpenRead(filePath))
 			{
 				return Parse(stream, filePath);
 			}

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
 using Build.ExpressionEngine;
+using Build.IO;
 using Build.Parser;
 using FluentAssertions;
 using NUnit.Framework;
@@ -17,7 +18,7 @@ namespace Build.Test.Parser
 		[SetUp]
 		public void SetUp()
 		{
-			_parser = ProjectParser.Instance;
+			_parser = new ProjectParser(new FileSystem());
 		}
 
 		[Test]

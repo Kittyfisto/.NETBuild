@@ -1,6 +1,7 @@
 ﻿using System;
 using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
+using Build.IO;
 using Node = Build.DomainModel.MSBuild.Node;
 
 namespace Build.TaskEngine.Tasks

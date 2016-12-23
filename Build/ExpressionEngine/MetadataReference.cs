@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Build.DomainModel.MSBuild;
+using Build.IO;
 
 namespace Build.ExpressionEngine
 {

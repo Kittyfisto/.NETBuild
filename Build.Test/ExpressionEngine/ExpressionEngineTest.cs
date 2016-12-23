@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Build.DomainModel.MSBuild;
+using Build.IO;
 using Build.Parser;
 using FluentAssertions;
 using NUnit.Framework;
@@ -614,7 +615,7 @@ namespace Build.Test.ExpressionEngine
 		public void TestEvaluateProject3()
 		{
 			var fname = TestPath.Get(@"Build.Test\Build.Test.csproj");
-			var project = ProjectParser.Instance.Parse(fname);
+			var project = new ProjectParser(new FileSystem()).Parse(fname);
 			var envirnoment = new BuildEnvironment();
 			_engine.Evaluate(project, envirnoment);
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Build.BuildEngine;
 using Build.DomainModel.MSBuild;
+using Build.IO;
 
 namespace Build
 {
@@ -68,7 +69,7 @@ namespace Build
 					Include = fileName
 				};
 				var path = Path.MakeAbsolute(Properties[DomainModel.MSBuild.Properties.MSBuildProjectDirectory], fileName);
-				var info = fileSystem.GetInfo(path);
+				var info = fileSystem.GetFileInfo(path);
 
 				item[Metadatas.FullPath] = path;
 				item[Metadatas.CreatedTime] = info.CreatedTime.ToString(CultureInfo.InvariantCulture);

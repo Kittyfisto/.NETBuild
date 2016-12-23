@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Build.DomainModel.MSBuild;
+using Build.IO;
 using Build.Parser;
 
 namespace Build.Watchdog
@@ -7,8 +8,8 @@ namespace Build.Watchdog
 	public sealed class CSharpProjectStore
 		: FileStore<Project>
 	{
-		public CSharpProjectStore()
-			: base(ProjectParser.Instance)
+		public CSharpProjectStore(IFileSystem fileSystem)
+			: base(new ProjectParser(fileSystem))
 		{}
 
 		public IReadOnlyDictionary<string, Project> CreateProjects()

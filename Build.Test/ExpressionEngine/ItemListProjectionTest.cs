@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Build.DomainModel.MSBuild;
 using Build.ExpressionEngine;
+using Build.IO;
 using FluentAssertions;
 using Moq;
 using NUnit.Framework;

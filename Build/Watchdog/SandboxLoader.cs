@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Build.DomainModel;
+using Build.IO;
 
 namespace Build.Watchdog
 {
@@ -14,10 +15,10 @@ namespace Build.Watchdog
 		private bool _isSandboxDirty;
 		private Sandbox _lastSandbox;
 
-		public SandboxLoader()
+		public SandboxLoader(IFileSystem filesystem)
 		{
-			_cSharpProjects = new CSharpProjectStore();
-			_solutions = new SolutionStore();
+			_cSharpProjects = new CSharpProjectStore(filesystem);
+			_solutions = new SolutionStore(filesystem);
 			_files = new Dictionary<Filetype, IFileStore>
 				{
 					{Filetype.Project, _cSharpProjects},

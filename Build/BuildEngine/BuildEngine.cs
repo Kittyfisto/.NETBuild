@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using Build.DomainModel;
 using Build.DomainModel.MSBuild;
+using Build.IO;
 using Build.Parser;
 
 namespace Build.BuildEngine
@@ -16,17 +17,21 @@ namespace Build.BuildEngine
 		: IDisposable
 	{
 		private readonly Arguments _arguments;
+		private readonly Project _buildScript;
 		private readonly IFileParser<Project> _csharpProjectParser;
 		private readonly BuildEnvironment _environment;
 		private readonly ExpressionEngine.ExpressionEngine _expressionEngine;
-		private readonly FileSystem _fileSystem;
-		private readonly BuildLog _log;
-		private readonly Project _buildScript;
 
 		private readonly IFileParser<Solution> _solutionParser;
 		private readonly TaskEngine.TaskEngine _taskEngine;
+		private readonly IFileSystem _fileSystem;
 
 		public BuildEngine(Arguments arguments)
+			: this(arguments, new FileSystem())
+		{
+		}
+
+		public BuildEngine(Arguments arguments, IFileSystem fileSystem)
 		{
 			if (arguments == null)
 				throw new ArgumentNullException("arguments");
@@ -37,46 +42,38 @@ namespace Build.BuildEngine
 						"error MSB1032: Maximum CPU count is not valid. Value must be an integer greater than zero and nore more than 1024.\r\nSwitch: {0}",
 						arguments.MaxCpuCount));
 
-			_log = new BuildLog(arguments);
-			_fileSystem = new FileSystem();
-			_csharpProjectParser = ProjectParser.Instance;
+			_fileSystem = fileSystem;
+			var buildlogStream = _fileSystem.OpenWrite("buildlog.txt");
+			Log = new BuildLog(arguments, buildlogStream, true);
+			_csharpProjectParser = new ProjectParser(_fileSystem);
 			_solutionParser = new SolutionParser(_csharpProjectParser);
-			_expressionEngine = new ExpressionEngine.ExpressionEngine(_fileSystem);
-			_taskEngine = new TaskEngine.TaskEngine(_expressionEngine, _fileSystem);
+			_expressionEngine = new ExpressionEngine.ExpressionEngine(fileSystem);
+			_taskEngine = new TaskEngine.TaskEngine(_expressionEngine, fileSystem);
 			_arguments = arguments;
 			if (_arguments.Targets.Count == 0)
-			{
 				_arguments.Targets.Add(Targets.Build);
-			}
 			else
-			{
 				_arguments.Targets.Sort(new TargetComparer());
-			}
 
 			_environment = new BuildEnvironment(name: "Build Engine Environment");
-			foreach (Property property in arguments.Properties)
-			{
+			foreach (var property in arguments.Properties)
 				_environment.Properties.Add(property.Name, property.Value);
-			}
 
 			_buildScript = LoadBuildScript();
 		}
 
-		private Project LoadBuildScript()
-		{
-			Stream stream = typeof(BuildEnvironment).Assembly.GetManifestResourceStream("Build.Microsoft.Common.props");
-			Project project = ProjectParser.Instance.Parse(stream, "Common.props");
-			return project;
-		}
-
-		public BuildLog Log
-		{
-			get { return _log; }
-		}
+		public BuildLog Log { get; }
 
 		public void Dispose()
 		{
-			_log.Dispose();
+			Log.Dispose();
+		}
+
+		private Project LoadBuildScript()
+		{
+			var stream = typeof(BuildEnvironment).Assembly.GetManifestResourceStream("Build.Microsoft.Common.props");
+			var project = new ProjectParser(_fileSystem).Parse(stream, "Common.props");
+			return project;
 		}
 
 		private void PrintLogo()
@@ -84,9 +81,9 @@ namespace Build.BuildEngine
 			if (_arguments.NoLogo)
 				return;
 
-			_log.WriteLine(Verbosity.Quiet, "Kittyfisto's .NET Build Engine version {0}",
-			               Assembly.GetCallingAssembly().GetName().Version);
-			_log.WriteLine(Verbosity.Quiet, "[Microsoft .NET Framework, version {0}]", Environment.Version);
+			Log.WriteLine(Verbosity.Quiet, "Kittyfisto's .NET Build Engine version {0}",
+				Assembly.GetCallingAssembly().GetName().Version);
+			Log.WriteLine(Verbosity.Quiet, "[Microsoft .NET Framework, version {0}]", Environment.Version);
 		}
 
 		/// <summary>
@@ -96,13 +93,9 @@ namespace Build.BuildEngine
 			PrintLogo();
 
 			if (_arguments.Help)
-			{
 				PrintHelp();
-			}
 			else
-			{
 				Build();
-			}
 		}
 
 		private void Build()
@@ -110,9 +103,9 @@ namespace Build.BuildEngine
 			// Building is done in a few simple steps:
 
 			// #1: Parse all relevant .csproj files into memory
-			List<Project> projects = LoadInputFile();
+			var projects = LoadInputFile();
 
-			List<string> targets = _arguments.Targets.ToList();
+			var targets = _arguments.Targets.ToList();
 			if (targets.Count > 1)
 				throw new BuildException("Building more than one target is not supported!");
 
@@ -126,54 +119,52 @@ namespace Build.BuildEngine
 			var dependencyGraph = Evaluate(projects, _environment);
 
 			var nodes = new BuildNode[_arguments.MaxCpuCount];
-			for (int i = 0; i < nodes.Length; ++i)
+			for (var i = 0; i < nodes.Length; ++i)
 			{
-				string name = string.Format("Builder #{0}", i);
+				var name = string.Format("Builder #{0}", i);
 				nodes[i] = new BuildNode(dependencyGraph,
-				                         _taskEngine,
-				                         _log,
-				                         name,
-				                         target);
+					_taskEngine,
+					Log,
+					name,
+					target);
 			}
 
 			dependencyGraph.FinishedEvent.Wait();
 
-			foreach (BuildNode builder in nodes)
-			{
+			foreach (var builder in nodes)
 				builder.Stop();
-			}
 
-			_log.WriteLine(Verbosity.Quiet, "========== Build: {0} succeeded, {1} failed, {2} up-to-date, {3} skipped ==========",
-			               dependencyGraph.SucceededCount,
-			               dependencyGraph.FailedCount,
-			               "TODO",
-			               "TODO");
+			Log.WriteLine(Verbosity.Quiet, "========== Build: {0} succeeded, {1} failed, {2} up-to-date, {3} skipped ==========",
+				dependencyGraph.SucceededCount,
+				dependencyGraph.FailedCount,
+				"TODO",
+				"TODO");
 		}
 
 		private void PrintHelp()
 		{
-			_log.WriteLine("TODO");
+			Log.WriteLine("TODO");
 		}
 
 		private List<Project> LoadInputFile()
 		{
 			var projects = new List<Project>();
-			string inputFile = _arguments.InputFile;
+			var inputFile = _arguments.InputFile;
 			if (inputFile == null)
 				inputFile = FindInputFile();
 			else if (!Path.IsPathRooted(inputFile))
 				inputFile = Path.Normalize(Path.Combine(Directory.GetCurrentDirectory(), inputFile));
 
-			string extension = Path.GetExtension(inputFile);
+			var extension = Path.GetExtension(inputFile);
 			switch (extension)
 			{
 				case ".sln":
-					Solution solution = _solutionParser.Parse(inputFile);
+					var solution = _solutionParser.Parse(inputFile);
 					projects.AddRange(solution.Projects);
 					break;
 
 				case ".csproj":
-					Project project = _csharpProjectParser.Parse(inputFile);
+					var project = _csharpProjectParser.Parse(inputFile);
 					projects.Add(project);
 					break;
 
@@ -186,32 +177,22 @@ namespace Build.BuildEngine
 
 		private string FindInputFile()
 		{
-			string directory = Directory.GetCurrentDirectory();
-			List<string> files = Directory.EnumerateFiles(directory, "*.sln", SearchOption.TopDirectoryOnly)
-			                              .Concat(Directory.EnumerateFiles(directory, "*.csproj", SearchOption.TopDirectoryOnly))
-			                              .ToList();
+			var directory = _fileSystem.CurrentDirectory;
+			var files = _fileSystem.EnumerateFiles(directory, "*.sln", SearchOption.TopDirectoryOnly)
+				.Concat(_fileSystem.EnumerateFiles(directory, "*.csproj", SearchOption.TopDirectoryOnly))
+				.ToList();
 			if (files.Count == 0)
-			{
 				throw new BuildException(
 					"error MSB1003: Specify a project or solution file. The current working directory does not contain a project or solution file.");
-			}
 
 			return files[0];
-		}
-
-		struct Tmp
-		{
-			public Project Project;
-			public Project NeededBy;
 		}
 
 		private ProjectDependencyGraph Evaluate(List<Project> rootProjects, BuildEnvironment environment)
 		{
 			var projectStack = new Stack<Tmp>(rootProjects.Count);
 			foreach (var project in rootProjects)
-			{
 				projectStack.Push(new Tmp {Project = project});
-			}
 
 			var graph = new ProjectDependencyGraph();
 
@@ -227,13 +208,11 @@ namespace Build.BuildEngine
 				// to interfere with the next one, thus we create one environment for each
 				// project.
 				var projectEnvironment = new BuildEnvironment(environment);
-				Project evaluated = _expressionEngine.Evaluate(rootProject.Merged(_buildScript), projectEnvironment);
+				var evaluated = _expressionEngine.Evaluate(rootProject.Merged(_buildScript), projectEnvironment);
 				graph.Add(evaluated, projectEnvironment);
 
 				if (pair.NeededBy != null)
-				{
 					graph.AddDependency(pair.NeededBy, evaluated);
-				}
 
 				// Now that we've evaluated the project it's time to find out if it references
 				// any other projects. This is done afterwards because dependencies might be conditional
@@ -255,13 +234,19 @@ namespace Build.BuildEngine
 						projectStack.Push(new Tmp
 						{
 							Project = project,
-							NeededBy = evaluated,
+							NeededBy = evaluated
 						});
 					}
 				}
 			}
 
 			return graph;
+		}
+
+		private struct Tmp
+		{
+			public Project Project;
+			public Project NeededBy;
 		}
 	}
 }
