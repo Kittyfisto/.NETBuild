@@ -3,7 +3,7 @@
 namespace Build.BuildEngine
 {
 	/// <summary>
-	/// Responsible for adding messages into the build log.
+	///     Responsible for adding messages into the build log.
 	/// </summary>
 	public sealed class Logger
 		: ILogger
@@ -31,34 +31,36 @@ namespace Build.BuildEngine
 
 		public void WriteMultiLine(Verbosity verbosity, string message, bool interpretLines)
 		{
-			var lines = message.Split(new[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+			var lines = message.Split(new[] {"\n", "\r\n"}, StringSplitOptions.RemoveEmptyEntries);
 			foreach (var line in lines)
-			{
 				if (line.ToLower().Contains("error"))
-				{
-					WriteError(line);
-				}
+					WriteErrorMessage(line);
 				else if (line.ToLower().Contains("warning"))
-				{
-					WriteWarning(line);
-				}
+					WriteWarningMessage(line);
 				else
-				{
 					WriteLine(verbosity, line);
-				}
-			}
 		}
 
 		public void WriteWarning(string format, params object[] arguments)
 		{
 			var message = string.Format(format, arguments);
-			++_warningCount;
-			_buildLog.WriteWarning(message);
+			WriteWarningMessage(message);
 		}
 
 		public void WriteError(string format, params object[] arguments)
 		{
 			var message = string.Format(format, arguments);
+			WriteErrorMessage(message);
+		}
+
+		private void WriteWarningMessage(string message)
+		{
+			++_warningCount;
+			_buildLog.WriteWarning(message);
+		}
+
+		private void WriteErrorMessage(string message)
+		{
 			++_errorCount;
 			_buildLog.WriteError(message);
 		}

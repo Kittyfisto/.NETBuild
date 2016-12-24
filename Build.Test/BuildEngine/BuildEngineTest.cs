@@ -101,6 +101,17 @@ namespace Build.Test.BuildEngine
 
 
 				writer.WriteStartElement("ItemGroup");
+				var references = new[] {"System", "System.Core", "System.Xml.Linq"};
+				foreach (var reference in references)
+				{
+					writer.WriteStartElement("Reference");
+					writer.WriteAttributeString("Include", reference);
+					writer.WriteEndElement();
+				}
+				writer.WriteEndElement(); //< ItemGroup
+
+
+				writer.WriteStartElement("ItemGroup");
 				foreach (var compile in compiles)
 				{
 					writer.WriteStartElement("Compile");
@@ -127,6 +138,15 @@ namespace Build.Test.BuildEngine
 			"CS0304", "CS0310", "CS0311",
 			"CS0413", "CS0417", /*"CS0433",*/ "CS0445", "CS0446",
 			"CS0504", "CS0507", /*"CS0518",*/ "CS0523", "CS0545", "CS0552", "CS0563", /*CS0570,*/ "CS0571", "CS0579", "CS0592",
+			"CS0616", "CS0650", "CS0686",
+			"CS0702", "CS0703", /*CS0731,*/
+			"CS0826", "CS0834", /*"CS0840",*/ "CS0843", /*"CS0845",*/
+			"CS1001", "CS1009", "CS1018", "CS1019", "CS1026", "CS1029", "CS1061",
+			"CS1112",
+			"CS1501", "CS1503", "CS1513", "CS1514", "CS1519", "CS1540", /*CS1546, CS1548, CS1564, CS1567,*/ "CS1579",
+			"CS1612", "CS1614", /*CS1644,*/ "CS1656", "CS1674",
+			/*"CS1703", "CS1704", "CS1705"*/ "CS1708", "CS1716", "CS1721", /*"CS1726",*/ "CS1729",
+			"CS1919", "CS1921", /*CS1926,*/ "CS1936",
 			"CS7013")] string errorCode)
 		{
 			CreateProject(new[] {AddFile(string.Format("{0}.cs", errorCode))});

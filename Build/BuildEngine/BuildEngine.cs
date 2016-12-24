@@ -81,9 +81,9 @@ namespace Build.BuildEngine
 			if (_arguments.NoLogo)
 				return;
 
-			Log.WriteLine(Verbosity.Quiet, "Kittyfisto's .NET Build Engine version {0}",
+			Log.FormatLine(Verbosity.Quiet, "Kittyfisto's .NET Build Engine version {0}",
 				Assembly.GetCallingAssembly().GetName().Version);
-			Log.WriteLine(Verbosity.Quiet, "[Microsoft .NET Framework, version {0}]", Environment.Version);
+			Log.FormatLine(Verbosity.Quiet, "[Microsoft .NET Framework, version {0}]", Environment.Version);
 		}
 
 		/// <summary>
@@ -134,7 +134,7 @@ namespace Build.BuildEngine
 			foreach (var builder in nodes)
 				builder.Stop();
 
-			Log.WriteLine(Verbosity.Quiet, "========== Build: {0} succeeded, {1} failed, {2} up-to-date, {3} skipped ==========",
+			Log.FormatLine(Verbosity.Quiet, "========== Build: {0} succeeded, {1} failed, {2} up-to-date, {3} skipped ==========",
 				dependencyGraph.SucceededCount,
 				dependencyGraph.FailedCount,
 				"TODO",

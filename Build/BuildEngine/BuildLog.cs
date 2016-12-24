@@ -78,13 +78,13 @@ namespace Build.BuildEngine
 		public void WriteWarning(string message)
 		{
 			_warnings.Add(message);
-			WriteLine(Verbosity.Quiet, message);
+			FormatLine(Verbosity.Quiet, message);
 		}
 
 		public void WriteError(string message)
 		{
 			_errors.Add(message);
-			WriteLine(Verbosity.Quiet, message);
+			FormatLine(Verbosity.Quiet, message);
 		}
 
 		public void Dispose()
@@ -112,14 +112,18 @@ namespace Build.BuildEngine
 			}
 		}
 
-		public void WriteLine(Verbosity verbosity, string format, params object[] arguments)
+		public void FormatLine(Verbosity verbosity, string format, params object[] arguments)
 		{
 			if (_arguments.Verbosity < verbosity)
 				return;
 
 			try
 			{
-				string message = string.Format(format, arguments);
+				string message;
+				if (arguments == null || arguments.Length == 0)
+					message = format;
+				else
+					message = string.Format(format, arguments);
 				WriteLine(message);
 			}
 			catch (Exception e)
