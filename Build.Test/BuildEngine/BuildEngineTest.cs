@@ -149,7 +149,9 @@ namespace Build.Test.BuildEngine
 			"CS1919", "CS1921", /*CS1926,*/ "CS1936",
 			"CS7013")] string errorCode)
 		{
-			CreateProject(new[] {AddFile(string.Format("{0}.cs", errorCode))});
+			const string projectName = "TestProject.csproj";
+
+			CreateProject(projectName, AddFile(string.Format("{0}.cs", errorCode)));
 
 			var arguments = new Arguments();
 			using (var engine = new Build.BuildEngine.BuildEngine(arguments, _filesystem))
@@ -158,8 +160,24 @@ namespace Build.Test.BuildEngine
 
 				var message = string.Format("error {0}", errorCode);
 				engine.Log.Errors.Should().Contain(x => x.Contains(message));
-			}
 
+				const string intermediateOutputPath = @"obj\debug\TestProject";
+				VerifyNoOutputFiles(intermediateOutputPath);
+
+				const string outputPath = @"bin\debug\TestProject";
+				VerifyNoOutputFiles(outputPath);
+			}
+		}
+
+		private void VerifyNoOutputFiles(string outputPath)
+		{
+			var root = Path.GetRootDir(_filesystem.CurrentDirectory);
+			var assembly = Path.Combine(root, outputPath + ".dll");
+			var pdb = Path.Combine(root, outputPath + ".pdb");
+			const string reason = "because the build shouldn't create output files when it failed";
+
+			_filesystem.Exists(assembly).Should().BeFalse(reason);
+			_filesystem.Exists(pdb).Should().BeFalse(reason);
 		}
 	}
 }

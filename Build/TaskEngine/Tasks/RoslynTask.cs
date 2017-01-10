@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using Build.DomainModel.MSBuild;
 using Build.IO;
 using Microsoft.CodeAnalysis;
@@ -45,8 +46,8 @@ namespace Build.TaskEngine.Tasks
 			var directory = Path.GetDirectory(fullAssemblyFileName);
 			_fileSystem.CreateDirectory(directory);
 
-			using (var assemblyStream = _fileSystem.OpenWrite(fullAssemblyFileName))
-			using (var pdbStream = _fileSystem.OpenWrite(fullPdbFileName))
+			using (var assemblyStream = new MemoryStream())
+			using (var pdbStream = new MemoryStream())
 			{
 				var result = compilation.Emit(assemblyStream, pdbStream, manifestResources: manifestResources);
 				if (!result.Success)
@@ -58,6 +59,11 @@ namespace Build.TaskEngine.Tasks
 
 					throw new BuildException("csc returned: -1");
 				}
+
+				assemblyStream.Position = 0;
+				_fileSystem.WriteAllStream(fullAssemblyFileName, assemblyStream);
+				pdbStream.Position = 0;
+				_fileSystem.WriteAllStream(fullPdbFileName, pdbStream);
 			}
 		}
 

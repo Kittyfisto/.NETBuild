@@ -1,13 +1,35 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
+using System.IO;
 using Build.DomainModel.MSBuild;
 
 namespace Build.IO
 {
 	public static class FilesystemExtensions
 	{
+		/// <summary>
+		///     Writes the contents of the given stream from its current position until its end into the file given by
+		///     <paramref name="fileName" />.
+		/// </summary>
+		/// <remarks>
+		///     This method works similar to <see cref="IFileSystem.WriteAllText" /> and <see cref="IFileSystem.WriteAllBytes" />:
+		///     If no such file exists, it will be created.
+		///     If the file exists, then its contents will be overwritten.
+		/// </remarks>
+		/// <param name="fileSystem"></param>
+		/// <param name="fileName"></param>
+		/// <param name="stream"></param>
+		public static void WriteAllStream(this IFileSystem fileSystem, string fileName, Stream stream)
+		{
+			using (var file = fileSystem.OpenWrite(fileName))
+			{
+				stream.CopyTo(file);
+			}
+		}
+
 		[Pure]
-		public static ProjectItem CreateProjectItem(this IFileSystem fileSystem, string type, string include, string identity, BuildEnvironment environment)
+		public static ProjectItem CreateProjectItem(this IFileSystem fileSystem, string type, string include, string identity,
+			BuildEnvironment environment)
 		{
 			if (type == null)
 				throw new ArgumentNullException("type");
@@ -21,7 +43,7 @@ namespace Build.IO
 			};
 
 			var projectDirectory = environment.Properties[Properties.MSBuildProjectDirectory];
-			if (String.IsNullOrEmpty(projectDirectory))
+			if (string.IsNullOrEmpty(projectDirectory))
 				throw new ArgumentException("Expected \"$(MSBuildProjectDirectory)\" to contain a valid path, but it is empty!");
 
 			var fullPath = Path.IsPathRooted(include)
